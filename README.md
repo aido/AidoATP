@@ -1,4 +1,5 @@
 OpenPay
 =======
 
-Reference Implementations of the OpenPay network from the Open Payments Alliance
+Reference implementation of the OpenPay, payment network software. 
+Courtesy of the Open Payments Alliance
