@@ -32,20 +32,20 @@ public class EnrollmentManager {
 	 * @param userID
 	 * @return bitcoinAddress or null if failed
 	 */
-	public synchronized byte[] enroll(byte[] enrollmentID, byte[] userID,MessageQ enrollmentQ) {
+	public synchronized EnrollmentModel enroll(byte[] enrollmentID, byte[] userID) {
 		
 		
 		try {
 			md = MessageDigest.getInstance("SHA-512");
 			md.reset();
 		} catch (NoSuchAlgorithmException e) {
-			log.log(Level.SEVERE, Application.getError("NO_SUCH_ALGORITHIM"));
+			log.severe(e.getLocalizedMessage());
 			return null;
 		}
 		
 		
-		//eIDHash is used by the Messaging System as an AES key base for attempting to decrypt incoming messages
-		byte[] eIDHash = md.digest(md.digest(enrollmentID));
+		//eID is used by the Messaging System as an AES key base for attempting to decrypt incoming messages
+		byte[] eID = md.digest(md.digest(enrollmentID));
 		md.reset();
 		
 		md.update(enrollmentID);
@@ -59,18 +59,8 @@ public class EnrollmentManager {
 		ECKey key = new ECKey(privKey);
 		
 		Address addr = key.toAddress(NetworkParameters.prodNet());
-		
-		//
-		enrollmentQ.send(eIDHash,userID,addr);
-		
-		return addr.getHash160();
-		
-	}
-
-	private void sendToQ(byte[] eIDHash, byte[] userID, Address addr) {
-		// TODO Auto-generated method stub
-		
-	}
 	
-
+		return new EnrollmentModel(eID,addr,privKey);
+		
+	}
 }

@@ -27,12 +27,13 @@ public class EnrollmentServer implements Runnable {
 	public EnrollmentServer(){
 		
 		threadCount = 10;
+		port = 54321;
 		log = Logger.getLogger(EnrollmentServer.class.getName());
 		
 		if(Application.getArg("port")!= null){
 			port =Integer.parseInt(Application.getArg("port"));
 		}
-		log.info(Application.getInfo("PORT_BIND")+" "+port);
+		log.info(Messages.getString("PORT_BIND")+" "+port);
 		
 		if(Application.getArg("backlog")!=null){
 			backlog = Integer.parseInt(Application.getArg("backlog"));
@@ -42,8 +43,6 @@ public class EnrollmentServer implements Runnable {
 			threadCount = Integer.parseInt(Application.getArg("minthreads"));
 		}
 		
-		
-		
 		try {
 			SSLServerSocketFactory socketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 			
@@ -51,8 +50,7 @@ public class EnrollmentServer implements Runnable {
 			serverSocket.setReuseAddress(true);
 			
 		} catch (IOException e) {
-			log.log(Level.SEVERE, Application.getError("PORT_BIND_ERROR"));
-			log.log(Level.SEVERE,e.getLocalizedMessage());
+			log.severe(e.getLocalizedMessage());
 		}
 	}
 	
@@ -69,10 +67,10 @@ public class EnrollmentServer implements Runnable {
 			SSLSocket clientSocket = null;
 			try {
 			    clientSocket = (SSLSocket) serverSocket.accept();
-			  //TODO: Need to implement MessageQ and load it dynamically
-			    Application.getPool().submit(new ClientConnection(clientSocket,null));
+			    Application.getPool().submit(new ClientConnection(clientSocket));
 			}catch (IOException e) {
-			    log.log(Level.SEVERE,Application.getError("COULD_NOT_START_SERVICE"));
+			    log.severe(e.getLocalizedMessage());
+			    break;
 			}
 		}
 	}
