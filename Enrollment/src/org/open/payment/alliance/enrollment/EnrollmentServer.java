@@ -5,8 +5,6 @@ package org.open.payment.alliance.enrollment;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLServerSocket;
@@ -15,7 +13,7 @@ import javax.net.ssl.SSLSocket;
 
 /**
  * @author Auberon
- *
+ * This class needs to be refactored to use the SecurePreferences instead of the command line args
  */
 public class EnrollmentServer implements Runnable {
 	private static EnrollmentServer instance= null;

@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLSocket;
@@ -60,12 +59,6 @@ public class ClientConnection implements Runnable {
 			log.severe(e.getLocalizedMessage());
 		}
 		System.gc();
-	}
-
-	private byte[] emptyArray(int i) {
-		byte[] arr = new byte[i];
-		Arrays.fill(arr,(byte)0);
-		return arr;
 	}
 
 }
