@@ -31,6 +31,10 @@ public class Platform {
 		if(!getArg("clearprefs").isEmpty()){
 			prefs.wipe();
 			prefs = new SecurePreferences();
+		}else{
+			for(String key : arguments.keySet()){
+				prefs.put(key, arguments.get(key));
+			}
 		}
 		pool = Executors.newCachedThreadPool();
 		running = true;
@@ -46,6 +50,10 @@ public class Platform {
 	
 	public String getArg(String key){
 		return arguments.get(key);
+	}
+	
+	public String getPref(String key){
+		return prefs.get(key);
 	}
 
 	public void daemonize()
@@ -66,13 +74,7 @@ public class Platform {
 	}
 	
 	public void shutDown(){
-		//When we start again we want to run with the same args, we just don't want them to be obvious in ps -aux or command history etc.
-		if(!getArg("clearprefs").isEmpty()){
-			arguments.remove("clearprefs");
-		}
-		for(String key : arguments.keySet()){
-			prefs.put(key, arguments.get(key));
-		}
+		
 		running = false;
 	}
 }
