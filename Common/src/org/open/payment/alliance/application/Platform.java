@@ -74,7 +74,7 @@ public class Platform {
 	}
 	
 	public void shutDown(){
-		
 		running = false;
+		pool.shutdownNow();
 	}
 }
