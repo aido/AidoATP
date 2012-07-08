@@ -49,11 +49,11 @@ public class EnrollmentManager {
 		
 		md.update(enrollmentID);
 		md.update(userID);
-		byte[] keyBase = md.digest(md.digest());
+		byte[] keyBytes = md.digest(md.digest());
 		md.reset();
 	
 		//privKey is in fact the private key it is disposed of and calculated on the the fly
-		BigInteger privKey = new BigInteger(1,keyBase);
+		BigInteger privKey = new BigInteger(1,keyBytes);
 		
 		ECKey key = new ECKey(privKey);
 		
