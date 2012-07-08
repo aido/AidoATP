@@ -3,10 +3,12 @@
  */
 package org.open.payment.alliance.messaging;
 
+import java.util.logging.Logger;
+
+import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.Connection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 import org.open.payment.alliance.application.Platform;
 
 /**
@@ -18,14 +20,39 @@ public class OpenPayNetworkConnection implements Runnable {
 	Platform platform;
 	ConnectionConfiguration config;
 	Connection connection;
-	String userName, password, resourceName;
+	String userName, password, xmppServer;
 	Integer port;
+	Logger log;
+	ChatManager chatManager;
 	
 	/**
 	 * 
 	 */
 	public OpenPayNetworkConnection() {
 		platform = Application.getPlatform();
+		log = Logger.getLogger(OpenPayNetworkConnection.class.getName());
+		userName = platform.getPref("xmppname");
+		password = platform.getPref("xmpppassword");
+		port = Integer.parseInt(platform.getPref("xmppport"));
+		xmppServer = platform.getPref("xmppserver");
+		
+		// Create the configuration for this new connection
+		config = new ConnectionConfiguration(xmppServer, port);
+		config.setCompressionEnabled(true);
+		config.setSASLAuthenticationEnabled(true);
+		connection = new XMPPConnection(config);
+		
+		// Connect to the server
+		try {
+			// Log into the server
+			connection.connect();
+			connection.login(userName, password);
+			chatManager = connection.getChatManager();
+			chatManager.addChatListener(new OpenPayChatManagerListener(connection,chatManager));
+
+		} catch (Exception e) {
+			log.severe(e.getLocalizedMessage());
+		}
 		
 	}
 
@@ -35,26 +62,15 @@ public class OpenPayNetworkConnection implements Runnable {
 	@Override
 	public void run() {
 		
-		// Create the configuration for this new connection
-		config = new ConnectionConfiguration("jabber.org", 5222);
-		config.setCompressionEnabled(true);
-		config.setSASLAuthenticationEnabled(true);
-		connection = new XMPPConnection(config);
-		// Connect to the server
-		try {
-			connection.connect();
-			connection.login(userName, password, resourceName);
-		} catch (XMPPException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// Log into the server
 		
+
 		while(platform.isRunning()){
 			
 			
 			Thread.yield();
 		}
+		// Disconnect from the server
+		connection.disconnect();
 
 	}
 
