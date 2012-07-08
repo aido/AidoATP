@@ -28,7 +28,7 @@ public class OpenPayMessageListener implements MessageListener{
 		Date now = new Date();
 		if((now.getTime() - timestamp) < TTL){
 			forwardToAll(msg);
-			Application.sendMessageToAuth(msg);
+			Application.getAuthConnection().addMsg(msg);
 		}
 		
 	}

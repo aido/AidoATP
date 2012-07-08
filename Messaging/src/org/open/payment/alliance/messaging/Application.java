@@ -4,7 +4,6 @@
 package org.open.payment.alliance.messaging;
 
 
-import org.jivesoftware.smack.packet.Message;
 import org.open.payment.alliance.application.Platform;
 /**
  * This is the entrance point for the messaging application.
@@ -18,6 +17,8 @@ import org.open.payment.alliance.application.Platform;
 public class Application{
 
 	private static Platform platform = null;
+	private static OpenPayNetworkConnection openPay;
+	private static AuthClientConnection auth;
 	 
 	/**
 	 * @param args
@@ -28,15 +29,23 @@ public class Application{
 			platform.daemonize();
 		}
 		
-		platform.submit(new OpenPayNetworkConnection());
+		openPay = new OpenPayNetworkConnection();
+		auth =new AuthClientConnection();
+		
+		platform.submit(openPay);
+		platform.submit(auth);
 	}
 
 	public static Platform getPlatform(){
 		return platform;
 	}
-
-	public static void sendMessageToAuth(Message msg) {
-		// TODO Auto-generated method stub
-		
+	
+	public static OpenPayNetworkConnection getOpenPayConnection(){
+		return openPay;
 	}
+	
+	public static AuthClientConnection getAuthConnection(){
+		return auth;
+	}
+	
 }
