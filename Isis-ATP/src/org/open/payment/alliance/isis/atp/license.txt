@@ -1,0 +1,14 @@
+By typing "I agree" you are hereby certifying that you agree to the following terms and conditions.
+
+You are of legal age or age of majority in your jurisdiction.
+You understand that this application is designed to trade currencies in a best effort manner in an attempt to seek a profit from certain values that the author has identified as trading signals, however no guarantees as to fitness of use for any purpose is being provided by the author.
+You understand that this application will run on your behalf and execute trades according to a formula that you selected during setup.
+The algorithms used are untested and the application itself presents a high risk of failure.
+You accept this risk and are willing to run and test the application and report your results.
+You further agree that you will NOT use this application to trade funds that you cannot afford to lose.
+You agree to hold the author of this application harmless from any damages or claims that may arise from your use of the application.
+You agree that you are assuming 100% of the risk and that you understand the risks involved.
+You agree that this application does not constitute financial advice and is merely a "pre-programmed trader", executing orders that you would have executed yourself.
+
+If you agree with the above statements please type "I Agree" without the quotation marks, to enable live trading.
+Type anything else to continue in simulation mode.
