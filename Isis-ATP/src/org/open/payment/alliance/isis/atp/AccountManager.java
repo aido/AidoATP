@@ -1,6 +1,7 @@
 package org.open.payment.alliance.isis.atp;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,9 +69,14 @@ public class AccountManager {
 					ArrayList<BigMoney> ledger = books.get(currency);
 					BigMoney beginBal = ledger.get(0);
 					BigMoney endBal = ledger.get(ledger.size()-1);
-					
+					BigDecimal profitAsPercent;
 					BigMoney profitAsCurrency = endBal.minus(beginBal);
-					BigDecimal profitAsPercent = beginBal.getAmount().divide(endBal.getAmount());
+					if(beginBal.getAmount().compareTo(BigDecimal.ZERO) !=0 && endBal.getAmount().compareTo(BigDecimal.ZERO) != 0) {
+						profitAsPercent = beginBal.getAmount().divide(endBal.getAmount(),RoundingMode.HALF_EVEN);
+					}else {
+						profitAsPercent = BigDecimal.ZERO;
+					}
+					
 					profitAsPercent = profitAsPercent.multiply(new BigDecimal("100"));
 					PL.put(currency, new PLModel(profitAsCurrency, profitAsPercent));
 				}

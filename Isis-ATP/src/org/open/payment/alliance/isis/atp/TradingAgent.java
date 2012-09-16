@@ -150,7 +150,7 @@ public class TradingAgent implements Runnable {
 									
 					BigDecimal qtyToBuy = balance.multiply(weight);
 					
-					log.info("Attempting to buy "+qtyToBuy.toPlainString()+" USD");
+					log.info("Attempting to buy "+qtyToBuy.toPlainString()+" BTC");
 					if(maxLocal != null){
 						if(qtyToBuy.compareTo(maxLocal) > 0){
 							log.info(qtyToBuy.toPlainString() + " was more than the configured maximum of "+maxLocal.toPlainString()+"\nReducing order size to "+maxLocal.toPlainString());

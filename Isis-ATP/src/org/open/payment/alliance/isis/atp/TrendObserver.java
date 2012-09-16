@@ -21,10 +21,13 @@ public class TrendObserver implements Runnable {
 	private int trendArrow;
 	private Logger log;
 	private Ticker lastTick;
+	private long learnTime;
 	
 	public TrendObserver() {
 		log = Logger.getLogger(TrendObserver.class.getSimpleName());
+		learnTime = System.currentTimeMillis() + Constants.ONEHOUR; //We don't want to jump the gun on trades.  Let it learn for an hour.
 	}
+	
 	@Override
 	public void run() {
 		
@@ -166,8 +169,11 @@ public class TrendObserver implements Runnable {
 			}
 			
 			System.out.println("\n");
-			
-			evaluateMarketConditions();
+			if(System.currentTimeMillis() > learnTime) {
+				evaluateMarketConditions();
+			}else {
+				log.info("Application has not run long enough to build a market profile.\n"+((learnTime - System.currentTimeMillis())/1000)/60+" minutes remaining.");
+			}
 			
 			try {
 				Thread.sleep(Constants.ONEMINUTE);

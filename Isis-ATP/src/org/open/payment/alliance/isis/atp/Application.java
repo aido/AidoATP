@@ -58,20 +58,21 @@ public class Application {
 		config = Preferences.userNodeForPackage(this.getClass());
 		
 		if(params.containsKey("--clear-config")) {
-			logger.info("Clearning out all configuration data.");
+			logger.info("Clearing out all configuration data.");
 			try {
 				config.clear();
 				config.sync();
 			} catch (BackingStoreException e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
 		}
 		
 		if(config.get("ApiKey", null) == null) {
 			interview();
-		}
-			
+		}else {
+			simModeFlag = showAgreement();
+		}			
 																						 
 	    exchange = IsisMtGoxExchange.getInstance();
 	    	 
@@ -106,7 +107,7 @@ public class Application {
 	
 	private boolean showAgreement() {
 		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
-		if(console == null && params.get("--debug-live").equalsIgnoreCase("true")) {
+		if(params.get("--debug-live").equalsIgnoreCase("true")) {
 			System.out.println("Entering live mode for real world debugging.");
 			return false;
 		}
