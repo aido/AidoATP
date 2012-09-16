@@ -110,7 +110,7 @@ public class TradingAgent implements Runnable {
 						}
 						if(qtyToSell.compareTo(minBTC) < 0) {
 							log.info(qtyToSell.toPlainString() + " was less than the configured limit of "+minBTC.toPlainString()+"\nIncreasing order size to "+minBTC.toPlainString());
-	
+							qtyToSell = minBTC;
 						}
 					}
 				
