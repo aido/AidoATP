@@ -14,18 +14,31 @@ import com.xeiam.xchange.dto.marketdata.Ticker;
 public class TrendObserver implements Runnable {
 
 	private BigMoney vwap;
-	private Ticker high;
-	private Ticker low;
+	private ATPTicker high;
+	private ATPTicker low;
 	private int bidArrow;
 	private int askArrow;
 	private int trendArrow;
 	private Logger log;
-	private Ticker lastTick;
+	private ATPTicker lastTick;
 	private long learnTime;
 	
 	public TrendObserver() {
 		log = Logger.getLogger(TrendObserver.class.getSimpleName());
-		learnTime = System.currentTimeMillis() + Constants.ONEHOUR; //We don't want to jump the gun on trades.  Let it learn for an hour.
+		ArrayList<ATPTicker> ticker = TickerManager.getMarketData();
+		if(ticker != null && !ticker.isEmpty()) {
+			lastTick = ticker.get(ticker.size()-1);
+			long now = System.currentTimeMillis();
+			long tenMinsAgo = now - Constants.TENMINUTES;
+			if(lastTick.getTimestamp().isAfter(tenMinsAgo)) {
+				learnTime = System.currentTimeMillis();
+			}else {
+				learnTime = System.currentTimeMillis() + Constants.TENMINUTES; //We don't want to jump the gun on trades.  Let it learn for an hour.
+			}
+		}else {
+			learnTime = System.currentTimeMillis() + Constants.TENMINUTES; //We don't want to jump the gun on trades.  Let it learn for an hour.
+		}
+		
 	}
 	
 	@Override
@@ -48,8 +61,8 @@ public class TrendObserver implements Runnable {
 			
 			//We can't have multiple threads messing with the ticker object
 			//Ideally this should have been a deep copy, but went this way for speed.
-			ArrayList<Ticker> ticker = null;
-			Ticker tick = null;
+			ArrayList<ATPTicker> ticker = null;
+			ATPTicker tick = null;
 			while(ticker == null || ticker.isEmpty()) {
 				ticker = TickerManager.getMarketData();
 				try {
@@ -198,7 +211,7 @@ public class TrendObserver implements Runnable {
 	public BigMoney getVwap() {
 		return vwap;
 	}
-	public Ticker getLastTick() {
+	public ATPTicker getLastTick() {
 		return lastTick;
 	}
 }

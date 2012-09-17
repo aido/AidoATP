@@ -30,16 +30,18 @@ public class TradingAgent implements Runnable {
 	private BigMoney vwap;
 	private Exchange exchange;
 	private PollingTradeService tradeService;
-	private Ticker lastTick;
+	private ATPTicker lastTick;
 	private TrendObserver observer;
-	private ArrayList<Ticker> ticker;
+	private ArrayList<ATPTicker> ticker;
 	private BigDecimal maxBTC;
 	private BigDecimal minBTC;
 	private BigDecimal maxLocal;
 	private BigDecimal minLocal;
+	private BigDecimal maxWeight;
+	private Integer    algorithm;
 	private CurrencyUnit localCurrency;
 	private Logger log;
-	
+		
 	public TradingAgent(TrendObserver observer) {
 		log = Logger.getLogger(TradingAgent.class.getSimpleName());
 		this.observer = observer;
@@ -50,7 +52,9 @@ public class TradingAgent implements Runnable {
 		maxLocal = new BigDecimal(Application.getInstance().getConfig("MaxLocal"));
 		minBTC = new BigDecimal(Application.getInstance().getConfig("MinBTC"));
 		minLocal = new BigDecimal(Application.getInstance().getConfig("MinLocal"));
+		maxWeight = new BigDecimal(Application.getInstance().getConfig("MaxLoss"));
 		localCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
+		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));
 	}
 
 	/* (non-Javadoc)
@@ -87,11 +91,20 @@ public class TradingAgent implements Runnable {
 			//Check balance and see if we even have anything to sell
 			
 			try {
-				BigDecimal balance = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC")).getAmount();//TODO:  Fix this
 				
 				//Look at bid arrow and calculate weight
 				BigDecimal weight = new BigDecimal((bidArrow / ticker.size()) * (trendArrow / ticker.size()));
-				//weight = weight.multiply(new BigDecimal("100"));
+								
+				if(weight.compareTo(maxWeight) >0) {
+					weight = maxWeight;
+				}
+				
+				BigDecimal balance;
+				
+				
+				balance = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC")).getAmount();
+				
+											
 				if(balance != null) {
 					
 					if(balance.compareTo(BigDecimal.ZERO) == 0) {
@@ -99,8 +112,16 @@ public class TradingAgent implements Runnable {
 						return;
 					}
 					
-					
-					BigDecimal qtyToSell = balance.multiply(weight);
+					BigDecimal qtyToSell;
+					if(algorithm == 1) {
+						qtyToSell = balance.multiply(weight);
+					}else {
+						if(balance.compareTo(maxBTC) > 0) {
+							qtyToSell = maxBTC.multiply(weight);
+						}else {
+							qtyToSell = balance.multiply(weight);
+						}
+					}
 					
 					log.info("Attempting to sell "+qtyToSell.toPlainString()+" of "+balance.toPlainString()+" BTC available");
 					if(maxBTC != null) {
@@ -137,9 +158,16 @@ public class TradingAgent implements Runnable {
 		if(currentAsk.isLessThan(vwap)) {
 			//Formula for bid is the same as for ASK with USD/BTC instead of BTC/USD
 			BigDecimal weight = new BigDecimal((askArrow / ticker.size()) * (trendArrow / ticker.size()));
+						
+			if(weight.compareTo(maxWeight) >0) {
+				weight = maxWeight;
+			}
+			
 			BigDecimal balance;
 			try {
-				balance = AccountManager.getInstance().getBalance(localCurrency).getAmount();
+				
+					balance = AccountManager.getInstance().getBalance(localCurrency).getAmount();
+				
 			
 				if(balance != null) {
 					
@@ -148,7 +176,17 @@ public class TradingAgent implements Runnable {
 						return;
 					}
 									
-					BigDecimal qtyToBuy = balance.multiply(weight);
+					BigDecimal qtyToBuy;
+					
+					if(algorithm == 1) {
+						qtyToBuy = balance.multiply(weight);
+					}else {
+						if(balance.compareTo(maxLocal) > 0) {
+							qtyToBuy = maxLocal.multiply(weight);
+						}else {
+							qtyToBuy = balance.multiply(weight);
+						}
+					}
 					
 					log.info("Attempting to buy "+qtyToBuy.toPlainString()+" BTC");
 					if(maxLocal != null){
@@ -174,10 +212,10 @@ public class TradingAgent implements Runnable {
 		}
 	}
 	
-	private void marketOrder(BigDecimal qtyToSell, OrderType orderType) {
+	private void marketOrder(BigDecimal qty, OrderType orderType) {
 		MarketOrder order = new MarketOrder();
 		order.setType(orderType);
-		order.setTradableAmount(qtyToSell);
+		order.setTradableAmount(qty);
 		order.setTradableIdentifier("BTC");
 		order.setTransactionCurrency(localCurrency.getCurrencyCode());
 		boolean success = true;
@@ -198,16 +236,18 @@ public class TradingAgent implements Runnable {
 		}
 		
 		if(success){
-			log.info("Successfully"+action+qtyToSell.toPlainString()+" at current market price.");
+			log.info("Successfully"+action+qty.toPlainString()+" at current market price.");
 			PLModel localProfit = AccountManager.getInstance().getPLFor(localCurrency);
 			PLModel btcProfit = AccountManager.getInstance().getPLFor(CurrencyUnit.of("BTC"));
 			
 			log.info("Current P/L: "+btcProfit.getAmount()+" %"+btcProfit.getPercent());
 			log.info("Current P/L: "+localProfit.getAmount()+" %"+localProfit.getPercent() );
-					
+			
+			log.info(AccountManager.getInstance().getAccountInfo().toString());
+			
 			
 		}else{
-			log.severe("Failed to"+failAction+qtyToSell.toPlainString()+" at current market price.\nPlease investigate");
+			log.severe("Failed to"+failAction+qty.toPlainString()+" at current market price.\nPlease investigate");
 		}
 	}
 

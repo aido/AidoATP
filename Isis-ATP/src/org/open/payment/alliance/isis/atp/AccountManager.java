@@ -71,8 +71,9 @@ public class AccountManager {
 					BigMoney endBal = ledger.get(ledger.size()-1);
 					BigDecimal profitAsPercent;
 					BigMoney profitAsCurrency = endBal.minus(beginBal);
+					
 					if(beginBal.getAmount().compareTo(BigDecimal.ZERO) !=0 && endBal.getAmount().compareTo(BigDecimal.ZERO) != 0) {
-						profitAsPercent = beginBal.getAmount().divide(endBal.getAmount(),RoundingMode.HALF_EVEN);
+						profitAsPercent = profitAsCurrency.getAmount().divide(beginBal.getAmount(),RoundingMode.HALF_EVEN);
 					}else {
 						profitAsPercent = BigDecimal.ZERO;
 					}
@@ -101,5 +102,9 @@ public class AccountManager {
 	
 	public PLModel getPLFor(CurrencyUnit currency){
 		return PL.get(currency);
+	}
+
+	public AccountInfo getAccountInfo() {
+		return accountInfo;
 	}
 }

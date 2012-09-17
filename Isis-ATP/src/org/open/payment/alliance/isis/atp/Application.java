@@ -6,12 +6,14 @@ package org.open.payment.alliance.isis.atp;
 import java.io.Console;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.AccountInfo;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
