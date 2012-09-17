@@ -116,7 +116,7 @@ public class TradingAgent implements Runnable {
 					if(algorithm == 1) {
 						qtyToSell = balance.multiply(weight);
 					}else {
-						if(balance.compareTo(maxBTC) > 0) {
+						if(balance.compareTo(maxBTC) >= 0) {
 							qtyToSell = maxBTC.multiply(weight);
 						}else {
 							qtyToSell = balance.multiply(weight);
@@ -181,7 +181,7 @@ public class TradingAgent implements Runnable {
 					if(algorithm == 1) {
 						qtyToBuy = balance.multiply(weight);
 					}else {
-						if(balance.compareTo(maxLocal) > 0) {
+						if(balance.compareTo(maxLocal) >= 0) {
 							qtyToBuy = maxLocal.multiply(weight);
 						}else {
 							qtyToBuy = balance.multiply(weight);
