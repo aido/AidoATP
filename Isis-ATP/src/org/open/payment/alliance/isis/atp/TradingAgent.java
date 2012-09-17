@@ -24,9 +24,9 @@ import com.xeiam.xchange.service.trade.polling.PollingTradeService;
  */
 public class TradingAgent implements Runnable {
 
-	private int trendArrow;
-	private int bidArrow;
-	private int askArrow;
+	private double trendArrow;
+	private double bidArrow;
+	private double askArrow;
 	private BigMoney vwap;
 	private Exchange exchange;
 	private PollingTradeService tradeService;
@@ -37,7 +37,7 @@ public class TradingAgent implements Runnable {
 	private BigDecimal minBTC;
 	private BigDecimal maxLocal;
 	private BigDecimal minLocal;
-	private BigDecimal maxWeight;
+	private Double maxWeight;
 	private Integer    algorithm;
 	private CurrencyUnit localCurrency;
 	private Logger log;
@@ -52,7 +52,7 @@ public class TradingAgent implements Runnable {
 		maxLocal = new BigDecimal(Application.getInstance().getConfig("MaxLocal"));
 		minBTC = new BigDecimal(Application.getInstance().getConfig("MinBTC"));
 		minLocal = new BigDecimal(Application.getInstance().getConfig("MinLocal"));
-		maxWeight = new BigDecimal(Application.getInstance().getConfig("MaxLoss"));
+		maxWeight = new Double(Application.getInstance().getConfig("MaxLoss"));
 		localCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
 		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));
 	}
@@ -70,6 +70,23 @@ public class TradingAgent implements Runnable {
 		lastTick = observer.getLastTick();
 		ticker = TickerManager.getMarketData();
 		
+		StringBuilder str = new StringBuilder();
+		str.append("Ticker Size: ");
+		str.append(ticker.size());
+		str.append(" | ");
+		str.append("Trend Arrow: ");
+		str.append(trendArrow);
+		str.append(" | ");
+		str.append("Bid Arrow: ");
+		str.append(bidArrow);
+		str.append(" | ");
+		str.append("Ask Arrow: ");
+		str.append(askArrow);
+		str.append(" | ");
+		str.append("VWAP: ");
+		str.append(vwap);
+		
+		log.info(str.toString());
 		if(trendArrow > 0){
 			//If market is trending up, we should look at selling
 			evalAsk();
@@ -92,10 +109,18 @@ public class TradingAgent implements Runnable {
 			
 			try {
 				
+				Double weight;
 				//Look at bid arrow and calculate weight
-				BigDecimal weight = new BigDecimal((bidArrow / ticker.size()) * (trendArrow / ticker.size()));
-								
-				if(weight.compareTo(maxWeight) >0) {
+				if(algorithm == 1) {
+					weight = ((bidArrow + trendArrow) / ticker.size());
+				}else {
+					weight = (bidArrow / ticker.size()) * (trendArrow / ticker.size());
+				}
+				
+				log.info("Weight is "+weight);
+				
+				if(weight > maxWeight) {
+					log.info("Weight is above maxWeight, limiting weight to "+maxWeight);
 					weight = maxWeight;
 				}
 				
@@ -113,13 +138,14 @@ public class TradingAgent implements Runnable {
 					}
 					
 					BigDecimal qtyToSell;
+					BigDecimal bigWeight = new BigDecimal(weight);
 					if(algorithm == 1) {
-						qtyToSell = balance.multiply(weight);
+						qtyToSell = balance.multiply(bigWeight);
 					}else {
 						if(balance.compareTo(maxBTC) >= 0) {
-							qtyToSell = maxBTC.multiply(weight);
+							qtyToSell = maxBTC.multiply(bigWeight);
 						}else {
-							qtyToSell = balance.multiply(weight);
+							qtyToSell = balance.multiply(bigWeight);
 						}
 					}
 					
@@ -130,8 +156,8 @@ public class TradingAgent implements Runnable {
 							qtyToSell = maxBTC;
 						}
 						if(qtyToSell.compareTo(minBTC) < 0) {
-							log.info(qtyToSell.toPlainString() + " was less than the configured limit of "+minBTC.toPlainString()+"\nIncreasing order size to "+minBTC.toPlainString());
-							qtyToSell = minBTC;
+							log.info(qtyToSell.toPlainString() + " was less than the configured limit of "+minBTC.toPlainString()+"\nThere just isn't enough momentum to trade at this time.");
+							return;
 						}
 					}
 				
@@ -157,16 +183,27 @@ public class TradingAgent implements Runnable {
 		BigMoney currentAsk = lastTick.getAsk();
 		if(currentAsk.isLessThan(vwap)) {
 			//Formula for bid is the same as for ASK with USD/BTC instead of BTC/USD
-			BigDecimal weight = new BigDecimal((askArrow / ticker.size()) * (trendArrow / ticker.size()));
-						
-			if(weight.compareTo(maxWeight) >0) {
+			Double weight;
+			
+			
+			//Look at bid arrow and calculate weight
+			if(algorithm == 1) {
+				weight = (askArrow + trendArrow) / ticker.size();
+			}else {
+				weight = (askArrow / ticker.size()) * (trendArrow / ticker.size());
+			}
+			
+			log.info("Weight is "+weight);
+			BigDecimal bigWeight = new BigDecimal(weight);			
+			if(weight > maxWeight) {
+				log.info("Weight is above maxWeight, limiting weight to "+maxWeight);
 				weight = maxWeight;
 			}
 			
 			BigDecimal balance;
 			try {
 				
-					balance = AccountManager.getInstance().getBalance(localCurrency).getAmount();
+				balance = AccountManager.getInstance().getBalance(localCurrency).getAmount();
 				
 			
 				if(balance != null) {
@@ -177,14 +214,14 @@ public class TradingAgent implements Runnable {
 					}
 									
 					BigDecimal qtyToBuy;
-					
+					bigWeight = new BigDecimal(weight);
 					if(algorithm == 1) {
-						qtyToBuy = balance.multiply(weight);
+						qtyToBuy = balance.multiply(bigWeight);
 					}else {
 						if(balance.compareTo(maxLocal) >= 0) {
-							qtyToBuy = maxLocal.multiply(weight);
+							qtyToBuy = maxLocal.multiply(bigWeight);
 						}else {
-							qtyToBuy = balance.multiply(weight);
+							qtyToBuy = balance.multiply(bigWeight);
 						}
 					}
 					
@@ -196,8 +233,8 @@ public class TradingAgent implements Runnable {
 						}
 						
 						if(qtyToBuy.compareTo(minLocal) < 0){
-							log.info(qtyToBuy.toPlainString() + " was less than the configured minimum of "+minLocal.toPlainString()+"\nIncreasing order size to "+minLocal.toPlainString());
-							qtyToBuy = minLocal;
+							log.info(qtyToBuy.toPlainString() + " was less than the configured minimum of "+minLocal.toPlainString()+"\nThere just isn't enough momentum to trade at this time.");
+							return;
 						}
 					}
 					marketOrder(qtyToBuy,OrderType.BID);
@@ -240,9 +277,10 @@ public class TradingAgent implements Runnable {
 			PLModel localProfit = AccountManager.getInstance().getPLFor(localCurrency);
 			PLModel btcProfit = AccountManager.getInstance().getPLFor(CurrencyUnit.of("BTC"));
 			
-			log.info("Current P/L: "+btcProfit.getAmount()+" %"+btcProfit.getPercent());
-			log.info("Current P/L: "+localProfit.getAmount()+" %"+localProfit.getPercent() );
+			log.info("Current P/L: "+btcProfit.getAmount()+" | "+btcProfit.getPercent()+"%");
+			log.info("Current P/L: "+localProfit.getAmount()+" | "+localProfit.getPercent()+"%" );
 			
+			log.info("Overall P/L: "+btcProfit.getPercent().add(localProfit.getPercent())+"%");
 			log.info(AccountManager.getInstance().getAccountInfo().toString());
 			
 			
