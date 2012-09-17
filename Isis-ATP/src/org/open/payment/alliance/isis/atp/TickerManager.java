@@ -84,7 +84,9 @@ public class TickerManager implements Runnable{
 		ObjectOutputStream oos;
 		try {
 			oos = new ObjectOutputStream(new FileOutputStream(file));
-			oos.writeObject(tickerCache);
+			synchronized(tickerCache) {
+				oos.writeObject(tickerCache);
+			}
 			oos.flush();
 			oos.close();
 		} catch (Exception e) {
