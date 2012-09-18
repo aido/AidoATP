@@ -118,6 +118,7 @@ public class TradingAgent implements Runnable {
 				}
 				
 				log.info("Weight is "+weight);
+				weight = Math.abs(weight);
 				
 				if(weight > maxWeight) {
 					log.info("Weight is above maxWeight, limiting weight to "+maxWeight);
@@ -193,6 +194,8 @@ public class TradingAgent implements Runnable {
 				weight = (askArrow / ticker.size()) * (trendArrow / ticker.size());
 			}
 			
+			weight = Math.abs(weight);
+			
 			log.info("Weight is "+weight);
 			BigDecimal bigWeight = new BigDecimal(weight);			
 			if(weight > maxWeight) {
@@ -209,7 +212,7 @@ public class TradingAgent implements Runnable {
 				if(balance != null) {
 					
 					if(balance.compareTo(BigDecimal.ZERO) == 0) {
-						log.info("Balance is empty.  No further selling is possible until the market corrects itself or funds are added to your account.");
+						log.info("Balance is empty.  No further buying is possible until the market corrects itself or funds are added to your account.");
 						return;
 					}
 									
@@ -245,7 +248,7 @@ public class TradingAgent implements Runnable {
 			}	
 		}else{
 			log.info("The trading agent has determined that market conditions are not appropriate for you to buy at this time.");
-			log.info("Current ask price of "+currentAsk.toString()+" is below the VWAP of "+vwap.toString());
+			log.info("Current ask price of "+currentAsk.toString()+" is above the VWAP of "+vwap.toString());
 		}
 	}
 	
@@ -280,7 +283,12 @@ public class TradingAgent implements Runnable {
 			log.info("Current P/L: "+btcProfit.getAmount()+" | "+btcProfit.getPercent()+"%");
 			log.info("Current P/L: "+localProfit.getAmount()+" | "+localProfit.getPercent()+"%" );
 			
-			log.info("Overall P/L: "+btcProfit.getPercent().add(localProfit.getPercent())+"%");
+			Double overall;
+			Double btc = btcProfit.getAmount().getAmount().doubleValue();
+			Double local = localProfit.getAmount().getAmount().doubleValue();
+			Double btcNormalized = btc * lastTick.getLast().getAmount().doubleValue();
+			overall = local + btcNormalized;
+			log.info("Overall P/L: "+overall+" "+localCurrency.getCurrencyCode());
 			log.info(AccountManager.getInstance().getAccountInfo().toString());
 			
 			
