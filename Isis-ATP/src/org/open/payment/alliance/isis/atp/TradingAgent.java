@@ -86,14 +86,32 @@ public class TradingAgent implements Runnable {
 		str.append("VWAP: ");
 		str.append(vwap);
 		
-		log.info(str.toString());
-		if(trendArrow > 0){
+		
+		str.append("\nThe market is trending");
+		if(trendArrow > 0) {
+			//Market is going up, look at selling some BTC
+			str.append(" up.");
+			
+		}else if(trendArrow < 0) {
+			//Market is going down, look at buying some BTC
+			str.append(" down.");
+		}else {
+			//Market is stagnant, hold position
+			str.append(" flat.");
+		}
+		
+		
+		
+		if(trendArrow > 0 && bidArrow > 0){
 			//If market is trending up, we should look at selling
 			evalAsk();
-		}else if(trendArrow < 0){
+		}else if(trendArrow < 0 && askArrow < 0){
 			//If market is trending down, we should look at buying
 			evalBid();
+		}else {
+			str.append("\nNo action will be taken at this time.\n");
 		}
+		log.info(str.toString());
 	}
 
 	//Let's decide whether or not to sell & how much to sell 

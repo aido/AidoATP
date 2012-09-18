@@ -167,20 +167,7 @@ public class TrendObserver implements Runnable {
 			System.out.println("Low: "+low.toString());
 			System.out.println("Current: "+tick.toString());
 			System.out.println("VWAP: "+vwap.getAmount().toPlainString());
-			
-			System.out.print("The market is trending");
-			if(trendArrow > 0) {
-				//Market is going up, look at selling some BTC
-				System.out.println(" up.");
-				
-			}else if(trendArrow < 0) {
-				//Market is going down, look at buying some BTC
-				System.out.println(" down.");
-			}else {
-				//Market is stagnant, hold position
-				System.out.println(" flat.");
-			}
-			
+									
 			System.out.println("\n");
 			if(System.currentTimeMillis() > learnTime) {
 				evaluateMarketConditions();
