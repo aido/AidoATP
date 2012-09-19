@@ -26,8 +26,6 @@ public class Application {
 	private Preferences config;
 	private boolean simModeFlag;
 	private Exchange exchange;
-	private PollingTradeService tradeService;
-	private AccountInfo accountInfo;
 	private Console console;
 	private Application() {
 		logger = Logger.getLogger(Application.class.getName());
@@ -75,6 +73,7 @@ public class Application {
 																			          
 	    exchange = IsisMtGoxExchange.getInstance();
 	    AccountManager.getInstance().refreshAccounts();
+	    new Thread(ArbitrageEngine.getInstance()).start();
 	    logger.info("Isis ATP has started successfully");
 	    while(AccountManager.getInstance().isRunning()) {
 	    	Thread.currentThread().yield();
@@ -117,7 +116,7 @@ public class Application {
 		out.print("Enter your secret key: ");
 		config.put("SecretKey", console.readLine());
 		
-		out.print("ISO Code for Local Currency (i.e. USD, GBP, JPY, EUR): ");
+		out.print("ISO Code for Prefered Currency (i.e. USD, GBP, JPY, EUR etc): ");
 		config.put("LocalCurrency", console.readLine());
 		
 		out.print("Maximum number of bitcoins to trade in a single order: ");
@@ -134,6 +133,12 @@ public class Application {
 		
 		out.print("Overall maximum loss tolerance (eg 25% = 0.25): ");
 		config.put("MaxLoss", console.readLine());
+		
+		out.print("Minimum Profit to seek for Arbitrage (eg 10% = 0.10): ");
+		config.put("TargetProfit", console.readLine());
+		
+		out.print("Trading fee (eg 0.6% = 0.006): ");
+		config.put("TradingFee", console.readLine());
 		
 		out.println("Which algorithm would you like to use? (1 or 2)");
 		out.println("1: \"High Risk\"");

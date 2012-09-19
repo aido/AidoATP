@@ -149,4 +149,9 @@ public class AccountManager {
 		}
 		return running;
 	}
+
+	public ATPTicker getLastTick(CurrencyUnit baseCurrency) {
+		
+		return currencyTracker.get(baseCurrency).getTickerManager().getLastTick();
+	}
 }

@@ -106,6 +106,7 @@ public class TickerManager implements Runnable{
 				currentVolume = tick.getVolume();
 				if(currentVolume != lastVolume) {
 					synchronized(tickerCache) {
+						ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
 						tickerCache.add(new ATPTicker(tick));
 					}
 					//System.out.println(tick.toString());
@@ -153,5 +154,13 @@ public class TickerManager implements Runnable{
 
 	public CurrencyUnit getCurrency() {
 		return currency;
+	}
+
+	public synchronized ATPTicker getLastTick() {
+		ATPTicker tick;
+		synchronized(tickerCache) {
+			tick = tickerCache.get(tickerCache.size()-1);
+		}
+		return tick;
 	}	
 }

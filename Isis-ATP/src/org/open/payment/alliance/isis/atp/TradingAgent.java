@@ -283,7 +283,7 @@ public class TradingAgent implements Runnable {
 		if(!Application.getInstance().isSimMode()){
 			success = tradeService.placeMarketOrder(order);
 		}else{
-			log.info("You are in simulation mode, the trade below did NOT actually occur.");
+			log.info("You were in simulation mode, the trade below did NOT actually occur.");
 		}
 		
 		String action,failAction;

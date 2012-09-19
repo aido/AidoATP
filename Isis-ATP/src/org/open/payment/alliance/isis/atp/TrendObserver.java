@@ -33,14 +33,14 @@ public class TrendObserver implements Runnable {
 		if(ticker != null && !ticker.isEmpty()) {
 			lastTick = ticker.get(ticker.size()-1);
 			long now = System.currentTimeMillis();
-			long tenMinsAgo = now - Constants.TENMINUTES;
-			if(lastTick.getTimestamp().isAfter(tenMinsAgo)) {
+			long oneMinsAgo = now - Constants.ONEMINUTE;
+			if(lastTick.getTimestamp().isAfter(oneMinsAgo)) {
 				learnTime = System.currentTimeMillis();
 			}else {
-				learnTime = System.currentTimeMillis() + Constants.TENMINUTES; //We don't want to jump the gun on trades.  Let it learn for an hour.
+				learnTime = System.currentTimeMillis() + Constants.ONEHOUR; //We don't want to jump the gun on trades.  Let it learn for an hour.
 			}
 		}else {
-			learnTime = System.currentTimeMillis() + Constants.TENMINUTES; //We don't want to jump the gun on trades.  Let it learn for an hour.
+			learnTime = System.currentTimeMillis() + Constants.ONEHOUR; //We don't want to jump the gun on trades.  Let it learn for an hour.
 		}
 		
 	}
