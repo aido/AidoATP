@@ -12,8 +12,6 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.Order.OrderType;
-import com.xeiam.xchange.dto.marketdata.Ticker;
-import com.xeiam.xchange.dto.trade.AccountInfo;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
@@ -41,20 +39,23 @@ public class TradingAgent implements Runnable {
 	private Integer    algorithm;
 	private CurrencyUnit localCurrency;
 	private Logger log;
+	private TickerManager tickerManager;
 		
 	public TradingAgent(TrendObserver observer) {
 		log = Logger.getLogger(TradingAgent.class.getSimpleName());
 		this.observer = observer;
-		exchange = IsisMtGoxExchange.getInstance();
+		exchange = Application.getInstance().getExchange();
 		tradeService = exchange.getPollingTradeService();
-				
+		tickerManager = observer.getTickerManager();
+		localCurrency = tickerManager.getCurrency();	
 		maxBTC = new BigDecimal(Application.getInstance().getConfig("MaxBTC"));
 		maxLocal = new BigDecimal(Application.getInstance().getConfig("MaxLocal"));
 		minBTC = new BigDecimal(Application.getInstance().getConfig("MinBTC"));
 		minLocal = new BigDecimal(Application.getInstance().getConfig("MinLocal"));
 		maxWeight = new Double(Application.getInstance().getConfig("MaxLoss"));
-		localCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
+		
 		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));
+		
 	}
 
 	/* (non-Javadoc)
@@ -68,7 +69,7 @@ public class TradingAgent implements Runnable {
 		askArrow = observer.getAskArrow();
 		vwap = observer.getVwap();
 		lastTick = observer.getLastTick();
-		ticker = TickerManager.getMarketData();
+		ticker = tickerManager.getMarketData();
 		
 		StringBuilder str = new StringBuilder();
 		str.append("Ticker Size: ");
@@ -87,7 +88,9 @@ public class TradingAgent implements Runnable {
 		str.append(vwap);
 		
 		
-		str.append("\nThe market is trending");
+		str.append("\nThe ");
+		str.append(localCurrency.getCode());
+		str.append(" market is trending");
 		if(trendArrow > 0) {
 			//Market is going up, look at selling some BTC
 			str.append(" up.");
@@ -99,7 +102,6 @@ public class TradingAgent implements Runnable {
 			//Market is stagnant, hold position
 			str.append(" flat.");
 		}
-		
 		
 		
 		if(trendArrow > 0 && bidArrow > 0){
@@ -281,7 +283,7 @@ public class TradingAgent implements Runnable {
 		if(!Application.getInstance().isSimMode()){
 			success = tradeService.placeMarketOrder(order);
 		}else{
-			log.info("You are in simulation mode, the transaction below did NOT actually occur.");
+			log.info("You are in simulation mode, the trade below did NOT actually occur.");
 		}
 		
 		String action,failAction;
@@ -299,7 +301,7 @@ public class TradingAgent implements Runnable {
 			PLModel btcProfit = AccountManager.getInstance().getPLFor(CurrencyUnit.of("BTC"));
 			
 			log.info("Current P/L: "+btcProfit.getAmount()+" | "+btcProfit.getPercent()+"%");
-			log.info("Current P/L: "+localProfit.getAmount()+" | "+localProfit.getPercent()+"%" );
+			//log.info("Current P/L: "+localProfit.getAmount()+" | "+localProfit.getPercent()+"%" );
 			
 			Double overall;
 			Double btc = btcProfit.getAmount().getAmount().doubleValue();

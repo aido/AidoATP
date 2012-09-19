@@ -4,16 +4,13 @@
 package org.open.payment.alliance.isis.atp;
 
 import java.io.Console;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.dto.trade.AccountInfo;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
@@ -75,45 +72,27 @@ public class Application {
 		}else {
 			simModeFlag = showAgreement();
 		}			
-																						 
+																			          
 	    exchange = IsisMtGoxExchange.getInstance();
-	    	 
-	    // Interested in the private trading functionality (authentication)
-	    tradeService = exchange.getPollingTradeService();
-	 
-	    // Get the account information
-	    accountInfo = tradeService.getAccountInfo();
-	    
+	    AccountManager.getInstance().refreshAccounts();
 	    logger.info("Isis ATP has started successfully");
-	    logger.info("AccountInfo as String: " + accountInfo.toString());
+	    while(AccountManager.getInstance().isRunning()) {
+	    	Thread.currentThread().yield();
+	    }
 	    
-	    
-	    TickerManager tickerManager = new TickerManager(exchange,tradeService);
-	    TrendObserver tradeManager = new TrendObserver();
-	    
-	    AccountManager.getInstance().refreshAccount();
-	    
-	    Thread t = new Thread(tickerManager);
-	    Thread t1 = new Thread(tradeManager);
-	    
-	    t.start();
-	    t1.start();
-	    try {
-			t.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 	}
 	
 	private boolean showAgreement() {
 		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
-		if(params.get("--debug-live").equalsIgnoreCase("true")) {
-			System.out.println("Entering live mode for real world debugging.");
-			return false;
-		}
+		if(params.get("--debug-live") != null) {
+			if(params.get("--debug-live").equalsIgnoreCase("true")) {
 		
+				System.out.println("Entering live mode for real world debugging.");
+				return false;
+			}else {
+				return true;
+			}
+		}
 		String input = console.readLine();
 		if(input.equalsIgnoreCase("I Agree")) {
 			return false;
@@ -214,10 +193,14 @@ public class Application {
 	}
 	
 	public AccountInfo getAccountInfo() {
-		return tradeService.getAccountInfo();
+		return AccountManager.getInstance().getAccountInfo();
 	}
 
 	public void setSimMode(boolean b) {
 		this.simModeFlag = b;
+	}
+
+	public Exchange getExchange() {
+		return exchange;
 	}
 }

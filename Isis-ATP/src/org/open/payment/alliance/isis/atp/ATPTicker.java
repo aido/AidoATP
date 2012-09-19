@@ -1,6 +1,7 @@
 package org.open.payment.alliance.isis.atp;
 
 import java.io.Serializable;
+
 import org.joda.money.BigMoney;
 import org.joda.time.DateTime;
 

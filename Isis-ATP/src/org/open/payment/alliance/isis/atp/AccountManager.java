@@ -10,8 +10,10 @@ import java.util.logging.Logger;
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
 
+import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.trade.AccountInfo;
 import com.xeiam.xchange.dto.trade.Wallet;
+import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
 public class AccountManager {
 
@@ -21,15 +23,14 @@ public class AccountManager {
 
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
 	private HashMap<CurrencyUnit, PLModel> PL; //PL is Profit/Loss and is per currency unit
+	private HashMap<CurrencyUnit, CurrencyManager> currencyTracker;
+	
 	
 	private Logger log;
 	
-	private AccountManager(){
-		log = Logger.getLogger(AccountManager.class.getSimpleName());
-		books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
-		PL = new HashMap<CurrencyUnit, PLModel>();
-		refreshAccount();
-	}
+	private Exchange exchange;
+	private PollingTradeService tradeService;
+	private List<Wallet> wallets;
 	
 	public static AccountManager getInstance() {
 		if(instance == null) {
@@ -38,9 +39,38 @@ public class AccountManager {
 		return instance;
 	}
 	
+	private AccountManager(){
+		
+		currencyTracker = new HashMap<CurrencyUnit, CurrencyManager>();
+		log = Logger.getLogger(AccountManager.class.getSimpleName());
+		books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
+		PL = new HashMap<CurrencyUnit, PLModel>();
+		
+		exchange = Application.getInstance().getExchange();
+	    // Interested in the private trading functionality (authentication)
+	    tradeService = exchange.getPollingTradeService();
+	 
+	    // Get the account information
+	    accountInfo = tradeService.getAccountInfo();
+	    log.info("AccountInfo as String: " + accountInfo.toString());
+	    refreshAccounts();
+		
+	    for(Wallet wallet : wallets) {
+	    	CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
+	    	if(currency.getCode().equals("BTC")) {
+	    		continue;
+	    	}
+	    	currencyTracker.put(currency, new CurrencyManager(currency));
+	    }
+	    
+	}
+	
+	
+	
+	
 	public BigMoney getBalance(CurrencyUnit currency) throws WalletNotFoundException{
-		refreshAccount();
-		List<Wallet> wallets = accountInfo.getWallets();
+		refreshAccounts();
+		wallets = accountInfo.getWallets();
 		//log.info("You have wallets for "+wallets.size()+" currencies.");
 		for(Wallet wallet : wallets){
 			BigMoney balance = wallet.getBalance();
@@ -55,8 +85,8 @@ public class AccountManager {
 		throw new WalletNotFoundException();
 	}
 	
-	public synchronized void refreshAccount() {
-		accountInfo = Application.getInstance().getAccountInfo();
+	public synchronized void refreshAccounts() {
+		accountInfo = tradeService.getAccountInfo();
 		updateBooks();
 		calculatePL();
 	}
@@ -85,7 +115,7 @@ public class AccountManager {
 		}
 	}
 	private void updateBooks() {
-		List<Wallet> wallets = accountInfo.getWallets();
+		wallets = accountInfo.getWallets();
 		for(Wallet wallet : wallets){
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
 			
@@ -106,5 +136,17 @@ public class AccountManager {
 
 	public AccountInfo getAccountInfo() {
 		return accountInfo;
+	}
+
+	public boolean isRunning() {
+		boolean running = true;
+		for(CurrencyUnit currency : currencyTracker.keySet()) {
+			CurrencyManager manager = currencyTracker.get(currency);
+			running = manager.isRunning();
+			if(running == false) {
+				break;
+			}
+		}
+		return running;
 	}
 }

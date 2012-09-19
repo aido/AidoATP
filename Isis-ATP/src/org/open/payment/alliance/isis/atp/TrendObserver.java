@@ -9,8 +9,6 @@ import java.util.logging.Logger;
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
 
-import com.xeiam.xchange.dto.marketdata.Ticker;
-
 public class TrendObserver implements Runnable {
 
 	private BigMoney vwap;
@@ -22,10 +20,16 @@ public class TrendObserver implements Runnable {
 	private Logger log;
 	private ATPTicker lastTick;
 	private long learnTime;
+	private TickerManager tickerManager;
+	private boolean quit;
+	private CurrencyUnit localCurrency;
 	
-	public TrendObserver() {
+	public TrendObserver(TickerManager tickerManager) {
+		this.tickerManager = tickerManager;
+		quit = false;
 		log = Logger.getLogger(TrendObserver.class.getSimpleName());
-		ArrayList<ATPTicker> ticker = TickerManager.getMarketData();
+		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
+		localCurrency = tickerManager.getCurrency();
 		if(ticker != null && !ticker.isEmpty()) {
 			lastTick = ticker.get(ticker.size()-1);
 			long now = System.currentTimeMillis();
@@ -44,7 +48,7 @@ public class TrendObserver implements Runnable {
 	@Override
 	public void run() {
 		
-		while(true) {
+		while(!quit) {
 			//Each run, currently 1/Min
 			
 			//(Re)initialize variables
@@ -57,14 +61,14 @@ public class TrendObserver implements Runnable {
 			//We are concerned not only with current vwap, but previous vwap.
 			// This is because the differential between the two is an important market indicator
 			
-			vwap = BigMoney.zero(CurrencyUnit.USD);
+			vwap = BigMoney.zero(tickerManager.getCurrency());
 			
 			//We can't have multiple threads messing with the ticker object
 			//Ideally this should have been a deep copy, but went this way for speed.
 			ArrayList<ATPTicker> ticker = null;
 			ATPTicker tick = null;
 			while(ticker == null || ticker.isEmpty()) {
-				ticker = TickerManager.getMarketData();
+				ticker = tickerManager.getMarketData();
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -85,8 +89,8 @@ public class TrendObserver implements Runnable {
 				BigDecimal newVolume = null,absVolume = null,oldVolume = null,changedVolume = null;
 				BigDecimal totalVolume = new BigDecimal("0");
 				BigMoney oldPrice = null, newPrice = null;
-				BigMoney newBid = null, oldBid = null, avgBid = null;
-				BigMoney newAsk = null, oldAsk = null, avgAsk = null;
+				BigMoney newBid = null, oldBid = null;
+				BigMoney newAsk = null, oldAsk = null;
 				
 				trendArrow = 0;
 				bidArrow = 0;
@@ -102,12 +106,13 @@ public class TrendObserver implements Runnable {
 					//We need 2 volumes, a total volume & an absolute volume
 					
 					
+					
 					if(idx == 0){
 					
 						oldVolume = BigDecimal.ZERO;
-						oldPrice = BigMoney.zero(CurrencyUnit.USD);
-						oldBid = BigMoney.zero(CurrencyUnit.USD);
-						oldAsk = BigMoney.zero(CurrencyUnit.USD);
+						oldPrice = BigMoney.zero(localCurrency);
+						oldBid = BigMoney.zero(localCurrency);
+						oldAsk = BigMoney.zero(localCurrency);
 												
 					}else{
 						
@@ -147,9 +152,9 @@ public class TrendObserver implements Runnable {
 					}
 					
 					if(newAsk.isGreaterThan(oldAsk)){
-						bidArrow++;
+						askArrow++;
 					}else if(newAsk.isLessThan(oldAsk)){
-						bidArrow--;
+						askArrow--;
 					}
 					
 					vwap = vwap.plus(newPrice.multipliedBy(absVolume));
@@ -172,7 +177,9 @@ public class TrendObserver implements Runnable {
 			if(System.currentTimeMillis() > learnTime) {
 				evaluateMarketConditions();
 			}else {
-				log.info("Application has not run long enough to build a market profile.\n"+((learnTime - System.currentTimeMillis())/1000)/60+" minutes remaining.");
+				log.info("Application has not run long enough to build a profile for "
+						+localCurrency.getCurrencyCode()+" market.\n"
+						+((learnTime - System.currentTimeMillis())/1000)/60+" minutes remaining.");
 			}
 			
 			try {
@@ -200,6 +207,14 @@ public class TrendObserver implements Runnable {
 	}
 	public ATPTicker getLastTick() {
 		return lastTick;
+	}
+
+	public void stop() {
+		quit = true;
+	}
+
+	public TickerManager getTickerManager() {
+		return tickerManager;
 	}
 }
 
