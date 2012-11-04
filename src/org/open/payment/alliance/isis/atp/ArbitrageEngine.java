@@ -107,10 +107,6 @@ public class ArbitrageEngine implements Runnable {
 		BigMoney toBalance = AccountManager.getInstance().getBalance(toCur);
 		*/
 		
-		MarketOrder buyOrder  = new MarketOrder();
-		MarketOrder sellOrder = new MarketOrder();
-	
-		
 		/*
 		 * MarketOrder order = new MarketOrder();
 		order.setType(orderType);
@@ -121,31 +117,25 @@ public class ArbitrageEngine implements Runnable {
 		
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
-		buyOrder.setType(OrderType.BID);
-		
 		BigMoney balance = AccountManager.getInstance().getBalance(fromCur);
 		BigMoney qty = balance.multipliedBy(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount());
 		
-		buyOrder.setTradableAmount(balance.getAmount());
-		buyOrder.setTradableIdentifier("BTC");
-		buyOrder.setTransactionCurrency(fromCur.toString());
-		
-		boolean success = tradeService.placeMarketOrder(buyOrder);
+		String marketOrderReturnValue = "";
+		boolean success = true;
+				
+		MarketOrder buyOrder  = new MarketOrder(OrderType.BID,balance.getAmount(),"BTC",fromCur.toString());
+		MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
+				
+		marketOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
+		log.info(marketOrderReturnValue);
 		if(success) {
 			log.info("Arbitrage traded "+qty.toString()+" ");
 		}else {
 			log.info("Arbitrage could not trade "+qty.toString());
 		}
 		
-		sellOrder.setType(OrderType.ASK);
-		sellOrder.setTradableAmount(qty.getAmount());
-		sellOrder.setTradableIdentifier("BTC");
-		sellOrder.setTransactionCurrency(toCur.toString());
-		
-		
-		success &= tradeService.placeMarketOrder(sellOrder);
-		
-			
+		marketOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
+		log.info(marketOrderReturnValue);			
 		if(success) {
 			log.info("Successfully traded with Arbitrage!");
 		}else {

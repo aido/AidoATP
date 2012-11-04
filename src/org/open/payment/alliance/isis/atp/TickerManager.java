@@ -103,7 +103,7 @@ public class TickerManager implements Runnable{
 			try {
 				Ticker tick = marketData.getTicker(Currencies.BTC, currency.getCurrencyCode());
 				lastVolume = currentVolume;
-				currentVolume = tick.getVolume();
+				currentVolume = tick.getVolume().longValue();
 				if(currentVolume != lastVolume) {
 					synchronized(tickerCache) {
 						ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));

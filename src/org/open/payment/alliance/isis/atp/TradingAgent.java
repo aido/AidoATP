@@ -273,15 +273,13 @@ public class TradingAgent implements Runnable {
 	}
 	
 	private void marketOrder(BigDecimal qty, OrderType orderType) {
-		MarketOrder order = new MarketOrder();
-		order.setType(orderType);
-		order.setTradableAmount(qty);
-		order.setTradableIdentifier("BTC");
-		order.setTransactionCurrency(localCurrency.getCurrencyCode());
+		MarketOrder order = new MarketOrder(orderType,qty,"BTC",localCurrency.getCurrencyCode());
+		String marketOrderReturnValue = "";
 		boolean success = true;
 		
 		if(!Application.getInstance().isSimMode()){
-			success = tradeService.placeMarketOrder(order);
+			marketOrderReturnValue = tradeService.placeMarketOrder(order);
+			log.info(marketOrderReturnValue);
 		}else{
 			log.info("You were in simulation mode, the trade below did NOT actually occur.");
 		}

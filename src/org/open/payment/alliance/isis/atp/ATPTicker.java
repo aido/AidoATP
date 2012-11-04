@@ -46,7 +46,7 @@ public class ATPTicker implements Serializable{
 		this.setLast(tick.getLast());
 		this.setAsk(tick.getAsk());
 		this.setBid(tick.getBid());
-		this.setVolume(tick.getVolume());
+		this.setVolume(tick.getVolume().longValue());
 		this.setTimestamp(tick.getTimestamp());
 		this.setTradeableIdentifier(tick.getTradableIdentifier());
 	}

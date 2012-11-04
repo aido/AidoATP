@@ -11,9 +11,9 @@ import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.dto.trade.AccountInfo;
+import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.trade.Wallet;
-import com.xeiam.xchange.service.trade.polling.PollingTradeService;
+import com.xeiam.xchange.service.account.polling.PollingAccountService;
 
 public class AccountManager {
 
@@ -29,7 +29,7 @@ public class AccountManager {
 	private Logger log;
 	
 	private Exchange exchange;
-	private PollingTradeService tradeService;
+	private PollingAccountService accountService;
 	private List<Wallet> wallets;
 	
 	public static AccountManager getInstance() {
@@ -47,11 +47,11 @@ public class AccountManager {
 		PL = new HashMap<CurrencyUnit, PLModel>();
 		
 		exchange = Application.getInstance().getExchange();
-	    // Interested in the private trading functionality (authentication)
-	    tradeService = exchange.getPollingTradeService();
+	    // Interested in the private account functionality (authentication)
+	    accountService = exchange.getPollingAccountService();
 	 
 	    // Get the account information
-	    accountInfo = tradeService.getAccountInfo();
+	    accountInfo = accountService.getAccountInfo();
 	    log.info("AccountInfo as String: " + accountInfo.toString());
 	    refreshAccounts();
 		
@@ -86,7 +86,7 @@ public class AccountManager {
 	}
 	
 	public synchronized void refreshAccounts() {
-		accountInfo = tradeService.getAccountInfo();
+		accountInfo = accountService.getAccountInfo();
 		updateBooks();
 		calculatePL();
 	}

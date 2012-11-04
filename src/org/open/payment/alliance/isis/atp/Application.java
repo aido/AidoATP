@@ -11,7 +11,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.dto.trade.AccountInfo;
+import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
 /**
