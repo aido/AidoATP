@@ -126,18 +126,18 @@ public class ArbitrageEngine implements Runnable {
 		log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
 		if (marketbuyOrderReturnValue != null){
 			log.info("Arbitrage traded "+qty.toString()+" ");
+			
+			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
+			
+			String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
+			log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
+			if (marketbuyOrderReturnValue != null){
+				log.info("Successfully traded with Arbitrage!");
+			} else {
+				log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
+			}
 		} else {
 			log.info("Arbitrage could not trade "+qty.toString());
-		}
-		
-		MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
-		
-		String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
-		log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
-		if (marketbuyOrderReturnValue != null){
-			log.info("Successfully traded with Arbitrage!");
-		} else {
-			log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
 		}
 	}
 
