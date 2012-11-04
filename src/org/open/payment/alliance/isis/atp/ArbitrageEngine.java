@@ -120,25 +120,23 @@ public class ArbitrageEngine implements Runnable {
 		BigMoney balance = AccountManager.getInstance().getBalance(fromCur);
 		BigMoney qty = balance.multipliedBy(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount());
 		
-		String marketOrderReturnValue = "";
-		boolean success = true;
-				
 		MarketOrder buyOrder  = new MarketOrder(OrderType.BID,balance.getAmount(),"BTC",fromCur.toString());
-		MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
-				
-		marketOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
-		log.info(marketOrderReturnValue);
-		if(success) {
+		
+		String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
+		log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
+		if (marketbuyOrderReturnValue != null){
 			log.info("Arbitrage traded "+qty.toString()+" ");
-		}else {
+		} else {
 			log.info("Arbitrage could not trade "+qty.toString());
 		}
 		
-		marketOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
-		log.info(marketOrderReturnValue);			
-		if(success) {
+		MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
+		
+		String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
+		log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
+		if (marketbuyOrderReturnValue != null){
 			log.info("Successfully traded with Arbitrage!");
-		}else {
+		} else {
 			log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
 		}
 	}

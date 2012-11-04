@@ -36,9 +36,9 @@ echo "============"
 cd $SRC_DIR/joda-time
 git pull
 find $SRC_DIR/joda-time -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
-mkdir  $CLASSPATH/org/joda/time/tz/data
-# Ignore exception when compiling ZoneInfo
-java -classpath $CLASSPATH org.joda.time.tz.ZoneInfoCompiler -verbose -src $SRC_DIR/joda-time/src/main/java/org/joda/time/tz/src/ -dst $CLASSPATH/org/joda/time/tz/data africa antarctica asia australasia backward etcetera europe northamerica pacificnew southamerica systemv
+[[ ! -d $CLASSPATH/org/joda/time/tz/data ]] && mkdir $CLASSPATH/org/joda/time/tz/data
+java -classpath $CLASSPATH org.joda.time.tz.ZoneInfoCompiler -verbose -src $SRC_DIR/joda-time/src/main/java/org/joda/time/tz/src/ -dst $CLASSPATH/org/joda/time/tz/data africa antarctica asia australasia backward etcetera europe northamerica pacificnew southamerica systemv > /dev/null
+echo -e "\n'Resource not found: \"org/joda/time/tz/data/ZoneInfoMap\"' error may be ignored if this is first time creating ZoneInfo"
 echo
 
 echo "slf4j-api"
@@ -50,7 +50,14 @@ find $SRC_DIR/slf4j/slf4j-api -type d -name *test* -prune -o -name *example* -pr
 rm -r $CLASSPATH/org/slf4j/impl/
 echo
 
+# logback is pain in ass to build from source so do it the easy way
+echo "logback"
+echo "========"
+cd $CLASSPATH
+jar xvf $SRC_DIR/jars/logback-core-1.0.7.jar > /dev/null
+jar xvf $SRC_DIR/jars/logback-classic-1.0.7.jar > /dev/null
 echo
+
 echo "JSON-java"
 echo "========="
 [[ ! -d $SRC_DIR/JSON-java ]] && cd $SRC_DIR && git clone https://github.com/douglascrockford/JSON-java
@@ -87,21 +94,17 @@ find $SRC_DIR/XChange -type d -name *test* -prune -o -name *example* -prune -o -
 #cp $SRC_DIR/XChange/xchange/src/main/resources/org/joda/money/MoneyData.csv $CLASSPATH/org/joda/money/
 # XChange 1.2.0
 cp $SRC_DIR/XChange/xchange-core/src/main/resources/org/joda/money/MoneyData.csv $CLASSPATH/org/joda/money/
-
 echo
 
 echo "IsisATP"
 echo "========"
 [[ ! -d $SRC_DIR/IsisATP ]] && cd $SRC_DIR && git clone https://github.com/aido/IsisATP
 find $SRC_DIR/IsisATP -type d -name *test* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
+echo
 
-# logback is pain in ass to build from source so do it the easy way
+echo "Building jar"
+echo "============"
 cd $CLASSPATH
-jar xvf $SRC_DIR/jars/logback-core-1.0.7.jar
-jar xvf $SRC_DIR/jars/logback-classic-1.0.7.jar
-
-cd $CLASSPATH
-
 jar -cfe $BIN_DIR/aido.jar org/open/payment/alliance/isis/atp/Application org com ch
 echo
 
