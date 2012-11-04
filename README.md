@@ -1,5 +1,6 @@
-OpenPay
-=======
+Isis ATP
+========
 
-Reference implementation of the OpenPay, payment network software. 
-Courtesy of the Open Payment Alliance
+Isis Advance Trading Platform courtesy of the Open Payment Alliance.
+
+forked from openpay/OpenPay 
