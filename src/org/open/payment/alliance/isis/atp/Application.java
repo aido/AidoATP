@@ -51,9 +51,9 @@ public class Application {
 	
 	public void start(String[] args){
 		parseArgs(args);
-				
-		config = Preferences.userNodeForPackage(this.getClass());
 		
+		config = Preferences.userNodeForPackage(this.getClass());
+
 		if(params.containsKey("--clear-config")) {
 			logger.info("Clearing out all configuration data.");
 			try {
@@ -64,13 +64,12 @@ public class Application {
 				e.printStackTrace();
 			}
 		}
-		
+
 		if(config.get("ApiKey", null) == null) {
 			interview();
 		}else {
 			simModeFlag = showAgreement();
-		}			
-																			          
+		}																			          
 	    exchange = IsisMtGoxExchange.getInstance();
 	    AccountManager.getInstance().refreshAccounts();
 	    new Thread(ArbitrageEngine.getInstance()).start();
@@ -78,11 +77,11 @@ public class Application {
 	    while(AccountManager.getInstance().isRunning()) {
 	    	Thread.currentThread().yield();
 	    }
-	    
+
 	}
 	
 	private boolean showAgreement() {
-		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
+//		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
 		if(params.get("--debug-live") != null) {
 			if(params.get("--debug-live").equalsIgnoreCase("true")) {
 		

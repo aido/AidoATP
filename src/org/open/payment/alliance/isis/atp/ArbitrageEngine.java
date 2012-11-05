@@ -120,24 +120,29 @@ public class ArbitrageEngine implements Runnable {
 		BigMoney balance = AccountManager.getInstance().getBalance(fromCur);
 		BigMoney qty = balance.multipliedBy(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount());
 		
-		MarketOrder buyOrder  = new MarketOrder(OrderType.BID,balance.getAmount(),"BTC",fromCur.toString());
-		
-		String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
-		log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
-		if (marketbuyOrderReturnValue != null){
-			log.info("Arbitrage traded "+qty.toString()+" ");
+		if (!balance.isZero()){
+			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,balance.getAmount(),"BTC",fromCur.toString());
 			
-			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
-			
-			String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
-			log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
+			String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
+			log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
 			if (marketbuyOrderReturnValue != null){
-				log.info("Successfully traded with Arbitrage!");
+				log.info("Arbitrage traded "+qty.toString()+" BTC");
+
+				MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
+
+				String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
+				log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
+				if (marketbuyOrderReturnValue != null){
+					log.info("Successfully traded with Arbitrage!");
+				} else {
+					log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
+				}
+
 			} else {
-				log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
+				log.info("Arbitrage could not trade "+qty.toString()+" BTC");
 			}
 		} else {
-			log.info("Arbitrage could not trade "+qty.toString());
+			log.info("Arbitrage could not trade with a balance of "+balance.toString());
 		}
 	}
 
