@@ -16,7 +16,7 @@ declare CLASSPATH=$BASE_DIR/classes
 echo
 echo "joda-convert"
 echo "============"
-[[ ! -d $SRC_DIR/joda-convert ]] && cd $SRC_DIR && git clone https://github.com/JodaOrg/joda-convert
+[[ ! -d $SRC_DIR/joda-convert ]] && cd $SRC_DIR && git clone git://github.com/JodaOrg/joda-convert
 cd $SRC_DIR/joda-convert
 git pull
 find $SRC_DIR/joda-convert -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
@@ -24,7 +24,7 @@ echo
 
 echo "joda-money"
 echo "============"
-[[ ! -d $SRC_DIR/joda-money ]] && cd $SRC_DIR && git clone https://github.com/JodaOrg/joda-money
+[[ ! -d $SRC_DIR/joda-money ]] && cd $SRC_DIR && git clone git://github.com/JodaOrg/joda-money
 cd $SRC_DIR/joda-money
 git pull
 find $SRC_DIR/joda-money -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print| xargs javac -d $CLASSPATH -classpath $CLASSPATH
@@ -32,7 +32,7 @@ echo
 
 echo "joda-time"
 echo "============"
-[[ ! -d $SRC_DIR/joda-time ]] && cd $SRC_DIR && git clone https://github.com/JodaOrg/joda-time
+[[ ! -d $SRC_DIR/joda-time ]] && cd $SRC_DIR && git clone git://github.com/JodaOrg/joda-time
 cd $SRC_DIR/joda-time
 git pull
 find $SRC_DIR/joda-time -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
@@ -43,7 +43,7 @@ echo
 
 echo "slf4j-api"
 echo "========="
-[[ ! -d $SRC_DIR/slf4j ]] && cd $SRC_DIR && git clone https://github.com/qos-ch/slf4j
+[[ ! -d $SRC_DIR/slf4j ]] && cd $SRC_DIR && git clone git://github.com/qos-ch/slf4j
 cd $SRC_DIR/slf4j
 git pull
 find $SRC_DIR/slf4j/slf4j-api -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
@@ -60,7 +60,7 @@ echo
 
 echo "JSON-java"
 echo "========="
-[[ ! -d $SRC_DIR/JSON-java ]] && cd $SRC_DIR && git clone https://github.com/douglascrockford/JSON-java
+[[ ! -d $SRC_DIR/JSON-java ]] && cd $SRC_DIR && git clone git://github.com/douglascrockford/JSON-java
 cd $SRC_DIR/JSON-java
 git pull
 find $SRC_DIR/JSON-java -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
@@ -77,7 +77,7 @@ echo
 
 echo "jackson"
 echo "========"
-[[ ! -d $SRC_DIR/jackson ]] && cd $SRC_DIR && git svn clone https://svn.codehaus.org/jackson/trunk jackson
+[[ ! -d $SRC_DIR/jackson ]] && cd $SRC_DIR && git svn clone git://svn.codehaus.org/jackson/trunk jackson
 cd $SRC_DIR/jackson
 git svn rebase
 find $SRC_DIR/jackson/src/java -type d -name *test* -prune -o -type d -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
@@ -86,7 +86,7 @@ echo
 
 echo "Xchange"
 echo "======="
-[[ ! -d $SRC_DIR/XChange ]] && cd $SRC_DIR && git clone https://github.com/timmolter/XChange
+[[ ! -d $SRC_DIR/XChange ]] && cd $SRC_DIR && git clone git://github.com/timmolter/XChange
 cd $SRC_DIR/XChange
 git pull
 find $SRC_DIR/XChange -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
@@ -98,14 +98,15 @@ echo
 
 echo "IsisATP"
 echo "========"
-[[ ! -d $SRC_DIR/IsisATP ]] && cd $SRC_DIR && git clone https://github.com/aido/IsisATP
+[[ ! -d $SRC_DIR/IsisATP ]] && cd $SRC_DIR && git clone git://github.com/aido/IsisATP
 find $SRC_DIR/IsisATP -type d -name *test* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
+find $SRC_DIR/IsisATP/src -type f -name license.txt -exec cp '{}' $CLASSPATH \;
 echo
 
 echo "Building jar"
 echo "============"
 cd $CLASSPATH
-jar -cfe $BIN_DIR/aido.jar org/open/payment/alliance/isis/atp/Application org com ch
+jar -cfe $BIN_DIR/aido.jar org/open/payment/alliance/isis/atp/Application org com ch license.txt
 echo
 
 exit 0

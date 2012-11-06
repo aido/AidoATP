@@ -3,6 +3,7 @@ package org.open.payment.alliance.isis.atp;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import java.math.RoundingMode;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
@@ -118,28 +119,35 @@ public class ArbitrageEngine implements Runnable {
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
 		BigMoney balance = AccountManager.getInstance().getBalance(fromCur);
-		BigMoney qty = balance.multipliedBy(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount());
 		
+//		Following calculation sells fromCur balance and dumps ALL BTC into toCur resulting in 0 fromCur and 0 BTC		
+//		BigMoney qty = balance.multipliedBy(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount());
+
+//		Following calculation sells fromCur balance and buys equivalent amount of toCur resulting in 0 fromCur and leaving pre-existing BTC balance
+		BigMoney qty = balance.multipliedBy(AccountManager.getInstance().getLastTick(toCur).getBid().getAmount()).dividedBy(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount(),RoundingMode.HALF_EVEN);
+
+
 		if (!balance.isZero()){
 			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,balance.getAmount(),"BTC",fromCur.toString());
 			
 			String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
 			log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
 			if (marketbuyOrderReturnValue != null){
-				log.info("Arbitrage traded "+qty.toString()+" BTC");
+				log.info("Arbitrage sold "+balance.toString());
 
 				MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qty.getAmount(),"BTC",toCur.toString());
 
 				String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
 				log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
 				if (marketbuyOrderReturnValue != null){
-					log.info("Successfully traded with Arbitrage!");
+					log.info("Arbitrage bought "+toCur.toString()+" "+qty.getAmount());
+					log.info("Successfully traded "+balance.toString()+" for "+toCur.toString()+" "+qty.getAmount()+" with Arbitrage!");
 				} else {
 					log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
 				}
 
 			} else {
-				log.info("Arbitrage could not trade "+qty.toString()+" BTC");
+				log.info("Arbitrage could not trade "+qty.toString());
 			}
 		} else {
 			log.info("Arbitrage could not trade with a balance of "+balance.toString());
@@ -202,7 +210,7 @@ public class ArbitrageEngine implements Runnable {
 		return new Pair<CurrencyUnit,Double>(lowCurrency,lowFactor);
 	}
 
-	public synchronized void addTick(ATPTicker tick) {
+	public void addTick(ATPTicker tick) {
 		CurrencyUnit currency = CurrencyUnit.getInstance(tick.getLast().getCurrencyUnit().getCurrencyCode());
 		Double bidPrice = tick.getBid().getAmount().doubleValue();
 		Double askPrice = tick.getAsk().getAmount().doubleValue();

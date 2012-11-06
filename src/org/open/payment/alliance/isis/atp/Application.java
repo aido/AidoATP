@@ -81,7 +81,7 @@ public class Application {
 	}
 	
 	private boolean showAgreement() {
-//		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
+		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
 		if(params.get("--debug-live") != null) {
 			if(params.get("--debug-live").equalsIgnoreCase("true")) {
 		
