@@ -6,7 +6,6 @@ declare SRC_DIR=$BASE_DIR/src
 declare BIN_DIR=$SRC_DIR/IsisATP/bin
 declare CLASSPATH=$BASE_DIR/classes
 
-
 [[ ! -d $BASE_DIR ]] && mkdir -p $BASE_DIR
 [[ ! -d $SRC_DIR ]] && mkdir -p $SRC_DIR
 [[ ! -d $BIN_DIR/bin ]] && mkdir -p $BIN_DIR

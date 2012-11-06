@@ -25,6 +25,7 @@ public class Application {
 	private Logger logger;
 	private Preferences config;
 	private boolean simModeFlag;
+	private boolean useArbFlag;
 	private Exchange exchange;
 	private Console console;
 	private Application() {
@@ -32,6 +33,8 @@ public class Application {
 		params = new HashMap<String,String>();
 		//true = simulate, false = live
 		simModeFlag = true;
+		//true = use arbitrage, false = do not use arbitage
+		useArbFlag = true;
 		console = System.console();	
 	}
 	
@@ -69,10 +72,22 @@ public class Application {
 			interview();
 		}else {
 			simModeFlag = showAgreement();
-		}																			          
+		}
+		
+		if(params.get("--use-arbitrage") != null) {
+			if(params.get("--use-arbitrage").equalsIgnoreCase("true")) {
+				System.out.println("Using arbitrage to decide some trades.");
+				setArbMode(true);
+			}else {
+				setArbMode(false);
+			}
+		}
+		
 	    exchange = IsisMtGoxExchange.getInstance();
 	    AccountManager.getInstance().refreshAccounts();
-	    new Thread(ArbitrageEngine.getInstance()).start();
+		if(useArbMode()){
+			new Thread(ArbitrageEngine.getInstance()).start();
+		}
 	    logger.info("Isis ATP has started successfully");
 	    while(AccountManager.getInstance().isRunning()) {
 	    	Thread.currentThread().yield();
@@ -84,7 +99,6 @@ public class Application {
 		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
 		if(params.get("--debug-live") != null) {
 			if(params.get("--debug-live").equalsIgnoreCase("true")) {
-		
 				System.out.println("Entering live mode for real world debugging.");
 				return false;
 			}else {
@@ -196,12 +210,20 @@ public class Application {
 		return simModeFlag;
 	}
 	
+	public boolean useArbMode() {
+		return useArbFlag;
+	}
+	
 	public AccountInfo getAccountInfo() {
 		return AccountManager.getInstance().getAccountInfo();
 	}
 
 	public void setSimMode(boolean b) {
 		this.simModeFlag = b;
+	}
+	
+	public void setArbMode(boolean b) {
+		this.useArbFlag = b;
 	}
 
 	public Exchange getExchange() {
