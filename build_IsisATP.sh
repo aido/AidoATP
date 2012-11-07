@@ -11,6 +11,36 @@ declare CLASSPATH=$BASE_DIR/classes
 [[ ! -d $BIN_DIR/bin ]] && mkdir -p $BIN_DIR
 [[ -d $CLASSPATH ]] && rm -r $CLASSPATH
 [[ ! -d $CLASSPATH ]] && mkdir -p $CLASSPATH
+[[ ! -d $SRC_DIR/jars ]] && mkdir -p $SRC_DIR/jars
+
+
+if ! which git > /dev/null; then
+	echo git not installed. Please install and try again
+	exit 1
+elif ! git svn help > /dev/null; then
+	echo git-svn not installed. Please install and try again
+	exit 1
+fi
+
+if ! which jar > /dev/null; then
+	echo jar not installed. Please install and try again
+	exit 1
+fi
+
+if ! which javac > /dev/null; then
+	echo git not installed. Please install and try again
+	exit 1
+fi
+
+if ! which wget > /dev/null; then
+	echo wget not installed. Please install and try again
+	exit 1
+fi
+
+if ! which tar > /dev/null; then
+	echo tar not installed. Please install and try again
+	exit 1
+fi
 
 echo
 echo "joda-convert"
@@ -52,6 +82,7 @@ echo
 # logback is pain in ass to build from source so do it the easy way
 echo "logback"
 echo "========"
+[[ ! -f $SRC_DIR/jars/logback-core-1.0.7.jar ]] || [[ ! -f $SRC_DIR/jars/logback-classic-1.0.7.jar ]] && cd $SRC_DIR/jars && wget -q -O - http://logback.qos.ch/dist/logback-1.0.7.tar.gz | tar --strip-components 1 -vxz logback-1.0.7/logback-core-1.0.7.jar logback-1.0.7/logback-classic-1.0.7.jar
 cd $CLASSPATH
 jar xvf $SRC_DIR/jars/logback-core-1.0.7.jar > /dev/null
 jar xvf $SRC_DIR/jars/logback-classic-1.0.7.jar > /dev/null
