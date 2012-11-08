@@ -4,10 +4,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TrendObserver implements Runnable {
 
@@ -27,7 +29,7 @@ public class TrendObserver implements Runnable {
 	public TrendObserver(TickerManager tickerManager) {
 		this.tickerManager = tickerManager;
 		quit = false;
-		log = Logger.getLogger(TrendObserver.class.getSimpleName());
+		log = LoggerFactory.getLogger(TrendObserver.class);
 		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
 		localCurrency = tickerManager.getCurrency();
 		if(ticker != null && !ticker.isEmpty()) {
@@ -76,7 +78,7 @@ public class TrendObserver implements Runnable {
 				}
 			}
 			
-					
+			
 			synchronized(ticker) {
 				
 				//ticker - could be empty if there is no new data in over an hour, we've been disconnected, or the marketpolling thread has crashed.
@@ -108,26 +110,26 @@ public class TrendObserver implements Runnable {
 					
 					
 					if(idx == 0){
-					
+						
 						oldVolume = BigDecimal.ZERO;
 						oldPrice = BigMoney.zero(localCurrency);
 						oldBid = BigMoney.zero(localCurrency);
 						oldAsk = BigMoney.zero(localCurrency);
-												
+						
 					}else{
 						
 						oldVolume = newVolume;
 						oldPrice = newPrice;
 						oldBid = newBid;
 						oldAsk = newAsk;
-					
+						
 					}
 					
 					//The volume of this tick, by itself
 					newVolume = new BigDecimal(new BigInteger(""+tick.getVolume()));
 					changedVolume = newVolume.subtract(oldVolume);
 					absVolume = changedVolume.abs();
-										
+					
 					newPrice = tick.getLast();
 					newBid = tick.getBid();
 					newAsk = tick.getAsk();
@@ -172,14 +174,14 @@ public class TrendObserver implements Runnable {
 			System.out.println("Low: "+low.toString());
 			System.out.println("Current: "+tick.toString());
 			System.out.println("VWAP: "+vwap.getAmount().toPlainString());
-									
+			
 			System.out.println("\n");
 			if(System.currentTimeMillis() > learnTime) {
 				evaluateMarketConditions();
 			}else {
 				log.info("Application has not run long enough to build a profile for "
-						+localCurrency.getCurrencyCode()+" market.\n"
-						+((learnTime - System.currentTimeMillis())/1000)/60+" minutes remaining.");
+				+localCurrency.getCurrencyCode()+" market.\n"
+				+((learnTime - System.currentTimeMillis())/1000)/60+" minutes remaining.");
 			}
 			
 			try {

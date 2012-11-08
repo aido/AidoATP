@@ -1,6 +1,6 @@
 /**
- * 
- */
+* 
+*/
 package org.open.payment.alliance.isis.atp;
 
 import java.io.File;
@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Logger;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
@@ -20,13 +19,15 @@ import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * @author Auberon
- *
- */
+* @author Auberon
+*
+*/
 public class TickerManager implements Runnable{
 	
-
 	private PollingMarketDataService marketData;
 	BlockingQueue<Ticker> tickerQ;
 	private long currentVolume;
@@ -35,8 +36,8 @@ public class TickerManager implements Runnable{
 	private Logger log;
 	private CurrencyUnit currency;
 	private boolean quit;
-	 TickerManager(CurrencyUnit currency) {
-		log = Logger.getLogger(TickerManager.class.getSimpleName());
+	TickerManager(CurrencyUnit currency) {
+		log = LoggerFactory.getLogger(TickerManager.class);
 		this.currency = currency;
 		quit = false;
 		try {
@@ -46,11 +47,10 @@ public class TickerManager implements Runnable{
 			}
 			Exchange exchange = Application.getInstance().getExchange();
 			marketData = exchange.getPollingMarketDataService();
-						
+			
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
-		
+		} 	
 	}
 
 	@SuppressWarnings("unchecked")
@@ -65,7 +65,7 @@ public class TickerManager implements Runnable{
 		if(file.exists()) {
 			
 			log.info("Attempting to open market data file\n"+path+"/"+currency.getCurrencyCode()+".dat");
-						
+			
 			try {
 				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
 				data = (ArrayList<ATPTicker>) ois.readObject();
@@ -94,7 +94,7 @@ public class TickerManager implements Runnable{
 			e.printStackTrace();
 		}
 		
-				
+		
 	}
 	@Override
 	public void run() {
@@ -115,11 +115,11 @@ public class TickerManager implements Runnable{
 				Thread.sleep(Constants.TENSECONDS);
 			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 				try {
-						Thread.currentThread().sleep(Constants.ONESECOND);
-					} catch (InterruptedException e1) {
-						e1.printStackTrace();
-					}
+					Thread.currentThread().sleep(Constants.ONESECOND);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
 				}
+			}
 			catch (Exception e) {
 				System.err.println("Caught unexpected exception, shutting down now!.\nDetails are listed below.");
 				e.printStackTrace();

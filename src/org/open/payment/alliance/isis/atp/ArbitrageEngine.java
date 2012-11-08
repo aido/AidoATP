@@ -2,7 +2,6 @@ package org.open.payment.alliance.isis.atp;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
-import java.util.logging.Logger;
 import java.math.RoundingMode;
 
 import org.joda.money.BigMoney;
@@ -11,6 +10,9 @@ import org.joda.money.CurrencyUnit;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArbitrageEngine implements Runnable {
 	
@@ -24,7 +26,7 @@ public class ArbitrageEngine implements Runnable {
 	
 	private ArbitrageEngine() {
 		quit= false;
-		log = Logger.getLogger(ArbitrageEngine.class.getSimpleName());
+		log = LoggerFactory.getLogger(ArbitrageEngine.class);
 		askMap = new HashMap<CurrencyUnit, Double>();
 		bidMap = new HashMap<CurrencyUnit, Double>();
 		baseCurrency = CurrencyUnit.getInstance( Application.getInstance().getConfig("LocalCurrency"));
@@ -55,7 +57,7 @@ public class ArbitrageEngine implements Runnable {
 				e1.printStackTrace();
 				quit = true;//We should never, ever be able to get here, period.
 			}
-				
+			
 			Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
 			Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
 			
@@ -65,7 +67,7 @@ public class ArbitrageEngine implements Runnable {
 			String profitToDisplay = NumberFormat.getPercentInstance().format(profitAfterFee);
 			if(profitAfterFee > targetProfit){
 				log.info("Arbitrage Engine has detected an after fee profit opportunity of %"+profitAfterFee
-						+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
+				+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
 				
 				log.info("\n***Conversion Factors***\nHighest Bid: "+highestBid.toString()+"\nLowest Ask: "+lowestAsk.toString()+"\n");
 				
@@ -91,11 +93,11 @@ public class ArbitrageEngine implements Runnable {
 
 	
 	/**
-	 * Create 2 orders, a buy & a sell
-	 * @param from
-	 * @param to
-	 * @throws WalletNotFoundException 
-	 */
+	* Create 2 orders, a buy & a sell
+	* @param from
+	* @param to
+	* @throws WalletNotFoundException 
+	*/
 	private synchronized void executeTrade(Pair<CurrencyUnit,Double> from, Pair<CurrencyUnit, Double> to) throws WalletNotFoundException {
 		
 		CurrencyUnit fromCur = from.getFirst();
@@ -109,12 +111,12 @@ public class ArbitrageEngine implements Runnable {
 		*/
 		
 		/*
-		 * MarketOrder order = new MarketOrder();
+		* MarketOrder order = new MarketOrder();
 		order.setType(orderType);
 		order.setTradableAmount(qty);
 		order.setTradableIdentifier("BTC");
 		order.setTransactionCurrency(localCurrency.getCurrencyCode());
-		 */
+		*/
 		
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
@@ -150,7 +152,7 @@ public class ArbitrageEngine implements Runnable {
 
 	
 	public synchronized Pair<CurrencyUnit,Double> getHighestBid() throws WalletNotFoundException{
-			
+		
 		double highFactor = 1;
 		
 		CurrencyUnit highCurrency = baseCurrency;
@@ -172,7 +174,7 @@ public class ArbitrageEngine implements Runnable {
 				highCurrency = currency;
 			}
 		}
-				
+		
 		return new Pair<CurrencyUnit,Double>(highCurrency,highFactor);
 	}
 

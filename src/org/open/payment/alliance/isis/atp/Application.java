@@ -1,12 +1,11 @@
 /**
- * 
- */
+* 
+*/
 package org.open.payment.alliance.isis.atp;
 
 import java.io.Console;
 import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -14,22 +13,25 @@ import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * @author Auberon
- *
- */
+* @author Auberon
+*
+*/
 public class Application {
 
 	private static Application instance = null;
 	private static HashMap<String, String> params;
-	private Logger logger;
+	private final Logger log;
 	private Preferences config;
 	private boolean simModeFlag;
 	private boolean useArbFlag;
 	private Exchange exchange;
 	private Console console;
 	private Application() {
-		logger = Logger.getLogger(Application.class.getName());
+		log = LoggerFactory.getLogger(Application.class);
 		params = new HashMap<String,String>();
 		//true = simulate, false = live
 		simModeFlag = true;
@@ -37,6 +39,7 @@ public class Application {
 		useArbFlag = true;
 		console = System.console();	
 	}
+
 	
 	public static Application getInstance() {
 		if(instance == null) {
@@ -45,8 +48,8 @@ public class Application {
 		return instance;
 	}
 	/**
-	 * @param args
-	 */
+	* @param args
+	*/
 	public static void main(String[] args) {
 		Application app = getInstance();
 		app.start(args);
@@ -58,7 +61,7 @@ public class Application {
 		config = Preferences.userNodeForPackage(this.getClass());
 
 		if(params.containsKey("--clear-config")) {
-			logger.info("Clearing out all configuration data.");
+			log.info("Clearing out all configuration data.");
 			try {
 				config.clear();
 				config.sync();
@@ -83,15 +86,15 @@ public class Application {
 			}
 		}
 		
-	    exchange = IsisMtGoxExchange.getInstance();
-	    AccountManager.getInstance().refreshAccounts();
+		exchange = IsisMtGoxExchange.getInstance();
+		AccountManager.getInstance().refreshAccounts();
 		if(useArbMode()){
 			new Thread(ArbitrageEngine.getInstance()).start();
 		}
-	    logger.info("Isis ATP has started successfully");
-	    while(AccountManager.getInstance().isRunning()) {
-	    	Thread.currentThread().yield();
-	    }
+		log.info("Isis ATP has started successfully");
+		while(AccountManager.getInstance().isRunning()) {
+			Thread.currentThread().yield();
+		}
 
 	}
 	
@@ -115,7 +118,7 @@ public class Application {
 	private void interview() {
 		
 		PrintStream out = System.out;
-				
+		
 		out.println("No config file could be found.");
 		out.println("Beginning Interactive Mode");
 		if(console == null) {
@@ -157,7 +160,7 @@ public class Application {
 		out.println("1: \"High Risk\"");
 		out.println("2: \"Conservative\"");
 		config.put("Algorithm", console.readLine());
-	
+		
 		out.println("Interactive mode complete!");
 		out.println("Please look carefully at the answers below and if they look correct press enter.");
 		out.println("If there are any errors, please type NO");
@@ -190,7 +193,7 @@ public class Application {
 				try {
 					params.put(pair[0], pair[1]);
 				}catch( Exception ex){
-					logger.severe("Bad Parameter: " + pair[0]+"\nParameters must be specified as \"-parameter=value\"");
+					log.error("Bad Parameter: " + pair[0]+"\nParameters must be specified as \"-parameter=value\"");
 					ex.printStackTrace();
 					System.exit(1);
 				}

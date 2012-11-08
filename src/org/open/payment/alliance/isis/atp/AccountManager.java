@@ -5,7 +5,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
@@ -14,6 +13,9 @@ import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.trade.Wallet;
 import com.xeiam.xchange.service.account.polling.PollingAccountService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AccountManager {
 
@@ -26,7 +28,7 @@ public class AccountManager {
 	private HashMap<CurrencyUnit, CurrencyManager> currencyTracker;
 	
 	
-	private Logger log;
+	private static Logger log;
 	
 	private Exchange exchange;
 	private PollingAccountService accountService;
@@ -42,27 +44,27 @@ public class AccountManager {
 	private AccountManager(){
 		
 		currencyTracker = new HashMap<CurrencyUnit, CurrencyManager>();
-		log = Logger.getLogger(AccountManager.class.getSimpleName());
+		log = LoggerFactory.getLogger(AccountManager.class);
 		books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
 		PL = new HashMap<CurrencyUnit, PLModel>();
 		
 		exchange = Application.getInstance().getExchange();
-	    // Interested in the private account functionality (authentication)
-	    accountService = exchange.getPollingAccountService();
-	 
-	    // Get the account information
-	    accountInfo = accountService.getAccountInfo();
-	    log.info("AccountInfo as String: " + accountInfo.toString());
-	    refreshAccounts();
+		// Interested in the private account functionality (authentication)
+		accountService = exchange.getPollingAccountService();
 		
-	    for(Wallet wallet : wallets) {
-	    	CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-	    	if(currency.getCode().equals("BTC")) {
-	    		continue;
-	    	}
-	    	currencyTracker.put(currency, new CurrencyManager(currency));
-	    }
-	    
+		// Get the account information
+		accountInfo = accountService.getAccountInfo();
+		log.info("AccountInfo as String: " + accountInfo.toString());
+		refreshAccounts();
+		
+		for(Wallet wallet : wallets) {
+			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
+			if(currency.getCode().equals("BTC")) {
+				continue;
+			}
+			currencyTracker.put(currency, new CurrencyManager(currency));
+		}
+		
 	}
 	
 	
@@ -79,9 +81,9 @@ public class AccountManager {
 			if(unit.equals(currency)){
 				return balance;
 			}
-		
+			
 		}
-		log.severe("Could not find a wallet for the currency "+currency+"\nExiting now!");
+		log.error("Could not find a wallet for the currency "+currency+"\nExiting now!");
 		throw new WalletNotFoundException();
 	}
 	

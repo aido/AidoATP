@@ -1,11 +1,10 @@
 /**
- * 
- */
+* 
+*/
 package org.open.payment.alliance.isis.atp;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
@@ -15,11 +14,14 @@ import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * @author Auberon
- * This is the agent that makes trades on behalf of the user.
- * 
- */
+* @author Auberon
+* This is the agent that makes trades on behalf of the user.
+* 
+*/
 public class TradingAgent implements Runnable {
 
 	private double trendArrow;
@@ -40,9 +42,9 @@ public class TradingAgent implements Runnable {
 	private CurrencyUnit localCurrency;
 	private Logger log;
 	private TickerManager tickerManager;
-		
+	
 	public TradingAgent(TrendObserver observer) {
-		log = Logger.getLogger(TradingAgent.class.getSimpleName());
+		log = LoggerFactory.getLogger(TradingAgent.class);
 		this.observer = observer;
 		exchange = Application.getInstance().getExchange();
 		tradeService = exchange.getPollingTradeService();
@@ -59,8 +61,8 @@ public class TradingAgent implements Runnable {
 	}
 
 	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
+	* @see java.lang.Runnable#run()
+	*/
 	@Override
 	public void run(){
 		
@@ -150,7 +152,7 @@ public class TradingAgent implements Runnable {
 				
 				balance = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC")).getAmount();
 				
-											
+				
 				if(balance != null) {
 					
 					if(balance.compareTo(BigDecimal.ZERO) == 0) {
@@ -181,16 +183,16 @@ public class TradingAgent implements Runnable {
 							return;
 						}
 					}
-				
+					
 					marketOrder(qtyToSell,OrderType.ASK);
 				}else{
 					log.info("Could not determine wallet balance at this time, order will not be processed.");
 				}
 			}catch(WalletNotFoundException ex) {
-				log.severe("Could not find wallet for "+localCurrency.getCurrencyCode());
+				log.error("Could not find wallet for "+localCurrency.getCurrencyCode());
 				System.exit(1);
 			}
-				
+			
 		}else{
 			log.info("The trading agent has determined that market conditions are not appropriate for you to sell at this time.");
 			log.info("Current bid price of "+currentBid.toString()+" is below the VWAP of "+vwap.toString());
@@ -228,14 +230,14 @@ public class TradingAgent implements Runnable {
 				
 				balance = AccountManager.getInstance().getBalance(localCurrency).getAmount();
 				
-			
+				
 				if(balance != null) {
 					
 					if(balance.compareTo(BigDecimal.ZERO) == 0) {
 						log.info("Balance is empty.  No further buying is possible until the market corrects itself or funds are added to your account.");
 						return;
 					}
-									
+					
 					BigDecimal qtyToBuy;
 					bigWeight = new BigDecimal(weight);
 					if(algorithm == 1) {
@@ -263,7 +265,7 @@ public class TradingAgent implements Runnable {
 					marketOrder(qtyToBuy,OrderType.BID);
 				}
 			} catch (WalletNotFoundException e) {
-				log.severe("Could not find wallet for "+localCurrency.getCurrencyCode());
+				log.error("Could not find wallet for "+localCurrency.getCurrencyCode());
 				System.exit(1);
 			}	
 		}else{
@@ -313,7 +315,7 @@ public class TradingAgent implements Runnable {
 			
 			
 		}else{
-			log.severe("Failed to"+failAction+qty.toPlainString()+" at current market price.\nPlease investigate");
+			log.error("Failed to"+failAction+qty.toPlainString()+" at current market price.\nPlease investigate");
 		}
 	}
 
