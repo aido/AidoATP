@@ -113,19 +113,17 @@ public class TickerManager implements Runnable{
 				}
 				saveMarketData();
 				Thread.sleep(Constants.TENSECONDS);
-			} catch (Exception e) {
-				if(e.getClass() == com.xeiam.xchange.PacingViolationException.class) {
-					try {
+			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+				try {
 						Thread.currentThread().sleep(Constants.ONESECOND);
 					} catch (InterruptedException e1) {
-						
 						e1.printStackTrace();
 					}
-				}else {
-					System.err.println("Caught unexpected exception, shutting down now!.\nDetails are listed below.");
-					e.printStackTrace();
-					System.exit(1);
 				}
+			catch (Exception e) {
+				System.err.println("Caught unexpected exception, shutting down now!.\nDetails are listed below.");
+				e.printStackTrace();
+				System.exit(1);
 			}
 		}
 		
