@@ -119,9 +119,9 @@ public class ArbitrageEngine implements Runnable {
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
 		BigMoney qtyFrom = AccountManager.getInstance().getBalance(fromCur);
-		BigMoney qtyFromBTC = qtyFrom.dividedBy(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount(),RoundingMode.HALF_EVEN);
-		BigMoney qtyTo  = qtyFromBTC.multipliedBy(AccountManager.getInstance().getLastTick(toCur).getBid().getAmount());
-		BigMoney qtyToBTC  = qtyTo.dividedBy(AccountManager.getInstance().getLastTick(toCur).getBid().getAmount(),RoundingMode.HALF_EVEN);
+		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),java.math.BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount(),RoundingMode.HALF_EVEN));
+		BigMoney qtyTo  = qtyFromBTC.convertedTo(toCur,AccountManager.getInstance().getLastTick(toCur).getBid().getAmount());
+		BigMoney qtyToBTC  = qtyTo.convertedTo(CurrencyUnit.of("BTC"),java.math.BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(toCur).getBid().getAmount(),RoundingMode.HALF_EVEN));
 
 		if (!qtyFrom.isZero()){
 			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",fromCur.toString());
@@ -130,11 +130,11 @@ public class ArbitrageEngine implements Runnable {
 			String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
 			log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
 			if (marketbuyOrderReturnValue != null){
-				log.info("Arbitrage sold "+qtyFrom.toString() +" for BTC "+ qtyFromBTC.getAmount());
+				log.info("Arbitrage sold "+qtyFrom.toString() +" for "+ qtyFromBTC.toString());
 				String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
 				log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
 				if (marketbuyOrderReturnValue != null){
-					log.info("Arbitrage bought "+toCur.toString()+" "+qtyTo.getAmount() +" for BTC "+ qtyToBTC.getAmount());
+					log.info("Arbitrage bought "+toCur.toString()+" "+qtyTo.getAmount() +" for "+ qtyToBTC.toString());
 					log.info("Successfully traded "+qtyFrom.toString()+" for "+toCur.toString()+" "+qtyTo.getAmount()+" with Arbitrage!");
 				} else {
 					log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
