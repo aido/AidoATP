@@ -41,8 +41,9 @@ public class ArbitrageEngine implements Runnable {
 	@Override
 	public void run() {
 		
+		boolean wasSimMode;
+		
 		while(!quit) {
-			Application.getInstance().setSimMode(true);//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
 			Pair<CurrencyUnit, Double> highestBid = null;
 			try {
 				highestBid = getHighestBid();
@@ -79,7 +80,10 @@ public class ArbitrageEngine implements Runnable {
 				log.info("Lowest Ask: "+lowestAsk.toString());
 				
 				try {
+					wasSimMode = Application.getInstance().isSimMode();
+					Application.getInstance().setSimMode(true); //Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
 					executeTrade(lowestAsk,highestBid);
+					Application.getInstance().setSimMode(wasSimMode);
 				} catch (WalletNotFoundException e) {
 					e.printStackTrace();
 				}
@@ -87,7 +91,6 @@ public class ArbitrageEngine implements Runnable {
 			}else {
 				log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
 			}
-			Application.getInstance().setSimMode(false);
 			try {
 				Thread.sleep(Constants.TENSECONDS);
 			} catch (InterruptedException e) {

@@ -79,11 +79,22 @@ public class Application {
 		if(params.get("--debug-live") != null) {
 			if(params.get("--debug-live").equalsIgnoreCase("true")) {
 				log.info("Entering live mode for real world debugging.");
+				setSimMode(false);
+			}else {
+				setSimMode(true);
+			}
+		}else if(params.get("--simulation-mode") == null) {
+			showAgreement();
+		}
+		
+		if(params.get("--simulation-mode") != null ){
+			if(params.get("--simulation-mode").equalsIgnoreCase("true")) {
+				log.info("Entering simulation mode. Trades will not be executed.");
 				setSimMode(true);
 			}else {
 				setSimMode(false);
 			}
-		}else {
+		}else if (params.get("--debug-live") == null) {
 			showAgreement();
 		}
 		
@@ -98,7 +109,7 @@ public class Application {
 		
 		exchange = IsisMtGoxExchange.getInstance();
 		AccountManager.getInstance().refreshAccounts();
-		if(useArbMode()){
+		if(isArbMode()){
 			new Thread(ArbitrageEngine.getInstance()).start();
 		}
 		log.info("Isis ATP has started successfully");
@@ -229,7 +240,7 @@ public class Application {
 		return simModeFlag;
 	}
 	
-	public boolean useArbMode() {
+	public boolean isArbMode() {
 		return useArbFlag;
 	}
 	
