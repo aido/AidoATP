@@ -2,6 +2,7 @@ package org.open.payment.alliance.isis.atp;
 
 import java.util.HashMap;
 import java.math.RoundingMode;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 
 import org.joda.money.BigMoney;
@@ -131,9 +132,9 @@ public class ArbitrageEngine implements Runnable {
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
 		BigMoney qtyFrom = AccountManager.getInstance().getBalance(fromCur);
-		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),java.math.BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount(),RoundingMode.HALF_EVEN));
+		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount(),RoundingMode.HALF_EVEN));
 		BigMoney qtyTo  = qtyFromBTC.convertedTo(toCur,AccountManager.getInstance().getLastTick(toCur).getBid().getAmount());
-		BigMoney qtyToBTC  = qtyTo.convertedTo(CurrencyUnit.of("BTC"),java.math.BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(toCur).getBid().getAmount(),RoundingMode.HALF_EVEN));
+		BigMoney qtyToBTC  = qtyTo.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(toCur).getBid().getAmount(),RoundingMode.HALF_EVEN));
 
 		if (!qtyFrom.isZero()){
 			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",fromCur.toString());

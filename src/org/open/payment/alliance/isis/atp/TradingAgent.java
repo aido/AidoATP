@@ -34,10 +34,10 @@ public class TradingAgent implements Runnable {
 	private ATPTicker lastTick;
 	private TrendObserver observer;
 	private ArrayList<ATPTicker> ticker;
-	private BigDecimal maxBTC;
-	private BigDecimal minBTC;
-	private BigDecimal maxLocal;
-	private BigDecimal minLocal;
+	private BigMoney maxBTC;
+	private BigMoney minBTC;
+	private BigMoney maxLocal;
+	private BigMoney minLocal;
 	private Double maxWeight;
 	private Integer    algorithm;
 	private CurrencyUnit localCurrency;
@@ -51,14 +51,13 @@ public class TradingAgent implements Runnable {
 		tradeService = exchange.getPollingTradeService();
 		tickerManager = observer.getTickerManager();
 		localCurrency = tickerManager.getCurrency();	
-		maxBTC = new BigDecimal(Application.getInstance().getConfig("MaxBTC"));
-		maxLocal = new BigDecimal(Application.getInstance().getConfig("MaxLocal"));
-		minBTC = new BigDecimal(Application.getInstance().getConfig("MinBTC"));
-		minLocal = new BigDecimal(Application.getInstance().getConfig("MinLocal"));
+		BigMoney maxBTC = BigMoney.parse(CurrencyUnit.of("BTC")+" "+Application.getInstance().getConfig("MaxBTC"));
+		BigMoney maxLocal = BigMoney.parse(localCurrency+" "+Application.getInstance().getConfig("MaxLocal"));
+		BigMoney minBTC = BigMoney.parse(CurrencyUnit.of("BTC")+" "+Application.getInstance().getConfig("MinBTC"));
+		BigMoney minLocal = BigMoney.parse(localCurrency+" "+Application.getInstance().getConfig("MinLocal"));
 		maxWeight = new Double(Application.getInstance().getConfig("MaxLoss"));
-		
-		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));
-		
+				
+		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));		
 	}
 
 	/* (non-Javadoc)
@@ -148,42 +147,40 @@ public class TradingAgent implements Runnable {
 					weight = maxWeight;
 				}
 				
-				BigDecimal balance;			
+				BigMoney balanceBTC = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC"));
 				
-				balance = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC")).getAmount();				
-				
-				if(balance != null) {
+				if(balanceBTC != null) {
 					
-					if(balance.compareTo(BigDecimal.ZERO) == 0) {
+					if(balanceBTC.isZero()) {
 						log.info("BTC Balance is empty.  No further selling is possible until the market corrects or funds are added to your account.");
 						return;
 					}
 					
-					BigDecimal qtyToSell;
+					BigMoney qtyToSell;
 					BigDecimal bigWeight = new BigDecimal(weight);
 					if(algorithm == 1) {
-						qtyToSell = balance.multiply(bigWeight);
+						qtyToSell = balanceBTC.multipliedBy(bigWeight);
 					}else {
-						if(balance.compareTo(maxBTC) >= 0) {
-							qtyToSell = maxBTC.multiply(bigWeight);
+						if(balanceBTC.compareTo(maxBTC) >= 0) {
+							qtyToSell = maxBTC.multipliedBy(bigWeight);
 						}else {
-							qtyToSell = balance.multiply(bigWeight);
+							qtyToSell = balanceBTC.multipliedBy(bigWeight);
 						}
 					}
 					
-					log.info("Attempting to sell "+qtyToSell.toPlainString()+" of "+balance.toPlainString()+" BTC available");
+					log.info("Attempting to sell "+qtyToSell.toString()+" of "+balanceBTC.toString()+" available");
 					if(maxBTC != null) {
 						if(qtyToSell.compareTo(maxBTC) > 0) {
-							log.info(qtyToSell.toPlainString() + " was more than the configured limit of "+maxBTC.toPlainString()+"\nReducing order size to "+maxBTC);
+							log.info(qtyToSell.toString() + " was more than the configured limit of "+maxBTC.toString()+"\nReducing order size to "+maxBTC);
 							qtyToSell = maxBTC;
 						}
 						if(qtyToSell.compareTo(minBTC) < 0) {
-							log.info(qtyToSell.toPlainString() + " was less than the configured limit of "+minBTC.toPlainString()+"\nThere just isn't enough momentum to trade at this time.");
+							log.info(qtyToSell.toString() + " was less than the configured limit of "+minBTC.toString()+"\nThere just isn't enough momentum to trade at this time.");
 							return;
 						}
 					}
 					
-					marketOrder(qtyToSell,OrderType.ASK);
+					marketOrder(qtyToSell.getAmount(),OrderType.ASK);
 				}else{
 					log.info("Could not determine wallet balance at this time, order will not be processed.");
 				}
@@ -224,43 +221,43 @@ public class TradingAgent implements Runnable {
 				weight = maxWeight;
 			}
 			
-			BigDecimal balance;
+			BigMoney balanceLocal;
 			try {
 				
-				balance = AccountManager.getInstance().getBalance(localCurrency).getAmount();
+				balanceLocal = AccountManager.getInstance().getBalance(localCurrency);
 				
-				if(balance != null) {
+				if(balanceLocal != null) {
 					
-					if(balance.compareTo(BigDecimal.ZERO) == 0) {
+					if(balanceLocal.isZero()) {
 						log.info("Balance is empty.  No further buying is possible until the market corrects itself or funds are added to your account.");
 						return;
 					}
 					
-					BigDecimal qtyToBuy;
+					BigMoney qtyToBuy;
 					bigWeight = new BigDecimal(weight);
 					if(algorithm == 1) {
-						qtyToBuy = balance.multiply(bigWeight);
+						qtyToBuy = balanceLocal.multipliedBy(bigWeight);
 					}else {
-						if(balance.compareTo(maxLocal) >= 0) {
-							qtyToBuy = maxLocal.multiply(bigWeight);
+						if(balanceLocal.compareTo(maxLocal) >= 0) {
+							qtyToBuy = maxLocal.multipliedBy(bigWeight);
 						}else {
-							qtyToBuy = balance.multiply(bigWeight);
+							qtyToBuy = balanceLocal.multipliedBy(bigWeight);
 						}
 					}
 					
-					log.info("Attempting to buy "+qtyToBuy.toPlainString()+" BTC");
+					log.info("Attempting to buy "+qtyToBuy.toString());
 					if(maxLocal != null){
 						if(qtyToBuy.compareTo(maxLocal) > 0){
-							log.info(qtyToBuy.toPlainString() + " was more than the configured maximum of "+maxLocal.toPlainString()+"\nReducing order size to "+maxLocal.toPlainString());
+							log.info(qtyToBuy.toString() + " was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
 							qtyToBuy = maxLocal;
 						}
 						
 						if(qtyToBuy.compareTo(minLocal) < 0){
-							log.info(qtyToBuy.toPlainString() + " was less than the configured minimum of "+minLocal.toPlainString()+"\nThere just isn't enough momentum to trade at this time.");
+							log.info(qtyToBuy.toString() + " was less than the configured minimum of "+minLocal.toString()+". There just isn't enough momentum to trade at this time.");
 							return;
 						}
 					}
-					marketOrder(qtyToBuy,OrderType.BID);
+					marketOrder(qtyToBuy.getAmount(),OrderType.BID);
 				}
 			} catch (WalletNotFoundException e) {
 				log.error("Could not find wallet for "+localCurrency.getCurrencyCode());
