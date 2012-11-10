@@ -148,11 +148,9 @@ public class TradingAgent implements Runnable {
 					weight = maxWeight;
 				}
 				
-				BigDecimal balance;
+				BigDecimal balance;			
 				
-				
-				balance = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC")).getAmount();
-				
+				balance = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC")).getAmount();				
 				
 				if(balance != null) {
 					
@@ -231,7 +229,6 @@ public class TradingAgent implements Runnable {
 				
 				balance = AccountManager.getInstance().getBalance(localCurrency).getAmount();
 				
-				
 				if(balance != null) {
 					
 					if(balance.compareTo(BigDecimal.ZERO) == 0) {
@@ -282,9 +279,7 @@ public class TradingAgent implements Runnable {
 		if(!Application.getInstance().isSimMode()){
 			String marketOrderReturnValue = tradeService.placeMarketOrder(order);
 			log.info("Market Order return value: " + marketOrderReturnValue);
-			if(marketOrderReturnValue != null){
-				success = false;
-			}
+			success=(marketOrderReturnValue != null) ? true:false;
 		}else{
 			log.info("You were in simulation mode, the trade below did NOT actually occur.");
 		}
@@ -312,9 +307,7 @@ public class TradingAgent implements Runnable {
 			Double btcNormalized = btc * lastTick.getLast().getAmount().doubleValue();
 			overall = local + btcNormalized;
 			log.info("Overall P/L: "+overall+" "+localCurrency.getCurrencyCode());
-			log.info(AccountManager.getInstance().getAccountInfo().toString());
-			
-			
+			log.info(AccountManager.getInstance().getAccountInfo().toString());			
 		}else{
 			log.error("Failed to"+failAction+qty.toPlainString()+" at current market price.\nPlease investigate");
 		}

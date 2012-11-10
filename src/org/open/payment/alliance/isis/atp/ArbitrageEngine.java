@@ -146,14 +146,14 @@ public class ArbitrageEngine implements Runnable {
 					log.info("Arbitrage bought "+qtyTo.toString() +" for "+ qtyToBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
 					log.info("Successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString() +" with Arbitrage!");
 				} else {
-					log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
+					log.error("Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 				}
 
 			} else {
-				log.info("Arbitrage could not trade "+qtyTo.toString());
+				log.error("Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 			}
 		} else {
-			log.info("Arbitrage could not trade with a balance of "+qtyFrom.toString());
+			log.info("Arbitrage could not trade a balance of "+qtyFrom.toString()+" with "+qtyTo.toString());
 		}
 	}
 
