@@ -27,8 +27,8 @@ public class IsisMtGoxExchange extends MtGoxExchange {
 			String apiKey = Application.getInstance().getConfig("ApiKey");
 			String secretKey= Application.getInstance().getConfig("SecretKey");
 			
-			log.debug(apiKey);
-			log.debug(secretKey);
+			log.debug("MtGox API Key: "+apiKey);
+			log.debug("MtGox Secret Key: "+secretKey);
 			
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);
