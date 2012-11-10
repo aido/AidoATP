@@ -149,10 +149,12 @@ public class TradingAgent implements Runnable {
 				
 				BigMoney balanceBTC = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC"));
 				
-				if(balanceBTC != null) {
+				log.debug("BTC Balance: "+balanceBTC.toString()+"\tMax. BTC: "+maxBTC.toString()+"\tMin. BTC: "+minBTC.toString());
+
+				if(balanceBTC != null && maxBTC != null && minBTC != null) {
 					
 					if(balanceBTC.isZero()) {
-						log.info("BTC Balance is empty.  No further selling is possible until the market corrects or funds are added to your account.");
+						log.info("BTC balance is empty. No further selling is possible until the market corrects or funds are added to your account.");
 						return;
 					}
 					
@@ -169,15 +171,13 @@ public class TradingAgent implements Runnable {
 					}
 					
 					log.info("Attempting to sell "+qtyToSell.toString()+" of "+balanceBTC.toString()+" available");
-					if(maxBTC != null) {
-						if(qtyToSell.compareTo(maxBTC) > 0) {
-							log.info(qtyToSell.toString() + " was more than the configured limit of "+maxBTC.toString()+"\nReducing order size to "+maxBTC);
-							qtyToSell = maxBTC;
-						}
-						if(qtyToSell.compareTo(minBTC) < 0) {
-							log.info(qtyToSell.toString() + " was less than the configured limit of "+minBTC.toString()+"\nThere just isn't enough momentum to trade at this time.");
-							return;
-						}
+					if(qtyToSell.compareTo(maxBTC) > 0) {
+						log.info(qtyToSell.toString() + " was more than the configured limit of "+maxBTC.toString()+"\nReducing order size to "+maxBTC);
+						qtyToSell = maxBTC;
+					}
+					if(qtyToSell.compareTo(minBTC) < 0) {
+						log.info(qtyToSell.toString() + " was less than the configured limit of "+minBTC.toString()+"\nThere just isn't enough momentum to trade at this time.");
+						return;
 					}
 					
 					marketOrder(qtyToSell.getAmount(),OrderType.ASK);
@@ -190,9 +190,8 @@ public class TradingAgent implements Runnable {
 			}
 			
 		}else{
-			log.info("The trading agent has determined that market conditions are not appropriate for you to sell at this time.");
 			log.info("Current bid price of "+currentBid.toString()+" is below the VWAP of "+vwap.toString());
-
+			log.info("The trading agent has determined that market conditions are not appropriate for you to sell at this time.");
 		}
 	}
 	
@@ -203,7 +202,6 @@ public class TradingAgent implements Runnable {
 		if(currentAsk.isLessThan(vwap)) {
 			//Formula for bid is the same as for ASK with USD/BTC instead of BTC/USD
 			Double weight;
-			
 			
 			//Look at bid arrow and calculate weight
 			if(algorithm == 1) {
@@ -226,10 +224,12 @@ public class TradingAgent implements Runnable {
 				
 				balanceLocal = AccountManager.getInstance().getBalance(localCurrency);
 				
-				if(balanceLocal != null) {
-					
+				log.debug("Local Balance: "+balanceLocal.toString()+"\tMax. Local: "+maxLocal.toString()+"\tMin. Local: "+minLocal.toString());
+				
+				if(balanceLocal != null && maxLocal != null && minLocal != null) {
+						
 					if(balanceLocal.isZero()) {
-						log.info("Balance is empty.  No further buying is possible until the market corrects itself or funds are added to your account.");
+						log.info(localCurrency+" balance is empty. No further buying is possible until the market corrects itself or funds are added to your account.");
 						return;
 					}
 					
@@ -246,16 +246,14 @@ public class TradingAgent implements Runnable {
 					}
 					
 					log.info("Attempting to buy "+qtyToBuy.toString());
-					if(maxLocal != null){
-						if(qtyToBuy.compareTo(maxLocal) > 0){
-							log.info(qtyToBuy.toString() + " was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
-							qtyToBuy = maxLocal;
-						}
-						
-						if(qtyToBuy.compareTo(minLocal) < 0){
-							log.info(qtyToBuy.toString() + " was less than the configured minimum of "+minLocal.toString()+". There just isn't enough momentum to trade at this time.");
-							return;
-						}
+					if(qtyToBuy.compareTo(maxLocal) > 0){
+						log.info(qtyToBuy.toString() + " was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
+						qtyToBuy = maxLocal;
+					}
+					
+					if(qtyToBuy.compareTo(minLocal) < 0){
+						log.info(qtyToBuy.toString() + " was less than the configured minimum of "+minLocal.toString()+". There just isn't enough momentum to trade at this time.");
+						return;
 					}
 					marketOrder(qtyToBuy.getAmount(),OrderType.BID);
 				}
@@ -264,8 +262,8 @@ public class TradingAgent implements Runnable {
 				System.exit(1);
 			}	
 		}else{
-			log.info("The trading agent has determined that market conditions are not appropriate for you to buy at this time.");
 			log.info("Current ask price of "+currentAsk.toString()+" is above the VWAP of "+vwap.toString());
+			log.info("The trading agent has determined that market conditions are not appropriate for you to buy at this time.");
 		}
 	}
 	
