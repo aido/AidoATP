@@ -1,6 +1,6 @@
 /**
- * 
- */
+* 
+*/
 package org.open.payment.alliance.isis.atp;
 
 import java.math.BigDecimal;
@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 import org.joda.money.BigMoney;
 
 /**
- * @author Auberon
- * A simple model to represent profit/loss for a given currency
- * 
- */
+* @author Auberon
+* A simple model to represent profit/loss for a given currency
+* 
+*/
 public class PLModel {
-		
+	
 	private BigMoney amount;
 	private BigDecimal percent;
 

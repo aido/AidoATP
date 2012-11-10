@@ -1,3 +1,4 @@
+
 By typing "I agree" you are hereby certifying that you agree to the following terms and conditions.
 
 You are of legal age or age of majority in your jurisdiction.
@@ -11,4 +12,6 @@ You agree that you are assuming 100% of the risk and that you understand the ris
 You agree that this application does not constitute financial advice and is merely a "pre-programmed trader", executing orders that you would have executed yourself.
 
 If you agree with the above statements please type "I Agree" without the quotation marks, to enable live trading.
+
 Type anything else to continue in simulation mode.
+

@@ -107,8 +107,6 @@ public class TrendObserver implements Runnable {
 					//Changed volume is new volume - old volume
 					//We need 2 volumes, a total volume & an absolute volume
 					
-					
-					
 					if(idx == 0){
 						
 						oldVolume = BigDecimal.ZERO;
@@ -121,8 +119,7 @@ public class TrendObserver implements Runnable {
 						oldVolume = newVolume;
 						oldPrice = newPrice;
 						oldBid = newBid;
-						oldAsk = newAsk;
-						
+						oldAsk = newAsk;	
 					}
 					
 					//The volume of this tick, by itself
@@ -168,20 +165,16 @@ public class TrendObserver implements Runnable {
 				
 			}
 			
+			log.info("High "+localCurrency.getCurrencyCode()+" : "+high.toString());
+			log.info("Low "+localCurrency.getCurrencyCode()+" : "+low.toString());
+			log.info("Current "+localCurrency.getCurrencyCode()+" : "+tick.toString());
+			log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
 			
-			
-			System.out.println("\nHigh: "+high.toString());
-			System.out.println("Low: "+low.toString());
-			System.out.println("Current: "+tick.toString());
-			System.out.println("VWAP: "+vwap.getAmount().toPlainString());
-			
-			System.out.println("\n");
 			if(System.currentTimeMillis() > learnTime) {
 				evaluateMarketConditions();
 			}else {
-				log.info("Application has not run long enough to build a profile for "
-				+localCurrency.getCurrencyCode()+" market.\n"
-				+((learnTime - System.currentTimeMillis())/1000)/60+" minutes remaining.");
+				log.info("Application has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market.");
+				log.info("Finished building "+localCurrency.getCurrencyCode()+" market profile in "+((learnTime - System.currentTimeMillis())/1000)/60+" minutes.");
 			}
 			
 			try {

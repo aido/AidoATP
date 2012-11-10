@@ -3,6 +3,7 @@
 */
 package org.open.payment.alliance.isis.atp;
 
+import java.text.NumberFormat;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
@@ -88,9 +89,10 @@ public class TradingAgent implements Runnable {
 		str.append(" | ");
 		str.append("VWAP: ");
 		str.append(vwap);
+		log.info(str.toString());
 		
-		
-		str.append("\nThe ");
+		str.setLength(0);
+		str.append("The ");
 		str.append(localCurrency.getCode());
 		str.append(" market is trending");
 		if(trendArrow > 0) {
@@ -104,7 +106,7 @@ public class TradingAgent implements Runnable {
 			//Market is stagnant, hold position
 			str.append(" flat.");
 		}
-		
+		log.info(str.toString());
 		
 		if(trendArrow > 0 && bidArrow > 0){
 			//If market is trending up, we should look at selling
@@ -113,9 +115,8 @@ public class TradingAgent implements Runnable {
 			//If market is trending down, we should look at buying
 			evalBid();
 		}else {
-			str.append("\nNo action will be taken at this time.\n");
+			log.info("No action will be taken at this time.");
 		}
-		log.info(str.toString());
 	}
 
 	//Let's decide whether or not to sell & how much to sell 

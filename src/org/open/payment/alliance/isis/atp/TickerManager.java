@@ -64,7 +64,7 @@ public class TickerManager implements Runnable{
 		
 		if(file.exists()) {
 			
-			log.info("Attempting to open market data file\n"+path+"/"+currency.getCurrencyCode()+".dat");
+			log.info("Attempting to open market data file "+path+"/"+currency.getCurrencyCode()+".dat");
 			
 			try {
 				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));

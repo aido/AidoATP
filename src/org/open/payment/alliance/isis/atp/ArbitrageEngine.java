@@ -1,8 +1,8 @@
 package org.open.payment.alliance.isis.atp;
 
-import java.text.NumberFormat;
 import java.util.HashMap;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
@@ -64,12 +64,19 @@ public class ArbitrageEngine implements Runnable {
 			//We buy from the lowestAsk & sell to the highestBid;
 			double profit = highestBid.getSecond() - lowestAsk.getSecond();
 			double profitAfterFee = profit - (fee *2);
-			String profitToDisplay = NumberFormat.getPercentInstance().format(profitAfterFee);
+
+			NumberFormat percentFormat = NumberFormat.getPercentInstance();
+			percentFormat.setMaximumFractionDigits(8);
+			
+			String profitToDisplay = percentFormat.format(profitAfterFee);	
+			
 			if(profitAfterFee > targetProfit){
-				log.info("Arbitrage Engine has detected an after fee profit opportunity of %"+profitAfterFee
+				log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
 				+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
 				
-				log.info("\n***Conversion Factors***\nHighest Bid: "+highestBid.toString()+"\nLowest Ask: "+lowestAsk.toString()+"\n");
+				log.info("***Conversion Factors***");
+				log.info("Highest Bid: "+highestBid.toString());
+				log.info("Lowest Ask: "+lowestAsk.toString());
 				
 				try {
 					executeTrade(lowestAsk,highestBid);
@@ -132,12 +139,12 @@ public class ArbitrageEngine implements Runnable {
 			String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
 			log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
 			if (marketbuyOrderReturnValue != null){
-				log.info("Arbitrage sold "+qtyFrom.toString() +" for "+ qtyFromBTC.toString());
+				log.info("Arbitrage sold "+qtyFrom.toString() +" for "+ qtyFromBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
 				String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
 				log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
 				if (marketbuyOrderReturnValue != null){
-					log.info("Arbitrage bought "+toCur.toString()+" "+qtyTo.getAmount() +" for "+ qtyToBTC.toString());
-					log.info("Successfully traded "+qtyFrom.toString()+" for "+toCur.toString()+" "+qtyTo.getAmount()+" with Arbitrage!");
+					log.info("Arbitrage bought "+qtyTo.toString() +" for "+ qtyToBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
+					log.info("Successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString() +" with Arbitrage!");
 				} else {
 					log.info("Failed to complete the recommended trade via Arbitrage, perhaps your balances were too low.");
 				}

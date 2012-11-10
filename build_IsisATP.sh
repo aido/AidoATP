@@ -129,14 +129,19 @@ echo
 echo "IsisATP"
 echo "========"
 [[ ! -d $SRC_DIR/IsisATP ]] && cd $SRC_DIR && git clone git://github.com/aido/IsisATP
+find $SRC_DIR/IsisATP -type d -name *test* -prune -o -type f -name "*.java" -print | xargs chmod 644
 find $SRC_DIR/IsisATP -type d -name *test* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
-find $SRC_DIR/IsisATP/src -type f -name license.txt -exec cp '{}' $CLASSPATH \;
+cp $SRC_DIR/IsisATP/resources/license.txt $CLASSPATH
+cp $SRC_DIR/IsisATP/resources/logback.xml $CLASSPATH
 echo
 
 echo "Building jar"
 echo "============"
+[[ -d $CLASSPATH/META-INF ]] && rm -r $CLASSPATH/META-INF
+
 cd $CLASSPATH
-jar -cfe $BIN_DIR/aido.jar org/open/payment/alliance/isis/atp/Application org com ch license.txt
+jar cfe $BIN_DIR/aido.jar org/open/payment/alliance/isis/atp/Application ch com org logback.xml license.txt
+
 echo
 
 exit 0

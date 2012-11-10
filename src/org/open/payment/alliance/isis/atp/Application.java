@@ -4,7 +4,9 @@
 package org.open.payment.alliance.isis.atp;
 
 import java.io.Console;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -66,15 +68,23 @@ public class Application {
 				config.clear();
 				config.sync();
 			} catch (BackingStoreException e) {
-				
 				e.printStackTrace();
 			}
 		}
 
 		if(config.get("ApiKey", null) == null) {
 			interview();
+		}
+
+		if(params.get("--debug-live") != null) {
+			if(params.get("--debug-live").equalsIgnoreCase("true")) {
+				log.info("Entering live mode for real world debugging.");
+				setSimMode(true);
+			}else {
+				setSimMode(false);
+			}
 		}else {
-			simModeFlag = showAgreement();
+			showAgreement();
 		}
 		
 		if(params.get("--use-arbitrage") != null) {
@@ -95,37 +105,43 @@ public class Application {
 		while(AccountManager.getInstance().isRunning()) {
 			Thread.currentThread().yield();
 		}
-
 	}
 	
-	private boolean showAgreement() {
-		System.out.print(this.getClass().getClassLoader().getResourceAsStream("license.txt"));
-		if(params.get("--debug-live") != null) {
-			if(params.get("--debug-live").equalsIgnoreCase("true")) {
-				System.out.println("Entering live mode for real world debugging.");
-				return false;
-			}else {
-				return true;
+	private void showAgreement() {
+		InputStream license = this.getClass().getClassLoader().getResourceAsStream("license.txt");
+
+		byte[] buf = new byte[2048];
+		long total = 0;
+		int len = 0;
+		try {
+			while (-1 != (len = license.read(buf))) {
+				System.out.write(buf, 0, len);
+				total += len;
 			}
+		} catch (IOException e) {
+			throw new RuntimeException("Error displaying license agreement", e);
 		}
+		System.out.print("Please type your response : ");
+		
 		String input = console.readLine();
 		if(input.equalsIgnoreCase("I Agree")) {
-			return false;
+			setSimMode(false);
 		}else {
-			return true;
+			setSimMode(true);
 		}
 	}
+	
 	private void interview() {
 		
 		PrintStream out = System.out;
 		
-		out.println("No config file could be found.");
-		out.println("Beginning Interactive Mode");
+		log.info("No config file could be found.");
+		log.info("Beginning Interactive Mode");
 		if(console == null) {
-			out.println("No console could be found, exiting application.");
+			log.error("No console could be found, exiting application.");
 			System.exit(1);
 		}
-		out.println("Please answer all questions.\nDon't worry if you make a mistake you will have a chance to review before comitting.");
+		out.println("\nPlease answer all questions.\nDon't worry if you make a mistake you will have a chance to review before comitting.");
 		out.print("Enter your API key: ");
 		config.put("ApiKey",console.readLine());
 		
