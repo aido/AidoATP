@@ -11,12 +11,11 @@
 		<file>aido.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
 			<fileNamePattern>aido.log.%i.gz</fileNamePattern>
-			<maxHistory>8</maxHistory>
 			<minIndex>1</minIndex>
 			<maxIndex>8</maxIndex>
 		</rollingPolicy>
 		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-			<maxFileSize>32MB</maxFileSize>
+			<maxFileSize>16MB</maxFileSize>
 		</triggeringPolicy>
 		<encoder>
 			<pattern>%date : %-5level %logger [%thread] - %message%n</pattern>

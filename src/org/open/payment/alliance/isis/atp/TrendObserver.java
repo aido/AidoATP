@@ -49,7 +49,7 @@ public class TrendObserver implements Runnable {
 	
 	@Override
 	public void run() {
-		
+
 		while(!quit) {
 			//Each run, currently 1/Min
 			
@@ -165,11 +165,11 @@ public class TrendObserver implements Runnable {
 				
 			}
 			
-			log.info("High "+localCurrency.getCurrencyCode()+" : "+high.toString());
-			log.info("Low "+localCurrency.getCurrencyCode()+" : "+low.toString());
-			log.info("Current "+localCurrency.getCurrencyCode()+" : "+tick.toString());
+			log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
+			log.info("Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
+			log.info("Current "+localCurrency.getCurrencyCode()+" :- "+tick.toString());
 			log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
-			
+					
 			if(System.currentTimeMillis() > learnTime) {
 				evaluateMarketConditions();
 			}else {

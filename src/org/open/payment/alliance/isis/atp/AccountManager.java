@@ -67,9 +67,7 @@ public class AccountManager {
 		
 	}
 	
-	
-	
-	
+
 	public BigMoney getBalance(CurrencyUnit currency) throws WalletNotFoundException{
 		refreshAccounts();
 		wallets = accountInfo.getWallets();

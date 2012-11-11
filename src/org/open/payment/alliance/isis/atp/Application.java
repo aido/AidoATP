@@ -83,7 +83,7 @@ public class Application {
 			}else {
 				setSimMode(true);
 			}
-		}else if(params.get("--simulation-mode") == null) {
+		}else if(params.get("--simulation-mode") == null && isSimMode() ) {
 			showAgreement();
 		}
 		
@@ -94,7 +94,7 @@ public class Application {
 			}else {
 				setSimMode(false);
 			}
-		}else if (params.get("--debug-live") == null) {
+		}else if (params.get("--debug-live") == null && isSimMode()) {
 			showAgreement();
 		}
 		

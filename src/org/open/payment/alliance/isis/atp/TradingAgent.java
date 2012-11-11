@@ -50,13 +50,12 @@ public class TradingAgent implements Runnable {
 		exchange = Application.getInstance().getExchange();
 		tradeService = exchange.getPollingTradeService();
 		tickerManager = observer.getTickerManager();
-		localCurrency = tickerManager.getCurrency();	
-		BigMoney maxBTC = BigMoney.parse(CurrencyUnit.of("BTC")+" "+Application.getInstance().getConfig("MaxBTC"));
-		BigMoney maxLocal = BigMoney.parse(localCurrency+" "+Application.getInstance().getConfig("MaxLocal"));
-		BigMoney minBTC = BigMoney.parse(CurrencyUnit.of("BTC")+" "+Application.getInstance().getConfig("MinBTC"));
-		BigMoney minLocal = BigMoney.parse(localCurrency+" "+Application.getInstance().getConfig("MinLocal"));
+		localCurrency = tickerManager.getCurrency();
+		maxBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MaxBTC")));
+		maxLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MaxLocal")));
+		minBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MinBTC")));
+		minLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MinLocal")));
 		maxWeight = new Double(Application.getInstance().getConfig("MaxLoss"));
-				
 		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));		
 	}
 
@@ -149,8 +148,22 @@ public class TradingAgent implements Runnable {
 				
 				BigMoney balanceBTC = AccountManager.getInstance().getBalance(CurrencyUnit.of("BTC"));
 				
-				log.debug("BTC Balance: "+balanceBTC.toString()+"\tMax. BTC: "+maxBTC.toString()+"\tMin. BTC: "+minBTC.toString());
-
+				if (balanceBTC != null) {
+					log.debug("BTC Balance: "+balanceBTC.toString());
+				}else {
+					log.error("ERROR: BTC Balance is null");
+				}
+				if (maxBTC != null) {
+					log.debug("Max. BTC: "+maxBTC.toString());
+				}else {
+					log.error("ERROR: Max. BTC is null");
+				}
+				if (minBTC != null) {
+					log.debug("Min. BTC: "+minBTC.toString());
+				}else {
+					log.error("ERROR: Min. BTC is null");
+				}
+								
 				if(balanceBTC != null && maxBTC != null && minBTC != null) {
 					
 					if(balanceBTC.isZero()) {
@@ -172,11 +185,13 @@ public class TradingAgent implements Runnable {
 					
 					log.info("Attempting to sell "+qtyToSell.toString()+" of "+balanceBTC.toString()+" available");
 					if(qtyToSell.compareTo(maxBTC) > 0) {
-						log.info(qtyToSell.toString() + " was more than the configured limit of "+maxBTC.toString()+"\nReducing order size to "+maxBTC);
+						log.info(qtyToSell.toString() + " was more than the configured limit of "+maxBTC.toString());
+						log.info("Reducing order size to "+maxBTC.toString());
 						qtyToSell = maxBTC;
 					}
 					if(qtyToSell.compareTo(minBTC) < 0) {
-						log.info(qtyToSell.toString() + " was less than the configured limit of "+minBTC.toString()+"\nThere just isn't enough momentum to trade at this time.");
+						log.info(qtyToSell.toString() + " was less than the configured limit of "+minBTC.toString());
+						log.info("There just isn't enough momentum to trade at this time.");
 						return;
 					}
 					
@@ -224,7 +239,21 @@ public class TradingAgent implements Runnable {
 				
 				balanceLocal = AccountManager.getInstance().getBalance(localCurrency);
 				
-				log.debug("Local Balance: "+balanceLocal.toString()+"\tMax. Local: "+maxLocal.toString()+"\tMin. Local: "+minLocal.toString());
+				if (balanceLocal != null) {
+					log.debug("Local Balance: "+balanceLocal.toString());
+				}else {
+					log.error("ERROR: Local Balance is null");
+				}
+				if (maxLocal != null) {
+					log.debug("Max. Local: "+maxLocal.toString());
+				}else {
+					log.error("ERROR: Max. Local is null");
+				}
+				if (minLocal != null) {
+					log.debug("Min. Local: "+minLocal.toString());
+				}else {
+					log.error("ERROR: Min. Local is null");
+				}
 				
 				if(balanceLocal != null && maxLocal != null && minLocal != null) {
 						
@@ -247,12 +276,13 @@ public class TradingAgent implements Runnable {
 					
 					log.info("Attempting to buy "+qtyToBuy.toString());
 					if(qtyToBuy.compareTo(maxLocal) > 0){
-						log.info(qtyToBuy.toString() + " was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
+						log.info(qtyToBuy.toString() +" was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
 						qtyToBuy = maxLocal;
 					}
 					
 					if(qtyToBuy.compareTo(minLocal) < 0){
-						log.info(qtyToBuy.toString() + " was less than the configured minimum of "+minLocal.toString()+". There just isn't enough momentum to trade at this time.");
+						log.info(qtyToBuy.toString() + " was less than the configured minimum of "+minLocal.toString());
+						log.info("There just isn't enough momentum to trade at this time.");
 						return;
 					}
 					marketOrder(qtyToBuy.getAmount(),OrderType.BID);
