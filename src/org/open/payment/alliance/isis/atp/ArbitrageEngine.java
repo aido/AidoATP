@@ -150,9 +150,8 @@ public class ArbitrageEngine implements Runnable {
 			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",fromCur.toString());
 			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qtyToBTC.getAmount(),"BTC",toCur.toString());
 			
-			log.debug("Attemting to buy "+qtyTo.toString()+" with "+qtyFrom.toString());
-			log.debug("Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+fromCur.toString());
-			log.debug("Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+toCur.toString());
+			log.debug("Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+qtyFrom.toString());
+			log.debug("Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
 			
 			String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
 			log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
@@ -185,18 +184,20 @@ public class ArbitrageEngine implements Runnable {
 		
 		Double basePrice = lastTick.getLast().getAmount().doubleValue();
 		
-		for(CurrencyUnit currency : bidMap.keySet()) {
-			BigMoney balance = AccountManager.getInstance().getBalance(currency);
-			if(balance.isZero()) {
-				continue;
-			}
-			
-			Double testPrice = bidMap.get(currency);
-			factor = basePrice/testPrice;
-			
-			if(factor > highFactor) {
-				highFactor = factor;
-				highCurrency = currency;
+		synchronized (bidMap) {
+			for(CurrencyUnit currency : bidMap.keySet()) {
+				BigMoney balance = AccountManager.getInstance().getBalance(currency);
+				if(balance.isZero()) {
+					continue;
+				}
+				
+				Double testPrice = bidMap.get(currency);
+				factor = basePrice/testPrice;
+				
+				if(factor > highFactor) {
+					highFactor = factor;
+					highCurrency = currency;
+				}
 			}
 		}
 		
@@ -212,19 +213,21 @@ public class ArbitrageEngine implements Runnable {
 		
 		Double basePrice = lastTick.getLast().getAmount().doubleValue();
 		
-		for(CurrencyUnit currency : askMap.keySet()) {
-			
-			BigMoney balance = AccountManager.getInstance().getBalance(currency);
-			if(balance.isZero()) {
-				continue;
-			}
+		synchronized (askMap) {
+			for(CurrencyUnit currency : askMap.keySet()) {
+				
+				BigMoney balance = AccountManager.getInstance().getBalance(currency);
+				if(balance.isZero()) {
+					continue;
+				}
 
-			Double testPrice = askMap.get(currency);
-			factor = basePrice / testPrice;
-			
-			if(factor < lowFactor) {
-				lowFactor = factor;
-				lowCurrency = currency;
+				Double testPrice = askMap.get(currency);
+				factor = basePrice / testPrice;
+				
+				if(factor < lowFactor) {
+					lowFactor = factor;
+					lowCurrency = currency;
+				}
 			}
 		}
 		

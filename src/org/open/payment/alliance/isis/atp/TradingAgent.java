@@ -258,7 +258,7 @@ public class TradingAgent implements Runnable {
 				if(balanceLocal != null && maxLocal != null && minLocal != null) {
 						
 					if(balanceLocal.isZero()) {
-						log.info(localCurrency+" balance is empty. No further buying is possible until the market corrects itself or funds are added to your account.");
+						log.info(localCurrency+" balance is empty until the market corrects itself or funds are added to your account.");
 						return;
 					}
 					
