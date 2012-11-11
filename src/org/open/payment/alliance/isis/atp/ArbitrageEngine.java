@@ -131,14 +131,28 @@ public class ArbitrageEngine implements Runnable {
 		
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
+		BigMoney lastTickAskFrom = AccountManager.getInstance().getLastTick(fromCur).getAsk();
+		BigMoney lastTickBidTo = AccountManager.getInstance().getLastTick(toCur).getBid();
+		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16, RoundingMode.HALF_UP);
+		BigDecimal oneDivTo = BigDecimal.ONE.divide(lastTickBidTo.getAmount(),16,RoundingMode.HALF_UP);
+		
+		log.debug("Last ticker Ask price was "+lastTickAskFrom.toString());		
+		log.debug("BTC/"+fromCur.toString()+" is "+oneDivFrom.toString());
+		log.debug("Last ticker Bid price was "+lastTickBidTo.toString());
+		log.debug("BTC/"+toCur.toString()+" is "+oneDivTo.toString());
+		
 		BigMoney qtyFrom = AccountManager.getInstance().getBalance(fromCur);
-		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(fromCur).getAsk().getAmount(),RoundingMode.HALF_EVEN));
-		BigMoney qtyTo  = qtyFromBTC.convertedTo(toCur,AccountManager.getInstance().getLastTick(toCur).getBid().getAmount());
-		BigMoney qtyToBTC  = qtyTo.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(AccountManager.getInstance().getLastTick(toCur).getBid().getAmount(),RoundingMode.HALF_EVEN));
+		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),oneDivFrom);
+		BigMoney qtyTo = qtyFromBTC.convertedTo(toCur,lastTickBidTo.getAmount());
+		BigMoney qtyToBTC = qtyTo.convertedTo(CurrencyUnit.of("BTC"),oneDivTo);
 
 		if (!qtyFrom.isZero()){
 			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",fromCur.toString());
 			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qtyToBTC.getAmount(),"BTC",toCur.toString());
+			
+			log.debug("Attemting to buy "+qtyTo.toString()+" with "+qtyFrom.toString());
+			log.debug("Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+fromCur.toString());
+			log.debug("Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+toCur.toString());
 			
 			String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
 			log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
@@ -157,7 +171,7 @@ public class ArbitrageEngine implements Runnable {
 				log.error("Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 			}
 		} else {
-			log.info("Arbitrage could not trade a balance of "+qtyFrom.toString()+" with "+qtyTo.toString());
+			log.info("Arbitrage could not trade a balance of "+qtyFrom.toString());
 		}
 	}
 
