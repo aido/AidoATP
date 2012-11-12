@@ -177,7 +177,7 @@ public class ArbitrageEngine implements Runnable {
 	
 	public synchronized Pair<CurrencyUnit,Double> getHighestBid() throws WalletNotFoundException{
 		
-		double highFactor = 1;
+		double highFactor = 0.01;
 		
 		CurrencyUnit highCurrency = baseCurrency;
 		ATPTicker lastTick = AccountManager.getInstance().getLastTick(baseCurrency);
@@ -186,10 +186,6 @@ public class ArbitrageEngine implements Runnable {
 		
 		synchronized (bidMap) {
 			for(CurrencyUnit currency : bidMap.keySet()) {
-				BigMoney balance = AccountManager.getInstance().getBalance(currency);
-				if(balance.isZero()) {
-					continue;
-				}
 				
 				Double testPrice = bidMap.get(currency);
 				factor = basePrice/testPrice;
@@ -206,7 +202,7 @@ public class ArbitrageEngine implements Runnable {
 
 	public synchronized Pair<CurrencyUnit, Double> getLowestAsk() throws WalletNotFoundException {
 		
-		double lowFactor = 1;
+		double lowFactor = 100;
 		
 		CurrencyUnit lowCurrency = baseCurrency;
 		ATPTicker lastTick = AccountManager.getInstance().getLastTick(baseCurrency);
@@ -215,11 +211,6 @@ public class ArbitrageEngine implements Runnable {
 		
 		synchronized (askMap) {
 			for(CurrencyUnit currency : askMap.keySet()) {
-				
-				BigMoney balance = AccountManager.getInstance().getBalance(currency);
-				if(balance.isZero()) {
-					continue;
-				}
 
 				Double testPrice = askMap.get(currency);
 				factor = basePrice / testPrice;
