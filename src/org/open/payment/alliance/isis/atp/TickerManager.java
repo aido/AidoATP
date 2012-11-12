@@ -155,9 +155,11 @@ public class TickerManager implements Runnable{
 	}
 
 	public synchronized ATPTicker getLastTick() {
-		ATPTicker tick;
+		ATPTicker tick = null;
 		synchronized(tickerCache) {
-			tick = tickerCache.get(tickerCache.size()-1);
+			if (tickerCache.size() > 0) {
+				tick = tickerCache.get(tickerCache.size()-1);
+			}
 		}
 		return tick;
 	}	
