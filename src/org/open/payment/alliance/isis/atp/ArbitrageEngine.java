@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.math.RoundingMode;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.net.Socket;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
@@ -44,61 +45,83 @@ public class ArbitrageEngine implements Runnable {
 		
 		boolean wasSimMode;
 		
-		while(!quit) {
-			Pair<CurrencyUnit, Double> highestBid = null;
-			try {
-				highestBid = getHighestBid();
-			} catch (WalletNotFoundException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			Pair<CurrencyUnit, Double> lowestAsk = null;
-			try {
-				lowestAsk = getLowestAsk();
-			} catch (WalletNotFoundException e1) {
-				e1.printStackTrace();
-				quit = true;//We should never, ever be able to get here, period.
-			}
-			
-			Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
-			Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
-			
-			//We buy from the lowestAsk & sell to the highestBid;
-			double profit = highestBid.getSecond() - lowestAsk.getSecond();
-			double profitAfterFee = profit - (fee *2);
-
-			NumberFormat percentFormat = NumberFormat.getPercentInstance();
-			percentFormat.setMaximumFractionDigits(8);
-			
-			String profitToDisplay = percentFormat.format(profitAfterFee);	
-			
-			if(profitAfterFee > targetProfit){
-				log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
-				+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
-				
-				log.info("***Conversion Factors***");
-				log.info("Highest Bid: "+highestBid.toString());
-				log.info("Lowest Ask: "+lowestAsk.toString());
-				
+		try {		
+			while(!quit) {
+				Pair<CurrencyUnit, Double> highestBid = null;
 				try {
-					wasSimMode = Application.getInstance().isSimMode();
-					Application.getInstance().setSimMode(true); //Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
-					executeTrade(lowestAsk,highestBid);
-					Application.getInstance().setSimMode(wasSimMode);
-				} catch (WalletNotFoundException e) {
-					e.printStackTrace();
+					highestBid = getHighestBid();
+				} catch (WalletNotFoundException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+				Pair<CurrencyUnit, Double> lowestAsk = null;
+				try {
+					lowestAsk = getLowestAsk();
+				} catch (WalletNotFoundException e1) {
+					e1.printStackTrace();
+					stop();//We should never, ever be able to get here, period.
 				}
 				
-			}else {
-				log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
-			}
-			try {
-				Thread.sleep(Constants.TENSECONDS);
-			} catch (InterruptedException e) {
+				Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
+				Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
 				
-				e.printStackTrace();
-				quit = true;
+				//We buy from the lowestAsk & sell to the highestBid;
+				double profit = highestBid.getSecond() - lowestAsk.getSecond();
+				double profitAfterFee = profit - (fee *2);
+
+				NumberFormat percentFormat = NumberFormat.getPercentInstance();
+				percentFormat.setMaximumFractionDigits(8);
+				
+				String profitToDisplay = percentFormat.format(profitAfterFee);	
+				
+				if(profitAfterFee > targetProfit){
+					log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
+					+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
+					
+					log.info("***Conversion Factors***");
+					log.info("Highest Bid: "+highestBid.toString());
+					log.info("Lowest Ask: "+lowestAsk.toString());
+					
+					try {
+						wasSimMode = Application.getInstance().isSimMode();
+						Application.getInstance().setSimMode(true); //Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
+						executeTrade(lowestAsk,highestBid);
+						Application.getInstance().setSimMode(wasSimMode);
+					} catch (WalletNotFoundException e) {
+						e.printStackTrace();
+					}
+					
+				}else {
+					log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
+				}
+				try {
+					Thread.sleep(Constants.TENSECONDS);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					stop();
+				}
 			}
+		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+			Socket testSock = null;
+			while (true) {
+				try {
+					System.err.println("Testing connection to exchange");
+					testSock = new Socket("www.mtgox.com",80);
+					if (testSock != null) { break; }
+				}
+				catch (java.io.IOException e1) {
+					try {
+						System.err.println("Cannot connect to exchange. Sleeping for one minute");
+						Thread.currentThread().sleep(Constants.ONEMINUTE);
+					} catch (InterruptedException e2) {
+						e2.printStackTrace();
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Caught unexpected exception, shutting down now!.\nDetails are listed below.");
+			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 

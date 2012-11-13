@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.net.Socket;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
@@ -43,28 +44,50 @@ public class AccountManager {
 	
 	private AccountManager(){
 		
-		currencyTracker = new HashMap<CurrencyUnit, CurrencyManager>();
-		log = LoggerFactory.getLogger(AccountManager.class);
-		books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
-		PL = new HashMap<CurrencyUnit, PLModel>();
-		
-		exchange = Application.getInstance().getExchange();
-		// Interested in the private account functionality (authentication)
-		accountService = exchange.getPollingAccountService();
-		
-		// Get the account information
-		accountInfo = accountService.getAccountInfo();
-		log.info("AccountInfo as String: " + accountInfo.toString());
-		refreshAccounts();
-		
-		for(Wallet wallet : wallets) {
-			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-			if(currency.getCode().equals("BTC")) {
-				continue;
+	try {	
+			currencyTracker = new HashMap<CurrencyUnit, CurrencyManager>();
+			log = LoggerFactory.getLogger(AccountManager.class);
+			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
+			PL = new HashMap<CurrencyUnit, PLModel>();
+			
+			exchange = Application.getInstance().getExchange();
+			// Interested in the private account functionality (authentication)
+			accountService = exchange.getPollingAccountService();
+			
+			// Get the account information
+			accountInfo = accountService.getAccountInfo();
+			log.info("AccountInfo as String: " + accountInfo.toString());
+			refreshAccounts();
+			
+			for(Wallet wallet : wallets) {
+				CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
+				if(currency.getCode().equals("BTC")) {
+					continue;
+				}
+				currencyTracker.put(currency, new CurrencyManager(currency));
 			}
-			currencyTracker.put(currency, new CurrencyManager(currency));
+		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+			Socket testSock = null;
+			while (true) {
+				try {
+					System.err.println("Testing connection to exchange");
+					testSock = new Socket("www.mtgox.com",80);
+					if (testSock != null) { break; }
+				}
+				catch (java.io.IOException e1) {
+					try {
+						System.err.println("Cannot connect to exchange. Sleeping for one minute");
+						Thread.currentThread().sleep(Constants.ONEMINUTE);
+					} catch (InterruptedException e2) {
+						e2.printStackTrace();
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Caught unexpected exception, shutting down now!.\nDetails are listed below.");
+			e.printStackTrace();
+			System.exit(1);
 		}
-		
 	}
 	
 
