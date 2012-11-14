@@ -100,7 +100,7 @@ public class Application {
 		
 		if(params.get("--use-arbitrage") != null) {
 			if(params.get("--use-arbitrage").equalsIgnoreCase("true")) {
-				System.out.println("Using arbitrage to decide some trades.");
+				log.info("Using arbitrage to decide some trades.");
 				setArbMode(true);
 			}else {
 				setArbMode(false);
@@ -149,7 +149,7 @@ public class Application {
 		log.info("No config file could be found.");
 		log.info("Beginning Interactive Mode");
 		if(console == null) {
-			log.error("No console could be found, exiting application.");
+			log.error("ERROR: No console could be found, exiting application.");
 			System.exit(1);
 		}
 		out.println("\nPlease answer all questions.\nDon't worry if you make a mistake you will have a chance to review before comitting.");
@@ -220,7 +220,7 @@ public class Application {
 				try {
 					params.put(pair[0], pair[1]);
 				}catch( Exception ex){
-					log.error("Bad Parameter: " + pair[0]+"\nParameters must be specified as \"-parameter=value\"");
+					log.error("ERROR: Bad Parameter: " + pair[0]+". Parameters must be specified as \"-parameter=value\"");
 					ex.printStackTrace();
 					System.exit(1);
 				}

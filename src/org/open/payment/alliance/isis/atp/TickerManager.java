@@ -118,13 +118,13 @@ public class TickerManager implements Runnable{
 				Socket testSock = null;
 				while (true) {
 					try {
-						System.err.println("Testing connection to exchange");
+						log.error("ERROR: Testing connection to exchange");
 						testSock = new Socket("www.mtgox.com",80);
 						if (testSock != null) { break; }
 					}
 					catch (java.io.IOException e1) {
 						try {
-							System.err.println("Cannot connect to exchange. Sleeping for one minute");
+							log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
 							Thread.currentThread().sleep(Constants.ONEMINUTE);
 						} catch (InterruptedException e2) {
 							e2.printStackTrace();
@@ -132,9 +132,9 @@ public class TickerManager implements Runnable{
 					}
 				}
 			} catch (Exception e) {
-				System.err.println("Caught unexpected exception, shutting down now!.\nDetails are listed below.");
+				log.error("ERROR: Caught unexpected exception, shutting down now!. Details are listed below.");
 				e.printStackTrace();
-				System.exit(1);
+				stop();
 			}
 		}
 		
@@ -166,12 +166,16 @@ public class TickerManager implements Runnable{
 	}
 
 	public synchronized ATPTicker getLastTick() {
-		ATPTicker tick = null;
+		ATPTicker tick;
+		
 		synchronized(tickerCache) {
-			if (tickerCache.size() > 0) {
-				tick = tickerCache.get(tickerCache.size()-1);
+			if (tickerCache == null || tickerCache.isEmpty()) {
+				Ticker ticker = marketData.getTicker(Currencies.BTC, currency.getCurrencyCode());
+				ArbitrageEngine.getInstance().addTick(new ATPTicker(ticker));
+				tickerCache.add(new ATPTicker(ticker));
 			}
+			tick = tickerCache.get(tickerCache.size()-1);
 		}
 		return tick;
-	}	
+	}
 }

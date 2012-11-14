@@ -3,8 +3,9 @@
 		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 			<level>INFO</level>
 		</filter>
+		<withJansi>true</withJansi>
 		<encoder>
-			<pattern>%date : %message%n</pattern>
+			<pattern>%highlight(%date) : %message%n</pattern>
 		</encoder>
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

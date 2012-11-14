@@ -76,7 +76,7 @@ public class ArbitrageEngine implements Runnable {
 				
 				if(profitAfterFee > targetProfit){
 					log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
-					+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
+							+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
 					
 					log.info("***Conversion Factors***");
 					log.info("Highest Bid: "+highestBid.toString());
@@ -105,13 +105,13 @@ public class ArbitrageEngine implements Runnable {
 			Socket testSock = null;
 			while (true) {
 				try {
-					System.err.println("Testing connection to exchange");
+					log.error("ERROR: Testing connection to exchange");
 					testSock = new Socket("www.mtgox.com",80);
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
 					try {
-						System.err.println("Cannot connect to exchange. Sleeping for one minute");
+						log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
 						Thread.currentThread().sleep(Constants.ONEMINUTE);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
@@ -119,9 +119,9 @@ public class ArbitrageEngine implements Runnable {
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Caught unexpected exception, shutting down now!.\nDetails are listed below.");
+			log.error("ERROR: Caught unexpected exception, shutting down arbitrage now!.\nDetails are listed below.");
 			e.printStackTrace();
-			System.exit(1);
+			stop();
 		}
 	}
 
@@ -186,14 +186,14 @@ public class ArbitrageEngine implements Runnable {
 					log.info("Arbitrage bought "+qtyTo.toString() +" for "+ qtyToBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
 					log.info("Successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString() +" with Arbitrage!");
 				} else {
-					log.error("Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
+					log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 				}
 
 			} else {
-				log.error("Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
+				log.error("ERROR: Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 			}
 		} else {
-			log.info("Arbitrage could not trade a balance of "+qtyFrom.toString());
+			log.info("Arbitrage could not trade with a balance of "+qtyFrom.toString());
 		}
 	}
 

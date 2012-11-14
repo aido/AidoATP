@@ -5,6 +5,7 @@ package org.open.payment.alliance.isis.atp;
 
 import java.text.NumberFormat;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 import org.joda.money.BigMoney;
@@ -183,14 +184,14 @@ public class TradingAgent implements Runnable {
 						}
 					}
 					
-					log.info("Attempting to sell "+qtyToSell.toString()+" of "+balanceBTC.toString()+" available");
+					log.info("Attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_UP).toString()+" of "+balanceBTC.toString()+" available");
 					if(qtyToSell.compareTo(maxBTC) > 0) {
-						log.info(qtyToSell.toString() + " was more than the configured limit of "+maxBTC.toString());
+						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was more than the configured limit of "+maxBTC.toString());
 						log.info("Reducing order size to "+maxBTC.toString());
 						qtyToSell = maxBTC;
 					}
 					if(qtyToSell.compareTo(minBTC) < 0) {
-						log.info(qtyToSell.toString() + " was less than the configured limit of "+minBTC.toString());
+						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was less than the configured limit of "+minBTC.toString());
 						log.info("There just isn't enough momentum to trade at this time.");
 						return;
 					}
@@ -200,7 +201,7 @@ public class TradingAgent implements Runnable {
 					log.info("Could not determine wallet balance at this time, order will not be processed.");
 				}
 			}catch(WalletNotFoundException ex) {
-				log.error("Could not find wallet for "+localCurrency.getCurrencyCode());
+				log.error("ERROR: Could not find wallet for "+localCurrency.getCurrencyCode());
 				System.exit(1);
 			}
 			
@@ -274,21 +275,21 @@ public class TradingAgent implements Runnable {
 						}
 					}
 					
-					log.info("Attempting to buy "+qtyToBuy.toString());
+					log.info("Attempting to buy "+qtyToBuy.withScale(8,RoundingMode.HALF_UP).toString());
 					if(qtyToBuy.compareTo(maxLocal) > 0){
-						log.info(qtyToBuy.toString() +" was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
+						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_UP).toString() +" was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
 						qtyToBuy = maxLocal;
 					}
 					
 					if(qtyToBuy.compareTo(minLocal) < 0){
-						log.info(qtyToBuy.toString() + " was less than the configured minimum of "+minLocal.toString());
+						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_UP).toString() + " was less than the configured minimum of "+minLocal.toString());
 						log.info("There just isn't enough momentum to trade at this time.");
 						return;
 					}
 					marketOrder(qtyToBuy.getAmount(),OrderType.BID);
 				}
 			} catch (WalletNotFoundException e) {
-				log.error("Could not find wallet for "+localCurrency.getCurrencyCode());
+				log.error("ERROR: Could not find wallet for "+localCurrency.getCurrencyCode());
 				System.exit(1);
 			}	
 		}else{
@@ -334,7 +335,7 @@ public class TradingAgent implements Runnable {
 			log.info("Overall P/L: "+overall+" "+localCurrency.getCurrencyCode());
 			log.info(AccountManager.getInstance().getAccountInfo().toString());			
 		}else{
-			log.error("Failed to"+failAction+qty.toPlainString()+" at current market price.\nPlease investigate");
+			log.error("ERROR: Failed to"+failAction+qty.toPlainString()+" at current market price.\nPlease investigate");
 		}
 	}
 
