@@ -17,6 +17,7 @@ import org.joda.time.DateTime;
 
 import com.xeiam.xchange.Currencies;
 import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 
@@ -115,11 +116,12 @@ public class TickerManager implements Runnable{
 				saveMarketData();
 				Thread.sleep(Constants.TENSECONDS);
 			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+				ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 				Socket testSock = null;
 				while (true) {
 					try {
-						log.error("ERROR: Testing connection to exchange");
-						testSock = new Socket("www.mtgox.com",80);
+						log.warn("WARNING: Testing connection to exchange");
+						testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
 						if (testSock != null) { break; }
 					}
 					catch (java.io.IOException e1) {

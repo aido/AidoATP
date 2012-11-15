@@ -38,5 +38,4 @@ public class IsisMtGoxExchange extends MtGoxExchange {
 		}
 		return instance;
 	}
-
 }

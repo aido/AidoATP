@@ -5,7 +5,7 @@
 		</filter>
 		<withJansi>true</withJansi>
 		<encoder>
-			<pattern>%highlight(%date) : %message%n</pattern>
+			<pattern>%date %highlight(:) %message%n</pattern>
 		</encoder>
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -16,7 +16,7 @@
 			<maxIndex>8</maxIndex>
 		</rollingPolicy>
 		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-			<maxFileSize>16MB</maxFileSize>
+			<maxFileSize>32MB</maxFileSize>
 		</triggeringPolicy>
 		<encoder>
 			<pattern>%date : %-5level %logger [%thread] - %message%n</pattern>

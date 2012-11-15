@@ -11,6 +11,7 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class ArbitrageEngine implements Runnable {
 		boolean wasSimMode;
 		
 		try {		
-			while(!quit) {
+			while(!quit) {				
 				Pair<CurrencyUnit, Double> highestBid = null;
 				try {
 					highestBid = getHighestBid();
@@ -102,11 +103,12 @@ public class ArbitrageEngine implements Runnable {
 				}
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 			Socket testSock = null;
 			while (true) {
 				try {
-					log.error("ERROR: Testing connection to exchange");
-					testSock = new Socket("www.mtgox.com",80);
+					log.warn("WARNING: Testing connection to exchange");
+					testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
@@ -119,7 +121,7 @@ public class ArbitrageEngine implements Runnable {
 				}
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected exception, shutting down arbitrage now!.\nDetails are listed below.");
+			log.error("ERROR: Caught unexpected exception, shutting down arbitrage now!. Details are listed below.");
 			e.printStackTrace();
 			stop();
 		}

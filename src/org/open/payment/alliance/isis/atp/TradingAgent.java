@@ -7,11 +7,13 @@ import java.text.NumberFormat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.net.Socket;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
@@ -107,14 +109,34 @@ public class TradingAgent implements Runnable {
 		}
 		log.info(str.toString());
 		
-		if(trendArrow > 0 && bidArrow > 0){
-			//If market is trending up, we should look at selling
-			evalAsk();
-		}else if(trendArrow < 0 && askArrow < 0){
-			//If market is trending down, we should look at buying
-			evalBid();
-		}else {
-			log.info("No action will be taken at this time.");
+		try {
+			if(trendArrow > 0 && bidArrow > 0){
+				//If market is trending up, we should look at selling
+				evalAsk();
+			}else if(trendArrow < 0 && askArrow < 0){
+				//If market is trending down, we should look at buying
+				evalBid();
+			}else {
+				log.info("No action will be taken at this time.");
+			}
+		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
+			Socket testSock = null;
+			while (true) {
+				try {
+					log.warn("WARNING: Testing connection to exchange");
+					testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
+					if (testSock != null) { break; }
+				}
+				catch (java.io.IOException e1) {
+					try {
+						log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
+						Thread.currentThread().sleep(Constants.ONEMINUTE);
+					} catch (InterruptedException e2) {
+						e2.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
@@ -335,7 +357,7 @@ public class TradingAgent implements Runnable {
 			log.info("Overall P/L: "+overall+" "+localCurrency.getCurrencyCode());
 			log.info(AccountManager.getInstance().getAccountInfo().toString());			
 		}else{
-			log.error("ERROR: Failed to"+failAction+qty.toPlainString()+" at current market price.\nPlease investigate");
+			log.error("ERROR: Failed to"+failAction+qty.toPlainString()+" at current market price. Please investigate");
 		}
 	}
 

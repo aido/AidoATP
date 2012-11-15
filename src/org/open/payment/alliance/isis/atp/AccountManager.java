@@ -11,6 +11,7 @@ import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Exchange;
+import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.trade.Wallet;
 import com.xeiam.xchange.service.account.polling.PollingAccountService;
@@ -67,11 +68,12 @@ public class AccountManager {
 				currencyTracker.put(currency, new CurrencyManager(currency));
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 			Socket testSock = null;
 			while (true) {
 				try {
-					log.error("ERROR: Testing connection to exchange");
-					testSock = new Socket("www.mtgox.com",80);
+					log.warn("WARNING: Testing connection to exchange");
+					testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
@@ -84,7 +86,7 @@ public class AccountManager {
 				}
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected exception, shutting down now!.\nDetails are listed below.");
+			log.error("ERROR: Caught unexpected exception, shutting down now!.Details are listed below.");
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -104,7 +106,7 @@ public class AccountManager {
 			}
 			
 		}
-		log.error("ERROR: Could not find a wallet for the currency "+currency+"\nExiting now!");
+		log.error("ERROR: Could not find a wallet for the currency "+currency+". Exiting now!");
 		throw new WalletNotFoundException();
 	}
 	

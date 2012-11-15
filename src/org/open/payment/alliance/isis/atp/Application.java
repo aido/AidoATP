@@ -41,7 +41,6 @@ public class Application {
 		useArbFlag = true;
 		console = System.console();	
 	}
-
 	
 	public static Application getInstance() {
 		if(instance == null) {
