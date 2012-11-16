@@ -121,7 +121,7 @@ public class ArbitrageEngine implements Runnable {
 				}
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected exception, shutting down arbitrage now!. Details are listed below.");
+			log.error("ERROR: Caught unexpected exception, shutting down arbitrage engine now!. Details are listed below.");
 			e.printStackTrace();
 			stop();
 		}

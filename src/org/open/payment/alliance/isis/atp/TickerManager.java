@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.concurrent.BlockingQueue;
+//import java.util.concurrent.BlockingQueue;
 import java.net.Socket;
 
 import org.joda.money.CurrencyUnit;
@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class TickerManager implements Runnable{
 	
 	private PollingMarketDataService marketData;
-	BlockingQueue<Ticker> tickerQ;
+//	BlockingQueue<Ticker> tickerQ;
 	private long currentVolume;
 	private long lastVolume;
 	private ArrayList<ATPTicker> tickerCache;
@@ -134,7 +134,7 @@ public class TickerManager implements Runnable{
 					}
 				}
 			} catch (Exception e) {
-				log.error("ERROR: Caught unexpected exception, shutting down now!. Details are listed below.");
+				log.error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
 				e.printStackTrace();
 				stop();
 			}

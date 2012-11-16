@@ -22,13 +22,11 @@ import org.slf4j.LoggerFactory;
 public class AccountManager {
 
 	private static AccountManager instance = null;
-	private AccountInfo accountInfo;
-	
+	private AccountInfo accountInfo;	
 
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
 	private HashMap<CurrencyUnit, PLModel> PL; //PL is Profit/Loss and is per currency unit
 	private HashMap<CurrencyUnit, CurrencyManager> currencyTracker;
-	
 	
 	private static Logger log;
 	
@@ -45,7 +43,7 @@ public class AccountManager {
 	
 	private AccountManager(){
 		
-	try {	
+		try {	
 			currencyTracker = new HashMap<CurrencyUnit, CurrencyManager>();
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
@@ -174,7 +172,11 @@ public class AccountManager {
 		}
 		return running;
 	}
-
+	
+	public HashMap<CurrencyUnit, CurrencyManager> getCurrencyTracker() {
+		return currencyTracker;
+	}
+	
 	public ATPTicker getLastTick(CurrencyUnit baseCurrency) {
 		
 		return currencyTracker.get(baseCurrency).getTickerManager().getLastTick();

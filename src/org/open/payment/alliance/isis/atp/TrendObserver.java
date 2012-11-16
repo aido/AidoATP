@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 public class TrendObserver implements Runnable {
 
+	private static TrendObserver instance = null;
 	private BigMoney vwap;
 	private ATPTicker high;
 	private ATPTicker low;
@@ -77,7 +78,6 @@ public class TrendObserver implements Runnable {
 					e.printStackTrace();
 				}
 			}
-			
 			
 			synchronized(ticker) {
 				
@@ -170,9 +170,7 @@ public class TrendObserver implements Runnable {
 			log.info("Current "+localCurrency.getCurrencyCode()+" :- "+tick.toString());
 			log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
 					
-			if(System.currentTimeMillis() > learnTime) {
-				evaluateMarketConditions();
-			}else {
+			if(System.currentTimeMillis() < learnTime) {
 				log.info("Application has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market.");
 				log.info("Finished building "+localCurrency.getCurrencyCode()+" market profile in "+((learnTime - System.currentTimeMillis())/1000)/60+" minutes.");
 			}
@@ -185,8 +183,11 @@ public class TrendObserver implements Runnable {
 		}
 	}
 
-	private void evaluateMarketConditions() {
-		new Thread(new TradingAgent(this)).start();
+	public static synchronized TrendObserver getInstance(TickerManager tickerManager) {
+		if(instance == null) {
+			instance = new TrendObserver(tickerManager);
+		}
+		return instance;
 	}
 	public int getTrendArrow() {
 		return trendArrow;
@@ -210,6 +211,10 @@ public class TrendObserver implements Runnable {
 
 	public TickerManager getTickerManager() {
 		return tickerManager;
+	}
+	
+	public Long getLearnTime() {
+		return learnTime;
 	}
 }
 

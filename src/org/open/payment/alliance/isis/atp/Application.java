@@ -13,7 +13,9 @@ import java.util.prefs.Preferences;
 
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.account.AccountInfo;
-import com.xeiam.xchange.service.trade.polling.PollingTradeService;
+//import com.xeiam.xchange.service.trade.polling.PollingTradeService;
+
+import org.joda.money.CurrencyUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,7 @@ public class Application {
 
 	private static Application instance = null;
 	private static HashMap<String, String> params;
+	private HashMap<CurrencyUnit, CurrencyManager> currencyTracker;
 	private final Logger log;
 	private Preferences config;
 	private boolean simModeFlag;
@@ -108,10 +111,18 @@ public class Application {
 		
 		exchange = IsisMtGoxExchange.getInstance();
 		AccountManager.getInstance().refreshAccounts();
+		log.info("Isis ATP has started successfully");
+
 		if(isArbMode()){
 			new Thread(ArbitrageEngine.getInstance()).start();
 		}
-		log.info("Isis ATP has started successfully");
+		
+		currencyTracker = AccountManager.getInstance().getCurrencyTracker();
+		for(CurrencyUnit currency : currencyTracker.keySet()) {
+			CurrencyManager manager = currencyTracker.get(currency);
+			new Thread(new TradingAgent(manager.getTrendObserver())).start();
+		}
+		
 		while(AccountManager.getInstance().isRunning()) {
 			Thread.currentThread().yield();
 		}

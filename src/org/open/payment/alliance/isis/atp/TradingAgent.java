@@ -1,6 +1,3 @@
-/**
-* 
-*/
 package org.open.payment.alliance.isis.atp;
 
 import java.text.NumberFormat;
@@ -44,6 +41,7 @@ public class TradingAgent implements Runnable {
 	private Double maxWeight;
 	private Integer    algorithm;
 	private CurrencyUnit localCurrency;
+	private boolean quit;
 	private Logger log;
 	private TickerManager tickerManager;
 	
@@ -62,10 +60,6 @@ public class TradingAgent implements Runnable {
 		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));		
 	}
 
-	/* (non-Javadoc)
-	* @see java.lang.Runnable#run()
-	*/
-	@Override
 	public void run(){
 		
 		trendArrow = observer.getTrendArrow();
@@ -110,14 +104,24 @@ public class TradingAgent implements Runnable {
 		log.info(str.toString());
 		
 		try {
-			if(trendArrow > 0 && bidArrow > 0){
-				//If market is trending up, we should look at selling
-				evalAsk();
-			}else if(trendArrow < 0 && askArrow < 0){
-				//If market is trending down, we should look at buying
-				evalBid();
-			}else {
-				log.info("No action will be taken at this time.");
+			while(!quit) {
+				if(System.currentTimeMillis() > observer.getLearnTime()) {
+					if(trendArrow > 0 && bidArrow > 0){
+						//If market is trending up, we should look at selling
+						evalAsk();
+					}else if(trendArrow < 0 && askArrow < 0){
+						//If market is trending down, we should look at buying
+						evalBid();
+					}else {
+						log.info("No action will be taken at this time.");
+					}
+					try {
+					Thread.sleep(Constants.ONEMINUTE);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						stop();
+					}
+				}
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
@@ -137,7 +141,11 @@ public class TradingAgent implements Runnable {
 					}
 				}
 			}
-		}
+		} catch (Exception e) {
+				log.error("ERROR: Caught unexpected exception, shutting down trend following trading agent now!. Details are listed below.");
+				e.printStackTrace();
+				stop();
+			}
 	}
 
 	//Let's decide whether or not to sell & how much to sell 
@@ -361,5 +369,7 @@ public class TradingAgent implements Runnable {
 		}
 	}
 
-
+	public void stop() {
+		quit = true;
+	}
 }
