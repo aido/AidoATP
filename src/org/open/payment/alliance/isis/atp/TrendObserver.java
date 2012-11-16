@@ -108,14 +108,11 @@ public class TrendObserver implements Runnable {
 					//We need 2 volumes, a total volume & an absolute volume
 					
 					if(idx == 0){
-						
 						oldVolume = BigDecimal.ZERO;
 						oldPrice = BigMoney.zero(localCurrency);
 						oldBid = BigMoney.zero(localCurrency);
 						oldAsk = BigMoney.zero(localCurrency);
-						
-					}else{
-						
+						}else{
 						oldVolume = newVolume;
 						oldPrice = newPrice;
 						oldBid = newBid;
@@ -173,12 +170,14 @@ public class TrendObserver implements Runnable {
 			if(System.currentTimeMillis() < learnTime) {
 				log.info("Application has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market.");
 				log.info("Finished building "+localCurrency.getCurrencyCode()+" market profile in "+((learnTime - System.currentTimeMillis())/1000)/60+" minutes.");
-			}
-			
-			try {
-				Thread.sleep(Constants.ONEMINUTE);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				try {
+					Thread.sleep(Constants.ONEMINUTE);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			} else {
+				log.debug("Starting "+localCurrency.getCurrencyCode()+" trading agent.");
+				new Thread(new TradingAgent(this)).start();
 			}
 		}
 	}

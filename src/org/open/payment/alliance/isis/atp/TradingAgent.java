@@ -41,7 +41,6 @@ public class TradingAgent implements Runnable {
 	private Double maxWeight;
 	private Integer    algorithm;
 	private CurrencyUnit localCurrency;
-	private boolean quit;
 	private Logger log;
 	private TickerManager tickerManager;
 	
@@ -104,23 +103,15 @@ public class TradingAgent implements Runnable {
 		log.info(str.toString());
 		
 		try {
-			while(!quit) {
-				if(System.currentTimeMillis() > observer.getLearnTime()) {
-					if(trendArrow > 0 && bidArrow > 0){
-						//If market is trending up, we should look at selling
-						evalAsk();
-					}else if(trendArrow < 0 && askArrow < 0){
-						//If market is trending down, we should look at buying
-						evalBid();
-					}else {
-						log.info("Trend following trading agent has decided no "+localCurrency.getCode()+" action will be taken at this time.");
-					}
-					try {
-					Thread.sleep(Constants.ONEMINUTE);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-						stop();
-					}
+			if (Application.getInstance().getTrendMode() && System.currentTimeMillis() > observer.getLearnTime()) {
+				if(trendArrow > 0 && bidArrow > 0){
+					//If market is trending up, we should look at selling
+					evalAsk();
+				}else if(trendArrow < 0 && askArrow < 0){
+					//If market is trending down, we should look at buying
+					evalBid();
+				}else {
+					log.info("Trend following trading agent has decided no "+localCurrency.getCode()+" action will be taken at this time.");
 				}
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
@@ -144,7 +135,6 @@ public class TradingAgent implements Runnable {
 		} catch (Exception e) {
 				log.error("ERROR: Caught unexpected exception, shutting down trend following trading agent now!. Details are listed below.");
 				e.printStackTrace();
-				stop();
 			}
 	}
 
@@ -214,7 +204,7 @@ public class TradingAgent implements Runnable {
 						}
 					}
 					
-					log.info("Attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_UP).toString()+" of "+balanceBTC.toString()+" available");
+					log.info("Trend following trade agent is attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_UP).toString()+" of "+balanceBTC.toString()+" available");
 					if(qtyToSell.compareTo(maxBTC) > 0) {
 						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was more than the configured limit of "+maxBTC.toString());
 						log.info("Reducing order size to "+maxBTC.toString());
@@ -222,7 +212,7 @@ public class TradingAgent implements Runnable {
 					}
 					if(qtyToSell.compareTo(minBTC) < 0) {
 						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was less than the configured limit of "+minBTC.toString());
-						log.info("There just isn't enough momentum to trade at this time.");
+						log.info("Trend following trade agent has decided there just isn't enough momentum to trade at this time.");
 						return;
 					}
 					
@@ -237,7 +227,7 @@ public class TradingAgent implements Runnable {
 			
 		}else{
 			log.info("Current bid price of "+currentBid.toString()+" is below the VWAP of "+vwap.toString());
-			log.info("The trading agent has determined that market conditions are not appropriate for you to sell at this time.");
+			log.info("Trend following trade agent has determined that market conditions are not appropriate for you to sell at this time.");
 		}
 	}
 	
@@ -367,9 +357,5 @@ public class TradingAgent implements Runnable {
 		}else{
 			log.error("ERROR: Failed to"+failAction+qty.toPlainString()+" at current market price. Please investigate");
 		}
-	}
-
-	public void stop() {
-		quit = true;
 	}
 }

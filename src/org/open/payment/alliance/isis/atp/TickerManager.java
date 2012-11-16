@@ -111,6 +111,7 @@ public class TickerManager implements Runnable{
 						ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
 						tickerCache.add(new ATPTicker(tick));
 					}
+					log.debug("Starting Arbitrage engine.");
 					new Thread(ArbitrageEngine.getInstance()).start();
 				}
 				saveMarketData();

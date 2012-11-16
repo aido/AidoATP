@@ -83,10 +83,12 @@ public class ArbitrageEngine implements Runnable {
 					try {
 						wasTrendMode = Application.getInstance().getTrendMode();
 						if (wasTrendMode) {
+							log.debug("Disabling trend following trade agent to perform arbitrage trades");
 							Application.getInstance().setTrendMode(false);	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
 						}
 						executeTrade(lowestAsk,highestBid);
 						if (wasTrendMode) {
+							log.debug("Re-enabling trend following trade agent after performing arbitrage trades");
 							Application.getInstance().setSimMode(wasTrendMode);
 						}
 					} catch (WalletNotFoundException e) {

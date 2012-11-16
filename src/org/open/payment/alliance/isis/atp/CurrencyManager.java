@@ -29,9 +29,6 @@ public class CurrencyManager implements Runnable{
 		return tickerManager;
 	}
 
-	public TrendObserver getTrendObserver() {
-		return trendObserver;
-	}
 	@Override
 	public void run() {
 		managerThread.start();

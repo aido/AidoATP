@@ -123,19 +123,15 @@ public class Application {
 		exchange = IsisMtGoxExchange.getInstance();
 		AccountManager.getInstance().refreshAccounts();
 		log.info("Isis ATP has started successfully");
-
-		if(getArbMode()){
-			log.info("Using arbitrage to decide some trades.");
-		}
 		
 		if(getTrendMode()){
 			log.info("Using trend following to decide some trades.");
-			currencyTracker = AccountManager.getInstance().getCurrencyTracker();
-			for(CurrencyUnit currency : currencyTracker.keySet()) {
-				new Thread(new TradingAgent(currencyTracker.get(currency).getTrendObserver())).start();
-			}
 		}
 		
+		if(getArbMode()){
+			log.info("Using arbitrage to decide some trades.");
+		}
+
 		while(AccountManager.getInstance().isRunning()) {
 			Thread.currentThread().yield();
 		}
