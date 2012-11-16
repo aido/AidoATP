@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 public class ArbitrageEngine implements Runnable {
 	
 	private static ArbitrageEngine instance = null;
-	private boolean quit;
 	private HashMap<CurrencyUnit, Double> askMap,bidMap;
 	private CurrencyUnit baseCurrency;
 	private double factor;
@@ -28,7 +27,6 @@ public class ArbitrageEngine implements Runnable {
 	
 	
 	private ArbitrageEngine() {
-		quit= false;
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
 		askMap = new HashMap<CurrencyUnit, Double>();
 		bidMap = new HashMap<CurrencyUnit, Double>();
@@ -42,12 +40,12 @@ public class ArbitrageEngine implements Runnable {
 		return instance;
 	}
 	@Override
-	public void run() {
+	public synchronized void run() {
 		
-		boolean wasSimMode;
+		boolean wasTrendMode;
 		
 		try {		
-			while(!quit) {				
+			if (Application.getInstance().getArbMode()) {				
 				Pair<CurrencyUnit, Double> highestBid = null;
 				try {
 					highestBid = getHighestBid();
@@ -60,7 +58,6 @@ public class ArbitrageEngine implements Runnable {
 					lowestAsk = getLowestAsk();
 				} catch (WalletNotFoundException e1) {
 					e1.printStackTrace();
-					stop();//We should never, ever be able to get here, period.
 				}
 				
 				Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
@@ -84,22 +81,20 @@ public class ArbitrageEngine implements Runnable {
 					log.info("Lowest Ask: "+lowestAsk.toString());
 					
 					try {
-						wasSimMode = Application.getInstance().getSimMode();
-						Application.getInstance().setSimMode(true); //Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
+						wasTrendMode = Application.getInstance().getTrendMode();
+						if (wasTrendMode) {
+							Application.getInstance().setTrendMode(false);	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
+						}
 						executeTrade(lowestAsk,highestBid);
-						Application.getInstance().setSimMode(wasSimMode);
+						if (wasTrendMode) {
+							Application.getInstance().setSimMode(wasTrendMode);
+						}
 					} catch (WalletNotFoundException e) {
 						e.printStackTrace();
 					}
 					
 				}else {
 					log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
-				}
-				try {
-					Thread.sleep(Constants.TENSECONDS);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-					stop();
 				}
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
@@ -123,7 +118,6 @@ public class ArbitrageEngine implements Runnable {
 		} catch (Exception e) {
 			log.error("ERROR: Caught unexpected exception, shutting down arbitrage engine now!. Details are listed below.");
 			e.printStackTrace();
-			stop();
 		}
 	}
 
@@ -264,8 +258,5 @@ public class ArbitrageEngine implements Runnable {
 			}
 		}
 		
-	}
-	public void stop() {
-		quit = true;
 	}
 }

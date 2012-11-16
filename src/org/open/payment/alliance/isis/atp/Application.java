@@ -103,15 +103,16 @@ public class Application {
 			showAgreement();
 		}
 		
-		if(params.get("--use-arbitrage") != null) {
+
+		if(params.get("--use-arbitrage") != null ){
 			if(params.get("--use-arbitrage").equalsIgnoreCase("true")) {
 				setArbMode(true);
 			}else {
 				setArbMode(false);
 			}
 		}
-		
-		if(params.get("--use-trend") != null) {
+	
+		if(params.get("--use-trend") != null ){
 			if(params.get("--use-trend").equalsIgnoreCase("true")) {
 				setTrendMode(true);
 			}else {
@@ -125,15 +126,13 @@ public class Application {
 
 		if(getArbMode()){
 			log.info("Using arbitrage to decide some trades.");
-			new Thread(ArbitrageEngine.getInstance()).start();
 		}
 		
 		if(getTrendMode()){
 			log.info("Using trend following to decide some trades.");
 			currencyTracker = AccountManager.getInstance().getCurrencyTracker();
 			for(CurrencyUnit currency : currencyTracker.keySet()) {
-				CurrencyManager manager = currencyTracker.get(currency);
-				new Thread(new TradingAgent(manager.getTrendObserver())).start();
+				new Thread(new TradingAgent(currencyTracker.get(currency).getTrendObserver())).start();
 			}
 		}
 		

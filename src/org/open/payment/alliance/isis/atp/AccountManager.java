@@ -102,7 +102,6 @@ public class AccountManager {
 			if(unit.equals(currency)){
 				return balance;
 			}
-			
 		}
 		log.error("ERROR: Could not find a wallet for the currency "+currency+". Exiting now!");
 		throw new WalletNotFoundException();
