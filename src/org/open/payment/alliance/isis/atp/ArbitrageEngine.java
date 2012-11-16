@@ -84,7 +84,7 @@ public class ArbitrageEngine implements Runnable {
 					log.info("Lowest Ask: "+lowestAsk.toString());
 					
 					try {
-						wasSimMode = Application.getInstance().isSimMode();
+						wasSimMode = Application.getInstance().getSimMode();
 						Application.getInstance().setSimMode(true); //Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
 						executeTrade(lowestAsk,highestBid);
 						Application.getInstance().setSimMode(wasSimMode);

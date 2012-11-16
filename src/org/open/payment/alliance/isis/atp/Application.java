@@ -32,7 +32,8 @@ public class Application {
 	private final Logger log;
 	private Preferences config;
 	private boolean simModeFlag;
-	private boolean useArbFlag;
+	private boolean arbModeFlag;
+	private boolean trendModeFlag;
 	private Exchange exchange;
 	private Console console;
 	private Application() {
@@ -41,7 +42,9 @@ public class Application {
 		//true = simulate, false = live
 		simModeFlag = true;
 		//true = use arbitrage, false = do not use arbitage
-		useArbFlag = true;
+		arbModeFlag = true;
+		//true = use trend following trades, false = do not use trend following trades
+		trendModeFlag = true;
 		console = System.console();	
 	}
 	
@@ -85,7 +88,7 @@ public class Application {
 			}else {
 				setSimMode(true);
 			}
-		}else if(params.get("--simulation-mode") == null && isSimMode() ) {
+		}else if(params.get("--simulation-mode") == null && getSimMode() ) {
 			showAgreement();
 		}
 		
@@ -96,31 +99,42 @@ public class Application {
 			}else {
 				setSimMode(false);
 			}
-		}else if (params.get("--debug-live") == null && isSimMode()) {
+		}else if (params.get("--debug-live") == null && getSimMode()) {
 			showAgreement();
 		}
 		
 		if(params.get("--use-arbitrage") != null) {
 			if(params.get("--use-arbitrage").equalsIgnoreCase("true")) {
-				log.info("Using arbitrage to decide some trades.");
 				setArbMode(true);
 			}else {
 				setArbMode(false);
 			}
 		}
 		
+		if(params.get("--use-trend") != null) {
+			if(params.get("--use-trend").equalsIgnoreCase("true")) {
+				setTrendMode(true);
+			}else {
+				setTrendMode(false);
+			}
+		}
+
 		exchange = IsisMtGoxExchange.getInstance();
 		AccountManager.getInstance().refreshAccounts();
 		log.info("Isis ATP has started successfully");
 
-		if(isArbMode()){
+		if(getArbMode()){
+			log.info("Using arbitrage to decide some trades.");
 			new Thread(ArbitrageEngine.getInstance()).start();
 		}
 		
-		currencyTracker = AccountManager.getInstance().getCurrencyTracker();
-		for(CurrencyUnit currency : currencyTracker.keySet()) {
-			CurrencyManager manager = currencyTracker.get(currency);
-			new Thread(new TradingAgent(manager.getTrendObserver())).start();
+		if(getTrendMode()){
+			log.info("Using trend following to decide some trades.");
+			currencyTracker = AccountManager.getInstance().getCurrencyTracker();
+			for(CurrencyUnit currency : currencyTracker.keySet()) {
+				CurrencyManager manager = currencyTracker.get(currency);
+				new Thread(new TradingAgent(manager.getTrendObserver())).start();
+			}
 		}
 		
 		while(AccountManager.getInstance().isRunning()) {
@@ -246,12 +260,16 @@ public class Application {
 		return config.get(key,null);
 	}
 	
-	public boolean isSimMode() {
+	public boolean getSimMode() {
 		return simModeFlag;
 	}
 	
-	public boolean isArbMode() {
-		return useArbFlag;
+	public boolean getArbMode() {
+		return arbModeFlag;
+	}
+	
+	public boolean getTrendMode() {
+		return trendModeFlag;
 	}
 	
 	public AccountInfo getAccountInfo() {
@@ -263,7 +281,11 @@ public class Application {
 	}
 	
 	public void setArbMode(boolean b) {
-		this.useArbFlag = b;
+		this.arbModeFlag = b;
+	}
+
+	public void setTrendMode(boolean b) {
+		this.trendModeFlag = b;
 	}
 
 	public Exchange getExchange() {

@@ -113,7 +113,7 @@ public class TradingAgent implements Runnable {
 						//If market is trending down, we should look at buying
 						evalBid();
 					}else {
-						log.info("No action will be taken at this time.");
+						log.info("Trend following trading agent has decided no "+localCurrency.getCode()+" action will be taken at this time.");
 					}
 					try {
 					Thread.sleep(Constants.ONEMINUTE);
@@ -332,7 +332,7 @@ public class TradingAgent implements Runnable {
 		MarketOrder order = new MarketOrder(orderType,qty,"BTC",localCurrency.getCurrencyCode());
 		boolean success = true;
 		
-		if(!Application.getInstance().isSimMode()){
+		if(!Application.getInstance().getSimMode()){
 			String marketOrderReturnValue = tradeService.placeMarketOrder(order);
 			log.info("Market Order return value: " + marketOrderReturnValue);
 			success=(marketOrderReturnValue != null) ? true:false;
