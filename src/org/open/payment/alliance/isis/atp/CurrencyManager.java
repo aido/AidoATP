@@ -4,12 +4,12 @@ import org.joda.money.CurrencyUnit;
 
 public class CurrencyManager implements Runnable{
 	private CurrencyUnit currency;
-	private TickerManager tickerManager;
+	private PollingTickerManager tickerManager;
 	private Thread managerThread;	
 	
 	public CurrencyManager(CurrencyUnit currency) {
 		this.currency = currency;
-		tickerManager = new TickerManager(currency);
+		tickerManager = new PollingTickerManager(currency);
 		managerThread = new Thread(tickerManager);
 		managerThread.start();
 	}
@@ -19,7 +19,7 @@ public class CurrencyManager implements Runnable{
 	public void setCurrency(CurrencyUnit currency) {
 		this.currency = currency;
 	}
-	public TickerManager getTickerManager() {
+	public PollingTickerManager getTickerManager() {
 		return tickerManager;
 	}
 

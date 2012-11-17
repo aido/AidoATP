@@ -23,10 +23,10 @@ public class TrendObserver implements Runnable {
 	private Logger log;
 	private ATPTicker lastTick;
 	private long learnTime;
-	private TickerManager tickerManager;
+	private PollingTickerManager tickerManager;
 	private CurrencyUnit localCurrency;
 	
-	public TrendObserver(TickerManager tickerManager) {
+	public TrendObserver(PollingTickerManager tickerManager) {
 		this.tickerManager = tickerManager;
 		log = LoggerFactory.getLogger(TrendObserver.class);
 		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
@@ -176,7 +176,7 @@ public class TrendObserver implements Runnable {
 		}
 	}
 
-	public static synchronized TrendObserver getInstance(TickerManager tickerManager) {
+	public static synchronized TrendObserver getInstance(PollingTickerManager tickerManager) {
 		if(instance == null) {
 			instance = new TrendObserver(tickerManager);
 		}
@@ -198,7 +198,7 @@ public class TrendObserver implements Runnable {
 		return lastTick;
 	}
 
-	public TickerManager getTickerManager() {
+	public PollingTickerManager getTickerManager() {
 		return tickerManager;
 	}
 	
@@ -206,4 +206,3 @@ public class TrendObserver implements Runnable {
 		return learnTime;
 	}
 }
-

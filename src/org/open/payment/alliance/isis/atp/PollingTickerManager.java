@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 * @author Auberon
 *
 */
-public class TickerManager implements Runnable{
+public class PollingTickerManager implements Runnable{
 	
 	private PollingMarketDataService marketData;
 	private long currentVolume;
@@ -37,8 +37,8 @@ public class TickerManager implements Runnable{
 	private Logger log;
 	private CurrencyUnit currency;
 	private boolean quit;
-	TickerManager(CurrencyUnit currency) {
-		log = LoggerFactory.getLogger(TickerManager.class);
+	PollingTickerManager(CurrencyUnit currency) {
+		log = LoggerFactory.getLogger(PollingTickerManager.class);
 		this.currency = currency;
 		quit = false;
 		try {
