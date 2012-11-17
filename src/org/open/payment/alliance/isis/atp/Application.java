@@ -13,7 +13,6 @@ import java.util.prefs.Preferences;
 
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.account.AccountInfo;
-//import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
 import org.joda.money.CurrencyUnit;
 

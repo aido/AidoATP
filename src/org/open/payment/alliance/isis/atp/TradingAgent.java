@@ -42,7 +42,7 @@ public class TradingAgent implements Runnable {
 	private Integer    algorithm;
 	private CurrencyUnit localCurrency;
 	private Logger log;
-	private PollingTickerManager tickerManager;
+	private StreamingTickerManager tickerManager;
 	
 	public TradingAgent(TrendObserver observer) {
 		log = LoggerFactory.getLogger(TradingAgent.class);

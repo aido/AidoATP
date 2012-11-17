@@ -151,7 +151,7 @@ echo "IsisATP"
 echo "========"
 [[ ! -d $SRC_DIR/IsisATP ]] && cd $SRC_DIR && git clone git://github.com/aido/IsisATP
 find $SRC_DIR/IsisATP -type d -name *test* -prune -o -type f -name "*.java" -print | xargs chmod 644
-find $SRC_DIR/IsisATP -type d -name *test* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
+find $SRC_DIR/IsisATP -type d -name *test* -prune -o -type f -name *Polling* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
 cp $SRC_DIR/IsisATP/resources/license.txt $CLASSPATH
 cp $SRC_DIR/IsisATP/resources/logback.xml $CLASSPATH
 
