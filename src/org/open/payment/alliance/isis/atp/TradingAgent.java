@@ -212,7 +212,7 @@ public class TradingAgent implements Runnable {
 					}
 					if(qtyToSell.compareTo(minBTC) < 0) {
 						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was less than the configured limit of "+minBTC.toString());
-						log.info("Trend following trade agent has decided there just isn't enough momentum to trade at this time.");
+						log.info("Trend following trade agent has decided there just isn't enough "+localCurrency.getCode()+" momentum to trade at this time.");
 						return;
 					}
 					
@@ -227,7 +227,7 @@ public class TradingAgent implements Runnable {
 			
 		}else{
 			log.info("Current bid price of "+currentBid.toString()+" is below the VWAP of "+vwap.toString());
-			log.info("Trend following trade agent has determined that market conditions are not appropriate for you to sell at this time.");
+			log.info("Trend following trade agent has determined that "+currentBid.toString()+" market conditions are not appropriate for you to sell "+currentBid.toString()+" at this time.");
 		}
 	}
 	

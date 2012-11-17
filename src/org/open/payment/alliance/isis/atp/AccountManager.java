@@ -172,10 +172,6 @@ public class AccountManager {
 		return running;
 	}
 	
-	public HashMap<CurrencyUnit, CurrencyManager> getCurrencyTracker() {
-		return currencyTracker;
-	}
-	
 	public ATPTicker getLastTick(CurrencyUnit baseCurrency) {
 		
 		return currencyTracker.get(baseCurrency).getTickerManager().getLastTick();

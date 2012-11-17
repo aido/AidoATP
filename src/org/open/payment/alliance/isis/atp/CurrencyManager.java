@@ -5,19 +5,13 @@ import org.joda.money.CurrencyUnit;
 public class CurrencyManager implements Runnable{
 	private CurrencyUnit currency;
 	private TickerManager tickerManager;
-	private TrendObserver trendObserver;
-	private Thread managerThread;
-	private Thread observerThread;
-	
+	private Thread managerThread;	
 	
 	public CurrencyManager(CurrencyUnit currency) {
 		this.currency = currency;
 		tickerManager = new TickerManager(currency);
-		trendObserver = new TrendObserver(tickerManager);
 		managerThread = new Thread(tickerManager);
-		observerThread = new Thread(trendObserver);
 		managerThread.start();
-		observerThread.start();
 	}
 	public CurrencyUnit getCurrency() {
 		return currency;
@@ -32,15 +26,12 @@ public class CurrencyManager implements Runnable{
 	@Override
 	public void run() {
 		managerThread.start();
-		observerThread.start();
 	}
 	
 	public void stop() {
 		tickerManager.stop();
-		trendObserver.stop();
 	}
 	public boolean isRunning() {
-		
-		return managerThread.isAlive() && observerThread.isAlive();
+		return managerThread.isAlive();
 	}
 }

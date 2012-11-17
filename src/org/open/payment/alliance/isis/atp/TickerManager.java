@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 public class TickerManager implements Runnable{
 	
 	private PollingMarketDataService marketData;
-//	BlockingQueue<Ticker> tickerQ;
 	private long currentVolume;
 	private long lastVolume;
 	private ArrayList<ATPTicker> tickerCache;
@@ -99,7 +98,7 @@ public class TickerManager implements Runnable{
 		
 	}
 	@Override
-	public void run() {
+	public synchronized void run() {
 		
 		while(!quit){
 			try {
@@ -111,8 +110,9 @@ public class TickerManager implements Runnable{
 						ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
 						tickerCache.add(new ATPTicker(tick));
 					}
-					log.debug("Starting Arbitrage engine.");
 					new Thread(ArbitrageEngine.getInstance()).start();
+					new Thread(new TrendObserver(this)).start();
+					//new Thread(TrendObserver.getInstance(this)).start();
 				}
 				saveMarketData();
 				Thread.sleep(Constants.TENSECONDS);
@@ -128,7 +128,7 @@ public class TickerManager implements Runnable{
 					catch (java.io.IOException e1) {
 						try {
 							log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
-							Thread.currentThread().sleep(Constants.ONEMINUTE);
+							Thread.currentThread().sleep(Constants.TENSECONDS);
 						} catch (InterruptedException e2) {
 							e2.printStackTrace();
 						}
@@ -151,7 +151,7 @@ public class TickerManager implements Runnable{
 			DateTime now = new DateTime();
 			for(ATPTicker tick : tickerCache){
 				DateTime time = tick.getTimestamp();
-				if(now.getMillis() - time.getMillis() > Constants.ONEHOUR) {
+				if(now.getMillis() - time.getMillis() > Constants.ONEHOUR ) {
 					removeList.add(tick);
 				}
 			}

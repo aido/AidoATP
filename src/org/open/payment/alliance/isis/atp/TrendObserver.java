@@ -24,161 +24,155 @@ public class TrendObserver implements Runnable {
 	private ATPTicker lastTick;
 	private long learnTime;
 	private TickerManager tickerManager;
-	private boolean quit;
 	private CurrencyUnit localCurrency;
 	
 	public TrendObserver(TickerManager tickerManager) {
 		this.tickerManager = tickerManager;
-		quit = false;
 		log = LoggerFactory.getLogger(TrendObserver.class);
 		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
 		localCurrency = tickerManager.getCurrency();
+		long now = System.currentTimeMillis();
+		learnTime = now;
 		if(ticker != null && !ticker.isEmpty()) {
-			lastTick = ticker.get(ticker.size()-1);
-			long now = System.currentTimeMillis();
-			long oneMinsAgo = now - Constants.ONEMINUTE;
-			if(lastTick.getTimestamp().isAfter(oneMinsAgo)) {
-				learnTime = System.currentTimeMillis();
-			}else {
-				learnTime = System.currentTimeMillis() + Constants.ONEHOUR; //We don't want to jump the gun on trades.  Let it learn for an hour.
+			// if ticker data older than 1 hour, learn for an hour
+			if (ticker.get(0).getTimestamp().isAfter(now - Constants.ONEHOUR + Constants.ONEMINUTE) && ticker.get(ticker.size() - 1).getTimestamp().isAfter(now - Constants.ONEMINUTE))  {
+				// check if there more than a minute gap in ticker data
+				long gapLength = 0;
+				for(int idx = 1; idx < ticker.size(); idx++){
+					gapLength = ticker.get(idx).getTimestamp().getMillis() - ticker.get(idx - 1).getTimestamp().getMillis();
+					if (gapLength > Constants.ONEMINUTE) {
+						// learn for an hour after gap
+						learnTime = ticker.get(idx).getTimestamp().getMillis() + Constants.ONEHOUR;
+					}
+				}
+			} else {
+				learnTime = now + Constants.ONEHOUR; //We don't want to jump the gun on trades. Learn an hour of ticker data.
 			}
-		}else {
-			learnTime = System.currentTimeMillis() + Constants.ONEHOUR; //We don't want to jump the gun on trades.  Let it learn for an hour.
-		}
-		
+		} else {
+			learnTime = now + Constants.ONEHOUR; //We don't want to jump the gun on trades. Learn an hour of ticker data.
+		}	
 	}
 	
 	@Override
 	public void run() {
 
-		while(!quit) {
-			//Each run, currently 1/Min
+		//(Re)initialize variables
+		trendArrow = 0;
+		bidArrow = 0;
+		askArrow = 0;
+		
+		//VWAP = Volume Weighted Average Price
+		//Each (transaction price * transaction volume) / total volume
+		//We are concerned not only with current vwap, but previous vwap.
+		// This is because the differential between the two is an important market indicator
+		
+		vwap = BigMoney.zero(tickerManager.getCurrency());
+		
+		//We can't have multiple threads messing with the ticker object
+		//Ideally this should have been a deep copy, but went this way for speed.
+		ArrayList<ATPTicker> ticker = null;
+		ATPTicker tick = null;
+		while(ticker == null || ticker.isEmpty()) {
+			ticker = tickerManager.getMarketData();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		synchronized(ticker) {
 			
-			//(Re)initialize variables
+			//ticker - could be empty if there is no new data in over an hour, we've been disconnected, or the marketpolling thread has crashed.
+			if(!ticker.isEmpty()) {
+				low = ticker.get(0);
+				high = ticker.get(0);
+			}
+			
+			//Items in here are done once for every item in the ticker
+			BigDecimal newVolume = null,absVolume = null,oldVolume = null,changedVolume = null;
+			BigDecimal totalVolume = new BigDecimal("0");
+			BigMoney oldPrice = null, newPrice = null;
+			BigMoney newBid = null, oldBid = null;
+			BigMoney newAsk = null, oldAsk = null;
+			
 			trendArrow = 0;
 			bidArrow = 0;
 			askArrow = 0;
 			
-			//VWAP = Volume Weighted Average Price
-			//Each (transaction price * transaction volume) / total volume
-			//We are concerned not only with current vwap, but previous vwap.
-			// This is because the differential between the two is an important market indicator
-			
-			vwap = BigMoney.zero(tickerManager.getCurrency());
-			
-			//We can't have multiple threads messing with the ticker object
-			//Ideally this should have been a deep copy, but went this way for speed.
-			ArrayList<ATPTicker> ticker = null;
-			ATPTicker tick = null;
-			while(ticker == null || ticker.isEmpty()) {
-				ticker = tickerManager.getMarketData();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+			for(int idx =0; idx < ticker.size(); idx++){
+				
+				tick = ticker.get(idx);
+				
+				//The first thing we want to look at is the volume
+				//We need a changed volume
+				//Changed volume is new volume - old volume
+				//We need 2 volumes, a total volume & an absolute volume
+				
+				if(idx == 0){
+					oldVolume = BigDecimal.ZERO;
+					oldPrice = BigMoney.zero(localCurrency);
+					oldBid = BigMoney.zero(localCurrency);
+					oldAsk = BigMoney.zero(localCurrency);
+					}else{
+					oldVolume = newVolume;
+					oldPrice = newPrice;
+					oldBid = newBid;
+					oldAsk = newAsk;	
 				}
+				
+				//The volume of this tick, by itself
+				newVolume = new BigDecimal(new BigInteger(""+tick.getVolume()));
+				changedVolume = newVolume.subtract(oldVolume);
+				absVolume = changedVolume.abs();
+				
+				newPrice = tick.getLast();
+				newBid = tick.getBid();
+				newAsk = tick.getAsk();
+				
+				if(newPrice.isGreaterThan(high.getLast())){					
+					high = tick;
+				}else if(newPrice.isLessThan(low.getLast())){
+					low = tick;
+				}
+				
+				if(newPrice.minus(oldPrice).isPositive()){
+					trendArrow++;
+				}else if(newPrice.minus(oldPrice).isNegative()){
+					trendArrow--;
+				}
+				
+				if(newBid.isGreaterThan(oldBid)){
+					bidArrow++;
+				}else if(newBid.isLessThan(oldBid)){
+					bidArrow--;
+				}
+				
+				if(newAsk.isGreaterThan(oldAsk)){
+					askArrow++;
+				}else if(newAsk.isLessThan(oldAsk)){
+					askArrow--;
+				}
+				
+				vwap = vwap.plus(newPrice.multipliedBy(absVolume));
+				totalVolume = totalVolume.add(absVolume);
 			}
 			
-			synchronized(ticker) {
-				
-				//ticker - could be empty if there is no new data in over an hour, we've been disconnected, or the marketpolling thread has crashed.
-				if(!ticker.isEmpty()) {
-					low = ticker.get(0);
-					high = ticker.get(0);
-				}
-				
-				//Items in here are done once for every item in the ticker
-				BigDecimal newVolume = null,absVolume = null,oldVolume = null,changedVolume = null;
-				BigDecimal totalVolume = new BigDecimal("0");
-				BigMoney oldPrice = null, newPrice = null;
-				BigMoney newBid = null, oldBid = null;
-				BigMoney newAsk = null, oldAsk = null;
-				
-				trendArrow = 0;
-				bidArrow = 0;
-				askArrow = 0;
-				
-				for(int idx =0; idx < ticker.size(); idx++){
-					
-					tick = ticker.get(idx);
-					
-					//The first thing we want to look at is the volume
-					//We need a changed volume
-					//Changed volume is new volume - old volume
-					//We need 2 volumes, a total volume & an absolute volume
-					
-					if(idx == 0){
-						oldVolume = BigDecimal.ZERO;
-						oldPrice = BigMoney.zero(localCurrency);
-						oldBid = BigMoney.zero(localCurrency);
-						oldAsk = BigMoney.zero(localCurrency);
-						}else{
-						oldVolume = newVolume;
-						oldPrice = newPrice;
-						oldBid = newBid;
-						oldAsk = newAsk;	
-					}
-					
-					//The volume of this tick, by itself
-					newVolume = new BigDecimal(new BigInteger(""+tick.getVolume()));
-					changedVolume = newVolume.subtract(oldVolume);
-					absVolume = changedVolume.abs();
-					
-					newPrice = tick.getLast();
-					newBid = tick.getBid();
-					newAsk = tick.getAsk();
-					
-					
-					if(newPrice.isGreaterThan(high.getLast())){					
-						high = tick;
-					}else if(newPrice.isLessThan(low.getLast())){
-						low = tick;
-					}
-					
-					if(newPrice.minus(oldPrice).isPositive()){
-						trendArrow++;
-					}else if(newPrice.minus(oldPrice).isNegative()){
-						trendArrow--;
-					}
-					
-					if(newBid.isGreaterThan(oldBid)){
-						bidArrow++;
-					}else if(newBid.isLessThan(oldBid)){
-						bidArrow--;
-					}
-					
-					if(newAsk.isGreaterThan(oldAsk)){
-						askArrow++;
-					}else if(newAsk.isLessThan(oldAsk)){
-						askArrow--;
-					}
-					
-					vwap = vwap.plus(newPrice.multipliedBy(absVolume));
-					totalVolume = totalVolume.add(absVolume);
-				}
-				
-				vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);
-				lastTick = tick;
-				
-			}
-			
-			log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
-			log.info("Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
-			log.info("Current "+localCurrency.getCurrencyCode()+" :- "+tick.toString());
-			log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
-					
-			if(System.currentTimeMillis() < learnTime) {
-				log.info("Application has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market.");
-				log.info("Finished building "+localCurrency.getCurrencyCode()+" market profile in "+((learnTime - System.currentTimeMillis())/1000)/60+" minutes.");
-				try {
-					Thread.sleep(Constants.ONEMINUTE);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			} else {
-				log.debug("Starting "+localCurrency.getCurrencyCode()+" trading agent.");
-				new Thread(new TradingAgent(this)).start();
-			}
+			vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);
+			lastTick = tick;
+		}
+		
+		log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
+		log.info("Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
+		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+tick.toString());
+		log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
+		
+		if(System.currentTimeMillis() < learnTime) {
+			log.info("Trend observer has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market.");
+			log.info("Finished building "+localCurrency.getCurrencyCode()+" market profile in "+((learnTime - System.currentTimeMillis())/1000)/60+" minutes.");
+		} else {
+			log.debug("Starting "+localCurrency.getCurrencyCode()+" trading agent.");
+			new Thread(new TradingAgent(this)).start();
 		}
 	}
 
@@ -202,10 +196,6 @@ public class TrendObserver implements Runnable {
 	}
 	public ATPTicker getLastTick() {
 		return lastTick;
-	}
-
-	public void stop() {
-		quit = true;
 	}
 
 	public TickerManager getTickerManager() {
