@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 public class TrendObserver implements Runnable {
 
-	private static TrendObserver instance = null;
 	private BigMoney vwap;
 	private ATPTicker high;
 	private ATPTicker low;
@@ -176,12 +175,6 @@ public class TrendObserver implements Runnable {
 		}
 	}
 
-	public static synchronized TrendObserver getInstance(StreamingTickerManager tickerManager) {
-		if(instance == null) {
-			instance = new TrendObserver(tickerManager);
-		}
-		return instance;
-	}
 	public int getTrendArrow() {
 		return trendArrow;
 	}

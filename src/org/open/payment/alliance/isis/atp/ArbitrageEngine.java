@@ -89,7 +89,7 @@ public class ArbitrageEngine implements Runnable {
 						executeTrade(lowestAsk,highestBid);
 						if (wasTrendMode) {
 							log.debug("Re-enabling trend following trade agent after performing arbitrage trades");
-							Application.getInstance().setSimMode(wasTrendMode);
+							Application.getInstance().setTrendMode(wasTrendMode);
 						}
 					} catch (WalletNotFoundException e) {
 						e.printStackTrace();
@@ -174,19 +174,29 @@ public class ArbitrageEngine implements Runnable {
 			log.debug("Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+qtyFrom.toString());
 			log.debug("Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
 			
-			String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
-			log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
+			if(!Application.getInstance().getSimMode()){
+				String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
+				log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
+			}else{
+				log.info("You were in simulation mode, the trade below did NOT actually occur.");
+				String marketbuyOrderReturnValue = "Simulation mode";
+			}
+			
 			if (marketbuyOrderReturnValue != null){
 				log.info("Arbitrage sold "+qtyFrom.toString() +" for "+ qtyFromBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
-				String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
-				log.info("Market Sell Order return value: " + marketsellOrderReturnValue);			
+				if(!Application.getInstance().getSimMode()){
+					String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
+					log.info("Market Sell Order return value: " + marketsellOrderReturnValue);
+				}else{
+					log.info("You were in simulation mode, the trade below did NOT actually occur.");
+					String marketbuyOrderReturnValue = "Simulation mode";
+				}				
 				if (marketbuyOrderReturnValue != null){
 					log.info("Arbitrage bought "+qtyTo.toString() +" for "+ qtyToBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
 					log.info("Successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString() +" with Arbitrage!");
 				} else {
 					log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 				}
-
 			} else {
 				log.error("ERROR: Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 			}

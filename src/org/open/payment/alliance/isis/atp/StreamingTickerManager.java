@@ -49,10 +49,8 @@ public class StreamingTickerManager implements Runnable{
 			if(tickerCache == null) {
 				tickerCache = new ArrayList<ATPTicker>();
 			}
-	//		Exchange exchange = Application.getInstance().getExchange();
 			Exchange exchange = com.xeiam.xchange.mtgox.v1.MtGoxExchange.newInstance();
 			marketData = exchange.getStreamingMarketDataService();
-	//		ExchangeSpecification es = exchange.getInstance().setURI("https://socketio.mtgox.com/socket.io");
 			tickerQueue = marketData.requestTicker(Currencies.BTC, currency.getCurrencyCode());				
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -117,10 +115,8 @@ public class StreamingTickerManager implements Runnable{
 					}
 					new Thread(ArbitrageEngine.getInstance()).start();
 					new Thread(new TrendObserver(this)).start();
-					//new Thread(TrendObserver.getInstance(this)).start();
 				}
 				saveMarketData();
-				Thread.sleep(Constants.TENSECONDS);
 			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 				ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 				Socket testSock = null;
@@ -133,7 +129,7 @@ public class StreamingTickerManager implements Runnable{
 					catch (java.io.IOException e1) {
 						try {
 							log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
-							Thread.currentThread().sleep(Constants.TENSECONDS);
+							Thread.currentThread().sleep(Constants.ONEMINUTE);
 						} catch (InterruptedException e2) {
 							e2.printStackTrace();
 						}

@@ -227,7 +227,7 @@ public class TradingAgent implements Runnable {
 			
 		}else{
 			log.info("Current bid price of "+currentBid.toString()+" is below the VWAP of "+vwap.toString());
-			log.info("Trend following trade agent has determined that "+currentBid.toString()+" market conditions are not appropriate for you to sell "+currentBid.toString()+" at this time.");
+			log.info("Trend following trade agent has determined that "+localCurrency.getCurrencyCode()+" market conditions are not appropriate for you to sell "+currentBid.toString()+" at this time.");
 		}
 	}
 	
