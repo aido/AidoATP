@@ -21,7 +21,7 @@ public class TrendObserver implements Runnable {
 	private int trendArrow;
 	private Logger log;
 	private ATPTicker lastTick;
-	private long learnTime;
+	private boolean learningComplete;
 	private StreamingTickerManager tickerManager;
 	private CurrencyUnit localCurrency;
 	
@@ -30,25 +30,18 @@ public class TrendObserver implements Runnable {
 		log = LoggerFactory.getLogger(TrendObserver.class);
 		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
 		localCurrency = tickerManager.getCurrency();
-		long now = System.currentTimeMillis();
-		learnTime = now;
+		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
-			// if ticker data older than 1 hour, learn for an hour
-			if (ticker.get(0).getTimestamp().isAfter(now - Constants.ONEHOUR + Constants.ONEMINUTE) && ticker.get(ticker.size() - 1).getTimestamp().isAfter(now - Constants.ONEMINUTE))  {
-				// check if there more than a minute gap in ticker data
-				long gapLength = 0;
-				for(int idx = 1; idx < ticker.size(); idx++){
-					gapLength = ticker.get(idx).getTimestamp().getMillis() - ticker.get(idx - 1).getTimestamp().getMillis();
-					if (gapLength > Constants.ONEMINUTE) {
-						// learn for an hour after gap
-						learnTime = ticker.get(idx).getTimestamp().getMillis() + Constants.ONEHOUR;
-					}
-				}
+			if (ticker.size() < 32){
+				log.debug(localCurrency.getCurrencyCode()+" ticker size is "+ticker.size());
+				log.info("Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" ticker data to determine trend");
+				learningComplete = false;
 			} else {
-				learnTime = now + Constants.ONEHOUR; //We don't want to jump the gun on trades. Learn an hour of ticker data.
+				learningComplete = true;
 			}
 		} else {
-			learnTime = now + Constants.ONEHOUR; //We don't want to jump the gun on trades. Learn an hour of ticker data.
+			log.info("Trend observer currently has no "+localCurrency.getCurrencyCode()+" ticker data");
+			learningComplete = false;
 		}	
 	}
 	
@@ -166,9 +159,8 @@ public class TrendObserver implements Runnable {
 		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+tick.toString());
 		log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
 		
-		if(System.currentTimeMillis() < learnTime) {
+		if(!learningComplete) {
 			log.info("Trend observer has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market.");
-			log.info("Finished building "+localCurrency.getCurrencyCode()+" market profile in "+((learnTime - System.currentTimeMillis())/1000)/60+" minutes.");
 		} else {
 			log.debug("Starting "+localCurrency.getCurrencyCode()+" trading agent.");
 			new Thread(new TradingAgent(this)).start();
@@ -193,9 +185,5 @@ public class TrendObserver implements Runnable {
 
 	public StreamingTickerManager getTickerManager() {
 		return tickerManager;
-	}
-	
-	public Long getLearnTime() {
-		return learnTime;
 	}
 }

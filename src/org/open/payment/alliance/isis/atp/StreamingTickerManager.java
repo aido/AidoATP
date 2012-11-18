@@ -38,8 +38,7 @@ public class StreamingTickerManager implements Runnable{
 	private CurrencyUnit currency;
 	private boolean quit;
 	private BlockingQueue<Ticker> tickerQueue;
-			
-			
+					
 	StreamingTickerManager(CurrencyUnit currency) {
 		log = LoggerFactory.getLogger(StreamingTickerManager.class);
 		this.currency = currency;
@@ -49,6 +48,7 @@ public class StreamingTickerManager implements Runnable{
 			if(tickerCache == null) {
 				tickerCache = new ArrayList<ATPTicker>();
 			}
+
 			Exchange exchange = com.xeiam.xchange.mtgox.v1.MtGoxExchange.newInstance();
 			marketData = exchange.getStreamingMarketDataService();
 			tickerQueue = marketData.requestTicker(Currencies.BTC, currency.getCurrencyCode());				
@@ -97,12 +97,11 @@ public class StreamingTickerManager implements Runnable{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		
 	}
+	
 	@Override
 	public synchronized void run() {
-		
+
 		while(!quit){
 			try {
 				Ticker tick = tickerQueue.take();

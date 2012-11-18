@@ -103,7 +103,7 @@ public class TradingAgent implements Runnable {
 		log.info(str.toString());
 		
 		try {
-			if (Application.getInstance().getTrendMode() && System.currentTimeMillis() > observer.getLearnTime()) {
+			if (Application.getInstance().getTrendMode()) {
 				if(trendArrow > 0 && bidArrow > 0){
 					//If market is trending up, we should look at selling
 					evalAsk();

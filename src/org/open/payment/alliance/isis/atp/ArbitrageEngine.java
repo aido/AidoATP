@@ -174,26 +174,28 @@ public class ArbitrageEngine implements Runnable {
 			log.debug("Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+qtyFrom.toString());
 			log.debug("Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
 			
+			String marketbuyOrderReturnValue;
 			if(!Application.getInstance().getSimMode()){
-				String marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
+				marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
 				log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
 			}else{
 				log.info("You were in simulation mode, the trade below did NOT actually occur.");
-				String marketbuyOrderReturnValue = "Simulation mode";
+				marketbuyOrderReturnValue = "Simulation mode";
 			}
 			
-			if (marketbuyOrderReturnValue != null){
-				log.info("Arbitrage sold "+qtyFrom.toString() +" for "+ qtyFromBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
+			String marketsellOrderReturnValue;
+			if (marketbuyOrderReturnValue != null && !marketbuyOrderReturnValue.isEmpty()){
+				log.info("Arbitrage sold "+qtyFrom.toString() +" for "+ qtyFromBTC.rounded(8,RoundingMode.HALF_EVEN).toString());				
 				if(!Application.getInstance().getSimMode()){
-					String marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
+					marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
 					log.info("Market Sell Order return value: " + marketsellOrderReturnValue);
 				}else{
 					log.info("You were in simulation mode, the trade below did NOT actually occur.");
-					String marketbuyOrderReturnValue = "Simulation mode";
+					marketsellOrderReturnValue = "Simulation mode";
 				}				
-				if (marketbuyOrderReturnValue != null){
+				if (marketsellOrderReturnValue != null && !marketsellOrderReturnValue.isEmpty()){
 					log.info("Arbitrage bought "+qtyTo.toString() +" for "+ qtyToBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
-					log.info("Successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString() +" with Arbitrage!");
+					log.info("Arbitrage successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString());
 				} else {
 					log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 				}
