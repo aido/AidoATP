@@ -26,7 +26,8 @@ public class AccountManager {
 
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
 	private HashMap<CurrencyUnit, PLModel> PL; //PL is Profit/Loss and is per currency unit
-	private HashMap<CurrencyUnit, CurrencyManager> currencyTracker;
+	private HashMap<CurrencyUnit, StreamingTickerManager> tickerTracker;
+	private HashMap<CurrencyUnit, Thread> threadTracker;
 	
 	private static Logger log;
 	
@@ -44,7 +45,9 @@ public class AccountManager {
 	private AccountManager(){
 		
 		try {	
-			currencyTracker = new HashMap<CurrencyUnit, CurrencyManager>();
+			tickerTracker = new HashMap<CurrencyUnit, StreamingTickerManager>();
+			threadTracker = new HashMap<CurrencyUnit, Thread>();
+			
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
 			PL = new HashMap<CurrencyUnit, PLModel>();
@@ -63,7 +66,9 @@ public class AccountManager {
 				if(currency.getCode().equals("BTC")) {
 					continue;
 				}
-				currencyTracker.put(currency, new CurrencyManager(currency));
+				tickerTracker.put(currency, new StreamingTickerManager(currency));
+				threadTracker.put(currency, new Thread(tickerTracker.get(currency)));
+				threadTracker.get(currency).start();
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
@@ -162,9 +167,9 @@ public class AccountManager {
 
 	public boolean isRunning() {
 		boolean running = true;
-		for(CurrencyUnit currency : currencyTracker.keySet()) {
-			CurrencyManager manager = currencyTracker.get(currency);
-			running = manager.isRunning();
+		for(CurrencyUnit currency : threadTracker.keySet()) {
+			Thread thread = threadTracker.get(currency);
+			running = thread.isAlive();
 			if(running == false) {
 				break;
 			}
@@ -173,7 +178,6 @@ public class AccountManager {
 	}
 	
 	public ATPTicker getLastTick(CurrencyUnit baseCurrency) {
-		
-		return currencyTracker.get(baseCurrency).getTickerManager().getLastTick();
+		return tickerTracker.get(baseCurrency).getLastTick();
 	}
 }

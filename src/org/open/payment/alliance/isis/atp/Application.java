@@ -27,7 +27,6 @@ public class Application {
 
 	private static Application instance = null;
 	private static HashMap<String, String> params;
-	private HashMap<CurrencyUnit, CurrencyManager> currencyTracker;
 	private final Logger log;
 	private Preferences config;
 	private boolean simModeFlag;
@@ -101,7 +100,6 @@ public class Application {
 		}else if (params.get("--debug-live") == null && getSimMode()) {
 			showAgreement();
 		}
-		
 
 		if(params.get("--use-arbitrage") != null ){
 			if(params.get("--use-arbitrage").equalsIgnoreCase("true")) {

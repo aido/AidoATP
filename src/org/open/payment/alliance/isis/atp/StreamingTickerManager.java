@@ -112,8 +112,12 @@ public class StreamingTickerManager implements Runnable{
 						ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
 						tickerCache.add(new ATPTicker(tick));
 					}
-					new Thread(ArbitrageEngine.getInstance()).start();
-					new Thread(new TrendObserver(this)).start();
+					if (Application.getInstance().getTrendMode()) {
+						new Thread(new TrendObserver(this)).start();
+					}
+					if (Application.getInstance().getArbMode()) {
+						new Thread(ArbitrageEngine.getInstance()).start();
+					}
 				}
 				saveMarketData();
 			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {

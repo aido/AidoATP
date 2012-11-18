@@ -44,60 +44,58 @@ public class ArbitrageEngine implements Runnable {
 		
 		boolean wasTrendMode;
 		
-		try {		
-			if (Application.getInstance().getArbMode()) {				
-				Pair<CurrencyUnit, Double> highestBid = null;
-				try {
-					highestBid = getHighestBid();
-				} catch (WalletNotFoundException e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
-				}
-				Pair<CurrencyUnit, Double> lowestAsk = null;
-				try {
-					lowestAsk = getLowestAsk();
-				} catch (WalletNotFoundException e1) {
-					e1.printStackTrace();
-				}
-				
-				Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
-				Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
-				
-				//We buy from the lowestAsk & sell to the highestBid;
-				double profit = highestBid.getSecond() - lowestAsk.getSecond();
-				double profitAfterFee = profit - (fee *2);
+		try {				
+			Pair<CurrencyUnit, Double> highestBid = null;
+			try {
+				highestBid = getHighestBid();
+			} catch (WalletNotFoundException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			Pair<CurrencyUnit, Double> lowestAsk = null;
+			try {
+				lowestAsk = getLowestAsk();
+			} catch (WalletNotFoundException e1) {
+				e1.printStackTrace();
+			}
+			
+			Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
+			Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
+			
+			//We buy from the lowestAsk & sell to the highestBid;
+			double profit = highestBid.getSecond() - lowestAsk.getSecond();
+			double profitAfterFee = profit - (fee *2);
 
-				NumberFormat percentFormat = NumberFormat.getPercentInstance();
-				percentFormat.setMaximumFractionDigits(8);
+			NumberFormat percentFormat = NumberFormat.getPercentInstance();
+			percentFormat.setMaximumFractionDigits(8);
+			
+			String profitToDisplay = percentFormat.format(profitAfterFee);
+			
+			log.debug("Arbitrage profit after fee: "+profitAfterFee);
+			
+			if(profitAfterFee > targetProfit){
+				log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
+						+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
 				
-				String profitToDisplay = percentFormat.format(profitAfterFee);	
+				log.info("Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
 				
-				if(profitAfterFee > targetProfit){
-					log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
-							+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
-					
-					log.info("***Conversion Factors***");
-					log.info("Highest Bid: "+highestBid.toString());
-					log.info("Lowest Ask: "+lowestAsk.toString());
-					
-					try {
-						wasTrendMode = Application.getInstance().getTrendMode();
-						if (wasTrendMode) {
-							log.debug("Disabling trend following trade agent to perform arbitrage trades");
-							Application.getInstance().setTrendMode(false);	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
-						}
-						executeTrade(lowestAsk,highestBid);
-						if (wasTrendMode) {
-							log.debug("Re-enabling trend following trade agent after performing arbitrage trades");
-							Application.getInstance().setTrendMode(wasTrendMode);
-						}
-					} catch (WalletNotFoundException e) {
-						e.printStackTrace();
+				try {
+					wasTrendMode = Application.getInstance().getTrendMode();
+					if (wasTrendMode) {
+						log.debug("Disabling trend following trade agent to perform arbitrage trades");
+						Application.getInstance().setTrendMode(false);	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
 					}
-					
-				}else {
-					log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
+					executeTrade(lowestAsk,highestBid);
+					if (wasTrendMode) {
+						log.debug("Re-enabling trend following trade agent after performing arbitrage trades");
+						Application.getInstance().setTrendMode(wasTrendMode);
+					}
+				} catch (WalletNotFoundException e) {
+					e.printStackTrace();
 				}
+				
+			}else {
+				log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
@@ -213,11 +211,13 @@ public class ArbitrageEngine implements Runnable {
 		double highFactor = 0.01;
 		
 		CurrencyUnit highCurrency = baseCurrency;
+		
 		ATPTicker lastTick = AccountManager.getInstance().getLastTick(baseCurrency);
 		
 		Double basePrice = lastTick.getLast().getAmount().doubleValue();
 		
 		synchronized (bidMap) {
+		
 			for(CurrencyUnit currency : bidMap.keySet()) {
 				
 				Double testPrice = bidMap.get(currency);
