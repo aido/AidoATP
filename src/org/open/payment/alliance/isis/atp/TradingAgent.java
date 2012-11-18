@@ -117,19 +117,16 @@ public class TradingAgent implements Runnable {
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 			Socket testSock = null;
-			while (true) {
+			try {
+				log.warn("WARNING: Testing connection to exchange");
+				testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
+			}
+			catch (java.io.IOException e1) {
 				try {
-					log.warn("WARNING: Testing connection to exchange");
-					testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
-					if (testSock != null) { break; }
-				}
-				catch (java.io.IOException e1) {
-					try {
-						log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
-						Thread.currentThread().sleep(Constants.ONEMINUTE);
-					} catch (InterruptedException e2) {
-						e2.printStackTrace();
-					}
+					log.error("ERROR: Cannot connect to exchange.");
+					Thread.currentThread().sleep(Constants.ONEMINUTE);
+				} catch (InterruptedException e2) {
+					e2.printStackTrace();
 				}
 			}
 		} catch (Exception e) {
