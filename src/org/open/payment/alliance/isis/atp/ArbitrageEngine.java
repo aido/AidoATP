@@ -30,7 +30,7 @@ public class ArbitrageEngine implements Runnable {
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
 		askMap = new HashMap<CurrencyUnit, Double>();
 		bidMap = new HashMap<CurrencyUnit, Double>();
-		baseCurrency = CurrencyUnit.getInstance( Application.getInstance().getConfig("LocalCurrency"));
+		baseCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
 	}
 
 	public static synchronized ArbitrageEngine getInstance() {

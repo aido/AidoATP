@@ -19,7 +19,7 @@ import com.xeiam.xchange.service.account.polling.PollingAccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AccountManager {
+public class AccountManager  implements Runnable {
 
 	private static AccountManager instance = null;
 	private AccountInfo accountInfo;	
@@ -27,7 +27,7 @@ public class AccountManager {
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
 	private HashMap<CurrencyUnit, PLModel> PL; //PL is Profit/Loss and is per currency unit
 	private HashMap<CurrencyUnit, StreamingTickerManager> tickerTracker;
-	private HashMap<CurrencyUnit, Thread> threadTracker;
+	private ThreadGroup tickerThreadGroup;
 	
 	private static Logger log;
 	
@@ -46,7 +46,7 @@ public class AccountManager {
 		
 		try {	
 			tickerTracker = new HashMap<CurrencyUnit, StreamingTickerManager>();
-			threadTracker = new HashMap<CurrencyUnit, Thread>();
+			tickerThreadGroup = new ThreadGroup("Tickers"); 
 			
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
@@ -67,8 +67,7 @@ public class AccountManager {
 					continue;
 				}
 				tickerTracker.put(currency, new StreamingTickerManager(currency));
-				threadTracker.put(currency, new Thread(tickerTracker.get(currency)));
-				threadTracker.get(currency).start();
+				new Thread(tickerThreadGroup,tickerTracker.get(currency),currency.getCode()).start(); 
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
@@ -95,6 +94,10 @@ public class AccountManager {
 		}
 	}
 	
+	@Override
+	public synchronized void run() {
+		refreshAccounts();
+	}
 
 	public BigMoney getBalance(CurrencyUnit currency) throws WalletNotFoundException{
 		refreshAccounts();
@@ -163,18 +166,6 @@ public class AccountManager {
 
 	public AccountInfo getAccountInfo() {
 		return accountInfo;
-	}
-
-	public boolean isRunning() {
-		boolean running = true;
-		for(CurrencyUnit currency : threadTracker.keySet()) {
-			Thread thread = threadTracker.get(currency);
-			running = thread.isAlive();
-			if(running == false) {
-				break;
-			}
-		}
-		return running;
 	}
 	
 	public ATPTicker getLastTick(CurrencyUnit baseCurrency) {

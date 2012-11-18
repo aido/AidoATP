@@ -34,6 +34,7 @@ public class Application {
 	private boolean trendModeFlag;
 	private Exchange exchange;
 	private Console console;
+	private Thread accountManagerThread;
 	private Application() {
 		log = LoggerFactory.getLogger(Application.class);
 		params = new HashMap<String,String>();
@@ -118,7 +119,9 @@ public class Application {
 		}
 
 		exchange = IsisMtGoxExchange.getInstance();
-		AccountManager.getInstance().refreshAccounts();
+		
+		accountManagerThread = new Thread(AccountManager.getInstance());
+		accountManagerThread.start();
 		log.info("Isis ATP has started successfully");
 		
 		if(getTrendMode()){
@@ -128,9 +131,11 @@ public class Application {
 		if(getArbMode()){
 			log.info("Using arbitrage to decide some trades.");
 		}
-
-		while(AccountManager.getInstance().isRunning()) {
-			Thread.currentThread().yield();
+		
+		try {
+			accountManagerThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
