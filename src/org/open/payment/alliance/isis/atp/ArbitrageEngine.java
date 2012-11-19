@@ -24,10 +24,13 @@ public class ArbitrageEngine implements Runnable {
 	private CurrencyUnit baseCurrency;
 	private double factor;
 	private Logger log;
-	
+	private boolean quit;
+	private HashMap<CurrencyUnit, ATPTicker> lastTickMap;
 	
 	private ArbitrageEngine() {
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
+		quit = false;
+		lastTickMap = new HashMap<CurrencyUnit, ATPTicker>();
 		askMap = new HashMap<CurrencyUnit, Double>();
 		bidMap = new HashMap<CurrencyUnit, Double>();
 		baseCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
@@ -44,7 +47,7 @@ public class ArbitrageEngine implements Runnable {
 		
 		boolean wasTrendMode;
 		
-		try {				
+		try {
 			Pair<CurrencyUnit, Double> highestBid = null;
 			try {
 				highestBid = getHighestBid();
@@ -130,25 +133,10 @@ public class ArbitrageEngine implements Runnable {
 		CurrencyUnit fromCur = from.getFirst();
 		CurrencyUnit toCur = to.getFirst();
 		
-		/*
-		double baseValue = AccountManager.getInstance().getLastTick(baseCurrency).getLast().getAmount().doubleValue();
-		
-		BigMoney fromBalance = AccountManager.getInstance().getBalance(fromCur);
-		BigMoney toBalance = AccountManager.getInstance().getBalance(toCur);
-		*/
-		
-		/*
-		* MarketOrder order = new MarketOrder();
-		order.setType(orderType);
-		order.setTradableAmount(qty);
-		order.setTradableIdentifier("BTC");
-		order.setTransactionCurrency(localCurrency.getCurrencyCode());
-		*/
-		
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
-		BigMoney lastTickAskFrom = AccountManager.getInstance().getLastTick(fromCur).getAsk();
-		BigMoney lastTickBidTo = AccountManager.getInstance().getLastTick(toCur).getBid();
+		BigMoney lastTickAskFrom = lastTickMap.get(fromCur).getAsk();
+		BigMoney lastTickBidTo = lastTickMap.get(toCur).getBid();
 		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16, RoundingMode.HALF_UP);
 		BigDecimal oneDivTo = BigDecimal.ONE.divide(lastTickBidTo.getAmount(),16,RoundingMode.HALF_UP);
 		
@@ -209,10 +197,17 @@ public class ArbitrageEngine implements Runnable {
 		
 		CurrencyUnit highCurrency = baseCurrency;
 		
-		ATPTicker lastTick = AccountManager.getInstance().getLastTick(baseCurrency);
+		while (lastTickMap.get(baseCurrency) == null) {
+			log.info("Arbitrage engine waiting for next "+baseCurrency.getCode()+" ticker");
+			try {
+				Thread.currentThread().sleep(Constants.TENSECONDS);
+			} catch (InterruptedException e2) {
+				e2.printStackTrace();
+			}
+		}
 		
-		Double basePrice = lastTick.getLast().getAmount().doubleValue();
-		
+		Double basePrice = lastTickMap.get(baseCurrency).getLast().getAmount().doubleValue();
+	
 		synchronized (bidMap) {
 		
 			for(CurrencyUnit currency : bidMap.keySet()) {
@@ -235,9 +230,16 @@ public class ArbitrageEngine implements Runnable {
 		double lowFactor = 100;
 		
 		CurrencyUnit lowCurrency = baseCurrency;
-		ATPTicker lastTick = AccountManager.getInstance().getLastTick(baseCurrency);
+		while (lastTickMap.get(baseCurrency) == null) {
+			log.info("Arbitrage engine waiting for next "+baseCurrency.getCode()+" ticker");
+			try {
+				Thread.currentThread().sleep(Constants.TENSECONDS);
+			} catch (InterruptedException e2) {
+				e2.printStackTrace();
+			}
+		}
 		
-		Double basePrice = lastTick.getLast().getAmount().doubleValue();
+		Double basePrice = lastTickMap.get(baseCurrency).getLast().getAmount().doubleValue();
 		
 		synchronized (askMap) {
 			for(CurrencyUnit currency : askMap.keySet()) {
@@ -256,7 +258,9 @@ public class ArbitrageEngine implements Runnable {
 	}
 
 	public void addTick(ATPTicker tick) {
+		
 		CurrencyUnit currency = CurrencyUnit.getInstance(tick.getLast().getCurrencyUnit().getCurrencyCode());
+		
 		Double bidPrice = tick.getBid().getAmount().doubleValue();
 		Double askPrice = tick.getAsk().getAmount().doubleValue();
 		
@@ -266,6 +270,9 @@ public class ArbitrageEngine implements Runnable {
 			}
 			synchronized(askMap) {
 				askMap.put(currency, askPrice);
+			}
+			synchronized(lastTickMap) {
+				lastTickMap.put(currency, tick);
 			}
 		}
 		

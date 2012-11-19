@@ -105,18 +105,18 @@ public class StreamingTickerManager implements Runnable{
 		while(!quit){
 			try {
 				Ticker tick = tickerQueue.take();
-				lastVolume = currentVolume;
 				currentVolume = tick.getVolume().longValue();
 				if(currentVolume != lastVolume) {
 					synchronized(tickerCache) {
-						ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
-						tickerCache.add(new ATPTicker(tick));
-					}
+						if (Application.getInstance().getArbMode()) {
+							new Thread(ArbitrageEngine.getInstance()).start();
+							ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
+						}
 					if (Application.getInstance().getTrendMode()) {
 						new Thread(new TrendObserver(this)).start();
 					}
-					if (Application.getInstance().getArbMode()) {
-						new Thread(ArbitrageEngine.getInstance()).start();
+						tickerCache.add(new ATPTicker(tick));
+					lastVolume = currentVolume;
 					}
 				}
 				saveMarketData();
@@ -171,22 +171,4 @@ public class StreamingTickerManager implements Runnable{
 		return currency;
 	}
 
-	public synchronized ATPTicker getLastTick() {
-		ATPTicker tick;
-		
-		synchronized(tickerCache) {
-			if (tickerCache == null || tickerCache.isEmpty()) {
-				try {
-					Ticker ticker = tickerQueue.take();
-					ArbitrageEngine.getInstance().addTick(new ATPTicker(ticker));
-					tickerCache.add(new ATPTicker(ticker));
-				}
-				catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			tick = tickerCache.get(tickerCache.size()-1);
-		}
-		return tick;
-	}
 }
