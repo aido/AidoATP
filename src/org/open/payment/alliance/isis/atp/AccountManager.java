@@ -60,11 +60,7 @@ public class AccountManager  implements Runnable {
 			accountInfo = accountService.getAccountInfo();
 			log.info("AccountInfo as String: " + accountInfo.toString());
 			refreshAccounts();
-	/*		
-			if (Application.getInstance().getArbMode()) {
-				new Thread(ArbitrageEngine.getInstance()).start();
-			}
-		*/	
+	
 			for(Wallet wallet : wallets) {
 				CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
 				if(currency.getCode().equals("BTC")) {

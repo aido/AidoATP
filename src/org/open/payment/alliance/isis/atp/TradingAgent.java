@@ -209,11 +209,14 @@ public class TradingAgent implements Runnable {
 					}
 					if(qtyToSell.compareTo(minBTC) < 0) {
 						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was less than the configured limit of "+minBTC.toString());
-						log.info("Trend following trade agent has decided there just isn't enough "+localCurrency.getCode()+" momentum to trade at this time.");
+						log.info("Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
 						return;
 					}
-					
-					marketOrder(qtyToSell.getAmount(),OrderType.ASK);
+					if (!ArbitrageEngine.getInstance().getDisableTrendTrade()) {
+						marketOrder(qtyToSell.getAmount(),OrderType.ASK);
+					} else {
+						log.info("Trend following trades disabled by Arbitrage Engine.");
+					}
 				}else{
 					log.info("Could not determine wallet balance at this time, order will not be processed.");
 				}
@@ -224,7 +227,7 @@ public class TradingAgent implements Runnable {
 			
 		}else{
 			log.info("Current bid price of "+currentBid.toString()+" is below the VWAP of "+vwap.toString());
-			log.info("Trend following trade agent has determined that "+localCurrency.getCurrencyCode()+" market conditions are not appropriate for you to sell "+currentBid.toString()+" at this time.");
+			log.info("Trend following trade agent has determined that "+localCurrency.getCurrencyCode()+" market conditions are not favourable for you to sell at this time.");
 		}
 	}
 	
@@ -303,7 +306,11 @@ public class TradingAgent implements Runnable {
 						log.info("There just isn't enough momentum to trade at this time.");
 						return;
 					}
-					marketOrder(qtyToBuy.getAmount(),OrderType.BID);
+					if (!ArbitrageEngine.getInstance().getDisableTrendTrade()) {
+						marketOrder(qtyToBuy.getAmount(),OrderType.BID);
+					} else {
+						log.info("Trend following trades disabled by Arbitrage Engine.");
+					}
 				}
 			} catch (WalletNotFoundException e) {
 				log.error("ERROR: Could not find wallet for "+localCurrency.getCurrencyCode());
@@ -311,7 +318,7 @@ public class TradingAgent implements Runnable {
 			}	
 		}else{
 			log.info("Current ask price of "+currentAsk.toString()+" is above the VWAP of "+vwap.toString());
-			log.info("The trading agent has determined that market conditions are not appropriate for you to buy at this time.");
+			log.info("The trading agent has determined that "+localCurrency.getCurrencyCode()+" market conditions are not favourable for you to buy at this time.");
 		}
 	}
 	

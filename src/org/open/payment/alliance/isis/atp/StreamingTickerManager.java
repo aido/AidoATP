@@ -154,7 +154,7 @@ public class StreamingTickerManager implements Runnable{
 			DateTime now = new DateTime();
 			for(ATPTicker tick : tickerCache){
 				DateTime time = tick.getTimestamp();
-				if(now.getMillis() - time.getMillis() > Constants.ONEHOUR ) {
+				if(now.getMillis() - time.getMillis() > Constants.ONEHOUR * 2 ) {
 					removeList.add(tick);
 				}
 			}

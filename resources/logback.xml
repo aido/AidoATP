@@ -28,6 +28,4 @@
 			<appender-ref ref="FILE" />
 			<appender-ref ref="STDOUT" />
 	</root>
-	<com.xeiam.xchange level="DEBUG">
-	</com.xeiam.xchange>
 </configuration>

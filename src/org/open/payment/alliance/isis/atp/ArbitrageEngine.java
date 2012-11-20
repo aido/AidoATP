@@ -20,19 +20,18 @@ import org.slf4j.LoggerFactory;
 public class ArbitrageEngine implements Runnable {
 	
 	private static ArbitrageEngine instance = null;
-	private HashMap<CurrencyUnit, Double> askMap,bidMap;
 	private CurrencyUnit baseCurrency;
 	private double factor;
 	private Logger log;
 	private boolean quit;
+	private boolean disableTrendTradeFlag;
 	private HashMap<CurrencyUnit, ATPTicker> lastTickMap;
 	
 	private ArbitrageEngine() {
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
 		quit = false;
+		disableTrendTradeFlag = false;
 		lastTickMap = new HashMap<CurrencyUnit, ATPTicker>();
-		askMap = new HashMap<CurrencyUnit, Double>();
-		bidMap = new HashMap<CurrencyUnit, Double>();
 		baseCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
 	}
 
@@ -44,8 +43,6 @@ public class ArbitrageEngine implements Runnable {
 	}
 	@Override
 	public synchronized void run() {
-		
-		boolean wasTrendMode;
 		
 		try {
 			Pair<CurrencyUnit, Double> highestBid = null;
@@ -83,20 +80,12 @@ public class ArbitrageEngine implements Runnable {
 				log.info("Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
 				
 				try {
-					wasTrendMode = Application.getInstance().getTrendMode();
-					if (wasTrendMode) {
-						log.debug("Disabling trend following trade agent to perform arbitrage trades");
-						Application.getInstance().setTrendMode(false);	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
-					}
+					disableTrendTradeFlag = true;	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
 					executeTrade(lowestAsk,highestBid);
-					if (wasTrendMode) {
-						log.debug("Re-enabling trend following trade agent after performing arbitrage trades");
-						Application.getInstance().setTrendMode(wasTrendMode);
-					}
+					disableTrendTradeFlag = false;
 				} catch (WalletNotFoundException e) {
 					e.printStackTrace();
 				}
-				
 			}else {
 				log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
 			}
@@ -206,13 +195,13 @@ public class ArbitrageEngine implements Runnable {
 			}
 		}
 		
-		Double basePrice = lastTickMap.get(baseCurrency).getLast().getAmount().doubleValue();
-	
-		synchronized (bidMap) {
 		
-			for(CurrencyUnit currency : bidMap.keySet()) {
+		synchronized (lastTickMap) {
+			Double basePrice = lastTickMap.get(baseCurrency).getLast().getAmount().doubleValue();
+	
+			for(CurrencyUnit currency : lastTickMap.keySet()) {
 				
-				Double testPrice = bidMap.get(currency);
+				Double testPrice = lastTickMap.get(currency).getBid().getAmount().doubleValue();;
 				factor = basePrice/testPrice;
 				
 				if(factor > highFactor) {
@@ -241,10 +230,10 @@ public class ArbitrageEngine implements Runnable {
 		
 		Double basePrice = lastTickMap.get(baseCurrency).getLast().getAmount().doubleValue();
 		
-		synchronized (askMap) {
-			for(CurrencyUnit currency : askMap.keySet()) {
+		synchronized (lastTickMap) {
+			for(CurrencyUnit currency : lastTickMap.keySet()) {
 
-				Double testPrice = askMap.get(currency);
+				Double testPrice = lastTickMap.get(currency).getAsk().getAmount().doubleValue();
 				factor = basePrice / testPrice;
 				
 				if(factor < lowFactor) {
@@ -261,20 +250,15 @@ public class ArbitrageEngine implements Runnable {
 		
 		CurrencyUnit currency = CurrencyUnit.getInstance(tick.getLast().getCurrencyUnit().getCurrencyCode());
 		
-		Double bidPrice = tick.getBid().getAmount().doubleValue();
-		Double askPrice = tick.getAsk().getAmount().doubleValue();
-		
 		if(!currency.getCode().equals("BTC")) {
-			synchronized(bidMap) {
-				bidMap.put(currency, bidPrice);
-			}
-			synchronized(askMap) {
-				askMap.put(currency, askPrice);
-			}
 			synchronized(lastTickMap) {
 				lastTickMap.put(currency, tick);
 			}
 		}
 		
+	}
+		
+	public boolean getDisableTrendTrade() {
+		return disableTrendTradeFlag;
 	}
 }
