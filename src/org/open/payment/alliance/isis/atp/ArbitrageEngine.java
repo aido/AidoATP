@@ -45,14 +45,14 @@ public class ArbitrageEngine implements Runnable {
 	public synchronized void run() {
 		
 		try {
-			Pair<CurrencyUnit, Double> highestBid = null;
+			BigMoney highestBid = null;
 			try {
 				highestBid = getHighestBid();
 			} catch (WalletNotFoundException e2) {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
 			}
-			Pair<CurrencyUnit, Double> lowestAsk = null;
+			BigMoney lowestAsk = null;
 			try {
 				lowestAsk = getLowestAsk();
 			} catch (WalletNotFoundException e1) {
@@ -63,19 +63,19 @@ public class ArbitrageEngine implements Runnable {
 			Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
 			
 			//We buy from the lowestAsk & sell to the highestBid;
-			double profit = highestBid.getSecond() - lowestAsk.getSecond();
-			double profitAfterFee = profit - (fee *2);
+			Double profit = highestBid.getAmount().subtract(lowestAsk.getAmount()).doubleValue();
+			Double profitAfterFee = profit - (fee * 2);
 
 			NumberFormat percentFormat = NumberFormat.getPercentInstance();
 			percentFormat.setMaximumFractionDigits(8);
 			
-			String profitToDisplay = percentFormat.format(profitAfterFee);
+			String profitToDisplay = percentFormat.format(profitAfterFee / 100);
 			
 			log.debug("Arbitrage profit after fee: "+profitAfterFee);
 			
 			if(profitAfterFee > targetProfit){
 				log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
-						+" on currency pair "+lowestAsk.getFirst()+"/"+highestBid.getFirst());
+						+" on currency pair "+lowestAsk.getCurrencyUnit().toString()+"/"+highestBid.getCurrencyUnit().toString());
 				
 				log.info("Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
 				
@@ -117,31 +117,28 @@ public class ArbitrageEngine implements Runnable {
 	* @param to
 	* @throws WalletNotFoundException 
 	*/
-	private synchronized void executeTrade(Pair<CurrencyUnit,Double> from, Pair<CurrencyUnit, Double> to) throws WalletNotFoundException {
-		
-		CurrencyUnit fromCur = from.getFirst();
-		CurrencyUnit toCur = to.getFirst();
+	private synchronized void executeTrade(BigMoney from, BigMoney to) throws WalletNotFoundException {
 		
 		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
 		
-		BigMoney lastTickAskFrom = lastTickMap.get(fromCur).getAsk();
-		BigMoney lastTickBidTo = lastTickMap.get(toCur).getBid();
+		BigMoney lastTickAskFrom = lastTickMap.get(from.getCurrencyUnit()).getAsk();
+		BigMoney lastTickBidTo = lastTickMap.get(to.getCurrencyUnit()).getBid();
 		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16, RoundingMode.HALF_UP);
 		BigDecimal oneDivTo = BigDecimal.ONE.divide(lastTickBidTo.getAmount(),16,RoundingMode.HALF_UP);
 		
 		log.debug("Last ticker Ask price was "+lastTickAskFrom.toString());		
-		log.debug("BTC/"+fromCur.toString()+" is "+oneDivFrom.toString());
+		log.debug("BTC/"+from.getCurrencyUnit().toString()+" is "+oneDivFrom.toString());
 		log.debug("Last ticker Bid price was "+lastTickBidTo.toString());
-		log.debug("BTC/"+toCur.toString()+" is "+oneDivTo.toString());
+		log.debug("BTC/"+to.getCurrencyUnit().toString()+" is "+oneDivTo.toString());
 		
-		BigMoney qtyFrom = AccountManager.getInstance().getBalance(fromCur);
+		BigMoney qtyFrom = AccountManager.getInstance().getBalance(from.getCurrencyUnit());
 		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),oneDivFrom);
-		BigMoney qtyTo = qtyFromBTC.convertedTo(toCur,lastTickBidTo.getAmount());
+		BigMoney qtyTo = qtyFromBTC.convertedTo(to.getCurrencyUnit(),lastTickBidTo.getAmount());
 		BigMoney qtyToBTC = qtyTo.convertedTo(CurrencyUnit.of("BTC"),oneDivTo);
 
 		if (!qtyFrom.isZero()){
-			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",fromCur.toString());
-			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qtyToBTC.getAmount(),"BTC",toCur.toString());
+			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",from.getCurrencyUnit().toString());
+			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qtyToBTC.getAmount(),"BTC",to.getCurrencyUnit().toString());
 			
 			log.debug("Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+qtyFrom.toString());
 			log.debug("Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
@@ -180,11 +177,9 @@ public class ArbitrageEngine implements Runnable {
 	}
 
 	
-	public synchronized Pair<CurrencyUnit,Double> getHighestBid() throws WalletNotFoundException{
+	public synchronized BigMoney getHighestBid() throws WalletNotFoundException{
 		
-		double highFactor = 0.01;
-		
-		CurrencyUnit highCurrency = baseCurrency;
+		BigMoney highFactor = BigMoney.of(baseCurrency,0.01);
 		
 		while (lastTickMap.get(baseCurrency) == null) {
 			log.info("Arbitrage engine waiting for next "+baseCurrency.getCode()+" ticker");
@@ -195,30 +190,30 @@ public class ArbitrageEngine implements Runnable {
 			}
 		}
 		
-		
 		synchronized (lastTickMap) {
-			Double basePrice = lastTickMap.get(baseCurrency).getLast().getAmount().doubleValue();
+			BigMoney basePrice = lastTickMap.get(baseCurrency).getLast();
 	
 			for(CurrencyUnit currency : lastTickMap.keySet()) {
 				
-				Double testPrice = lastTickMap.get(currency).getBid().getAmount().doubleValue();;
-				factor = basePrice/testPrice;
+				BigMoney testPrice = lastTickMap.get(currency).getBid();
 				
-				if(factor > highFactor) {
+				BigMoney factor = basePrice.getCurrencyUnit() == testPrice.getCurrencyUnit() ?
+							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_UP) : 
+							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_UP));
+
+				if(factor.getAmount().compareTo(highFactor.getAmount()) > 0 ) {
 					highFactor = factor;
-					highCurrency = currency;
 				}
 			}
 		}
 		
-		return new Pair<CurrencyUnit,Double>(highCurrency,highFactor);
+		return highFactor;
 	}
 
-	public synchronized Pair<CurrencyUnit, Double> getLowestAsk() throws WalletNotFoundException {
+	public synchronized BigMoney getLowestAsk() throws WalletNotFoundException {
 		
-		double lowFactor = 100;
-		
-		CurrencyUnit lowCurrency = baseCurrency;
+		BigMoney lowFactor = BigMoney.of(baseCurrency,100);
+
 		while (lastTickMap.get(baseCurrency) == null) {
 			log.info("Arbitrage engine waiting for next "+baseCurrency.getCode()+" ticker");
 			try {
@@ -228,22 +223,24 @@ public class ArbitrageEngine implements Runnable {
 			}
 		}
 		
-		Double basePrice = lastTickMap.get(baseCurrency).getLast().getAmount().doubleValue();
-		
 		synchronized (lastTickMap) {
+			BigMoney basePrice = lastTickMap.get(baseCurrency).getLast();
+			
 			for(CurrencyUnit currency : lastTickMap.keySet()) {
 
-				Double testPrice = lastTickMap.get(currency).getAsk().getAmount().doubleValue();
-				factor = basePrice / testPrice;
+				BigMoney testPrice = lastTickMap.get(currency).getAsk();
 				
-				if(factor < lowFactor) {
+				BigMoney factor = basePrice.getCurrencyUnit() == testPrice.getCurrencyUnit() ?
+							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_UP) : 
+							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_UP));							
+
+				if(factor.getAmount().compareTo(lowFactor.getAmount()) < 0 ) {
 					lowFactor = factor;
-					lowCurrency = currency;
 				}
 			}
 		}
 		
-		return new Pair<CurrencyUnit,Double>(lowCurrency,lowFactor);
+		return lowFactor;
 	}
 
 	public void addTick(ATPTicker tick) {
