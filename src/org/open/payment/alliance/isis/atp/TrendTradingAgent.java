@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 * This is the agent that makes trades on behalf of the user.
 * 
 */
-public class TradingAgent implements Runnable {
+public class TrendTradingAgent implements Runnable {
 
 	private double trendArrow;
 	private double bidArrow;
@@ -44,8 +44,8 @@ public class TradingAgent implements Runnable {
 	private Logger log;
 	private StreamingTickerManager tickerManager;
 	
-	public TradingAgent(TrendObserver observer) {
-		log = LoggerFactory.getLogger(TradingAgent.class);
+	public TrendTradingAgent(TrendObserver observer) {
+		log = LoggerFactory.getLogger(TrendTradingAgent.class);
 		this.observer = observer;
 		exchange = Application.getInstance().getExchange();
 		tradeService = exchange.getPollingTradeService();

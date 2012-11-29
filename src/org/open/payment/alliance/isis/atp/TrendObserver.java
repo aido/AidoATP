@@ -161,8 +161,8 @@ public class TrendObserver implements Runnable {
 		if(!learningComplete) {
 			log.info("Trend observer has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market. " +localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size());
 		} else {
-				log.debug("Starting "+localCurrency.getCurrencyCode()+" trading agent.");
-				new Thread(new TradingAgent(this)).start();
+				log.debug("Starting "+localCurrency.getCurrencyCode()+" trend trading agent.");
+				new Thread(new TrendTradingAgent(this)).start();
 		}
 	}
 

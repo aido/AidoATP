@@ -43,70 +43,72 @@ public class ArbitrageEngine implements Runnable {
 	}
 	@Override
 	public synchronized void run() {
-		
-		try {
-			BigMoney highestBid = null;
+	
+		if (lastTickMap.get(baseCurrency) != null) {
 			try {
-				highestBid = getHighestBid();
-			} catch (WalletNotFoundException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			BigMoney lowestAsk = null;
-			try {
-				lowestAsk = getLowestAsk();
-			} catch (WalletNotFoundException e1) {
-				e1.printStackTrace();
-			}
-			
-			Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
-			Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
-			
-			//We buy from the lowestAsk & sell to the highestBid;
-			Double profit = highestBid.getAmount().subtract(lowestAsk.getAmount()).doubleValue();
-			Double profitAfterFee = profit - (fee * 2);
-
-			NumberFormat percentFormat = NumberFormat.getPercentInstance();
-			percentFormat.setMaximumFractionDigits(8);
-			
-			String profitToDisplay = percentFormat.format(profitAfterFee / 100);
-			
-			log.debug("Arbitrage profit after fee: "+profitAfterFee);
-			
-			if(profitAfterFee > targetProfit){
-				log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
-						+" on currency pair "+lowestAsk.getCurrencyUnit().toString()+"/"+highestBid.getCurrencyUnit().toString());
-				
-				log.info("Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
-				
+				BigMoney highestBid = null;
 				try {
-					disableTrendTradeFlag = true;	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
-					executeTrade(lowestAsk,highestBid);
-					disableTrendTradeFlag = false;
-				} catch (WalletNotFoundException e) {
-					e.printStackTrace();
-				}
-			}else {
-				log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
-			}
-		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
-			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
-			Socket testSock = null;
-			try {
-				log.warn("WARNING: Testing connection to exchange");
-				testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
-			}
-			catch (java.io.IOException e1) {
-				try {
-					log.error("ERROR: Cannot connect to exchange.");
-					Thread.currentThread().sleep(Constants.ONEMINUTE);
-				} catch (InterruptedException e2) {
+					highestBid = getHighestBid();
+				} catch (WalletNotFoundException e2) {
+					// TODO Auto-generated catch block
 					e2.printStackTrace();
 				}
+				BigMoney lowestAsk = null;
+				try {
+					lowestAsk = getLowestAsk();
+				} catch (WalletNotFoundException e1) {
+					e1.printStackTrace();
+				}
+				
+				Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
+				Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
+				
+				//We buy from the lowestAsk & sell to the highestBid;
+				Double profit = highestBid.getAmount().subtract(lowestAsk.getAmount()).doubleValue();
+				Double profitAfterFee = profit - (fee * 2);
+
+				NumberFormat percentFormat = NumberFormat.getPercentInstance();
+				percentFormat.setMaximumFractionDigits(8);
+				
+				String profitToDisplay = percentFormat.format(profitAfterFee);
+				
+				log.debug("Arbitrage profit after fee: "+profitAfterFee);
+				
+				if(profitAfterFee > targetProfit){
+					log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
+							+" on currency pair "+lowestAsk.getCurrencyUnit().toString()+"/"+highestBid.getCurrencyUnit().toString());
+					
+					log.info("Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
+					
+					try {
+						disableTrendTradeFlag = true;	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
+						executeTrade(lowestAsk,highestBid);
+						disableTrendTradeFlag = false;
+					} catch (WalletNotFoundException e) {
+						e.printStackTrace();
+					}
+				}else {
+					log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
+				}
+			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+				ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
+				Socket testSock = null;
+				try {
+					log.warn("WARNING: Testing connection to exchange");
+					testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
+				}
+				catch (java.io.IOException e1) {
+					try {
+						log.error("ERROR: Cannot connect to exchange.");
+						Thread.currentThread().sleep(Constants.ONEMINUTE);
+					} catch (InterruptedException e2) {
+						e2.printStackTrace();
+					}
+				}
+			} catch (Exception e) {
+				log.error("ERROR: Caught unexpected exception, shutting down arbitrage engine now!. Details are listed below.");
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected exception, shutting down arbitrage engine now!. Details are listed below.");
-			e.printStackTrace();
 		}
 	}
 
@@ -123,7 +125,7 @@ public class ArbitrageEngine implements Runnable {
 		
 		BigMoney lastTickAskFrom = lastTickMap.get(from.getCurrencyUnit()).getAsk();
 		BigMoney lastTickBidTo = lastTickMap.get(to.getCurrencyUnit()).getBid();
-		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16, RoundingMode.HALF_UP);
+		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16,RoundingMode.HALF_UP);
 		BigDecimal oneDivTo = BigDecimal.ONE.divide(lastTickBidTo.getAmount(),16,RoundingMode.HALF_UP);
 		
 		log.debug("Last ticker Ask price was "+lastTickAskFrom.toString());		
@@ -181,15 +183,6 @@ public class ArbitrageEngine implements Runnable {
 		
 		BigMoney highFactor = BigMoney.of(baseCurrency,0.01);
 		
-		while (lastTickMap.get(baseCurrency) == null) {
-			log.info("Arbitrage engine waiting for next "+baseCurrency.getCode()+" ticker");
-			try {
-				Thread.currentThread().sleep(Constants.TENSECONDS);
-			} catch (InterruptedException e2) {
-				e2.printStackTrace();
-			}
-		}
-		
 		synchronized (lastTickMap) {
 			BigMoney basePrice = lastTickMap.get(baseCurrency).getLast();
 	
@@ -198,7 +191,7 @@ public class ArbitrageEngine implements Runnable {
 				BigMoney testPrice = lastTickMap.get(currency).getBid();
 				
 				BigMoney factor = basePrice.getCurrencyUnit() == testPrice.getCurrencyUnit() ?
-							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_UP) : 
+							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_UP) :
 							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_UP));
 
 				if(factor.getAmount().compareTo(highFactor.getAmount()) > 0 ) {
@@ -213,15 +206,6 @@ public class ArbitrageEngine implements Runnable {
 	public synchronized BigMoney getLowestAsk() throws WalletNotFoundException {
 		
 		BigMoney lowFactor = BigMoney.of(baseCurrency,100);
-
-		while (lastTickMap.get(baseCurrency) == null) {
-			log.info("Arbitrage engine waiting for next "+baseCurrency.getCode()+" ticker");
-			try {
-				Thread.currentThread().sleep(Constants.TENSECONDS);
-			} catch (InterruptedException e2) {
-				e2.printStackTrace();
-			}
-		}
 		
 		synchronized (lastTickMap) {
 			BigMoney basePrice = lastTickMap.get(baseCurrency).getLast();
