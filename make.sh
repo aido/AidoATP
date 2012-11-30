@@ -79,7 +79,7 @@ if $UPDATE; then
 	cd $SRC_DIR/joda-time
 	git pull
 	find $SRC_DIR/joda-time -type d -name *test* -prune -o -name *example* -prune -o -type f -name "*.java" -print | xargs javac -d $CLASSPATH -classpath $CLASSPATH
-	[[ ! -d $CLASSPATH/org/joda/time/tz/data ]] && mkdir $CLASSPATH/org/joda/time/tz/data && touch $CLASSPATH/org/joda/time/tz/data/ZoneInfoMap
+	[[ ! -d $CLASSPATH/org/joda/time/tz/data ]] && mkdir $CLASSPATH/org/joda/time/tz/data
 	java -classpath $CLASSPATH org.joda.time.tz.ZoneInfoCompiler -verbose -src $SRC_DIR/joda-time/src/main/java/org/joda/time/tz/src/ -dst $CLASSPATH/org/joda/time/tz/data africa antarctica asia australasia backward etcetera europe northamerica pacificnew southamerica systemv > /dev/null
 	echo -e "\n'Resource not found: \"org/joda/time/tz/data/ZoneInfoMap\"' error may be ignored if this is first time creating ZoneInfo"
 	

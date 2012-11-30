@@ -39,7 +39,7 @@ public class TrendTradingAgent implements Runnable {
 	private BigMoney maxLocal;
 	private BigMoney minLocal;
 	private Double maxWeight;
-	private Integer    algorithm;
+	private Integer algorithm;
 	private CurrencyUnit localCurrency;
 	private Logger log;
 	private StreamingTickerManager tickerManager;

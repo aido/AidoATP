@@ -32,7 +32,7 @@ public class TrendObserver implements Runnable {
 		localCurrency = tickerManager.getCurrency();
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
-			if (ticker.size() < 16){
+			if (ticker.size() < Integer.valueOf(Application.getInstance().getConfig("minTickSize"))){
 				log.info("Trend observer does not currently have enough data to determine trend. "+localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size());
 				learningComplete = false;
 			} else {

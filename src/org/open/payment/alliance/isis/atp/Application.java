@@ -91,9 +91,8 @@ public class Application {
 			showAgreement();
 		}
 		
-		if(params.get("--simulation-mode") != null ){
+		if(params.get("--simulation-mode") != null){
 			if(params.get("--simulation-mode").equalsIgnoreCase("true")) {
-				log.info("Entering simulation mode. Trades will not be executed.");
 				setSimMode(true);
 			}else {
 				setSimMode(false);
@@ -102,7 +101,7 @@ public class Application {
 			showAgreement();
 		}
 
-		if(params.get("--use-arbitrage") != null ){
+		if(params.get("--use-arbitrage") != null){
 			if(params.get("--use-arbitrage").equalsIgnoreCase("true")) {
 				setArbMode(true);
 			}else {
@@ -110,7 +109,7 @@ public class Application {
 			}
 		}
 	
-		if(params.get("--use-trend") != null ){
+		if(params.get("--use-trend") != null){
 			if(params.get("--use-trend").equalsIgnoreCase("true")) {
 				setTrendMode(true);
 			}else {
@@ -122,7 +121,11 @@ public class Application {
 		
 		accountManagerThread = new Thread(AccountManager.getInstance());
 		accountManagerThread.start();
-		log.info("Isis ATP has started successfully");
+		log.info("Isis ATP has started successfully");	
+		
+		if(getSimMode()){		
+			log.info("Entering simulation mode. Trades will not be executed.");
+		}
 		
 		if(getTrendMode()){
 			log.info("Using trend following to decide some trades.");
@@ -200,6 +203,12 @@ public class Application {
 		
 		out.print("Minimum Profit to seek for Arbitrage (eg 10% = 0.10): ");
 		config.put("TargetProfit", console.readLine());
+
+		out.print("Minimum ticker size for trending trade decisions: ");
+		config.put("minTickSize", console.readLine());
+
+		out.print("Maximum ticker age for trending trade decisions (in minutes): ");
+		config.put("maxTickAge", console.readLine());
 		
 		out.print("Trading fee (eg 0.6% = 0.006): ");
 		config.put("TradingFee", console.readLine());
@@ -209,21 +218,21 @@ public class Application {
 		out.println("2: \"Conservative\"");
 		config.put("Algorithm", console.readLine());
 		
-		out.println("Interactive mode complete!");
-		out.println("Please look carefully at the answers below and if they look correct press enter.");
-		out.println("If there are any errors, please type NO");
 		try {
 			config.exportNode(out);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
+		out.println("Interactive mode complete!");
+		out.println("Please look carefully at the answers below and if they look correct press enter.");
+		out.println("If there are any errors, please type NO");
 		String answer = console.readLine();
+		
 		if(answer == null || answer.isEmpty()){
 			try {
 				config.sync();
-			} catch (BackingStoreException e) {
-				
+			} catch (BackingStoreException e) {		
 				e.printStackTrace();
 			}
 		}else{
