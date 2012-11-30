@@ -80,24 +80,14 @@ public class Application {
 			interview();
 		}
 
-		if(params.get("--debug-live") != null) {
-			if(params.get("--debug-live").equalsIgnoreCase("true")) {
-				log.info("Entering live mode for real world debugging.");
-				setSimMode(false);
-			}else {
-				setSimMode(true);
-			}
-		}else if(params.get("--simulation-mode") == null && getSimMode() ) {
-			showAgreement();
-		}
-		
+	
 		if(params.get("--simulation-mode") != null){
 			if(params.get("--simulation-mode").equalsIgnoreCase("true")) {
 				setSimMode(true);
 			}else {
 				setSimMode(false);
 			}
-		}else if (params.get("--debug-live") == null && getSimMode()) {
+		}else if (getSimMode()) {
 			showAgreement();
 		}
 
