@@ -215,7 +215,7 @@ public class Application {
 		}
 		
 		out.println("Interactive mode complete!");
-		out.println("Please look carefully at the answers below and if they look correct press enter.");
+		out.println("Please look carefully at the answers above and if they look correct press enter.");
 		out.println("If there are any errors, please type NO");
 		String answer = console.readLine();
 		
