@@ -200,6 +200,9 @@ public class Application {
 		out.print("Maximum ticker age for trending trade decisions (in minutes): ");
 		config.put("maxTickAge", console.readLine());
 		
+		out.print("Number of ticks used to calculate Short Simple Moving Average: ");
+		config.put("shortSMATickSize", console.readLine());
+
 		out.print("Trading fee (eg 0.6% = 0.006): ");
 		config.put("TradingFee", console.readLine());
 		

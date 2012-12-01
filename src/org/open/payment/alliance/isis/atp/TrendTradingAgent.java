@@ -88,7 +88,7 @@ public class TrendTradingAgent implements Runnable {
 		str.append(calcSMA(ticker.size()).toString());
 		str.append(" | ");
 		str.append("Short SMA: ");
-		str.append(calcSMA(16).toString());
+		str.append(calcSMA(Integer.valueOf(Application.getInstance().getConfig("shortSMATickSize"))).toString());
 		log.info(str.toString());
 		
 		str.setLength(0);
@@ -145,8 +145,7 @@ public class TrendTradingAgent implements Runnable {
 	private void evalAsk(){
 		//Look at current bid
 		BigMoney currentBid = lastTick.getBid();
-		//vwap = vwap.minus(vwap); //used to force the condition for debugging purposes comment out when done.
-		//Application.getInstance().setSimMode(true);
+		
 		//Is currentBid > averageCost?
 		if(currentBid.isGreaterThan(vwap)) {
 			
@@ -371,16 +370,16 @@ public class TrendTradingAgent implements Runnable {
 	
 	private BigMoney calcSMA(Integer size){
 		
-		BigMoney sum = BigMoney.zero(localCurrency);
+		BigMoney sumLast = BigMoney.zero(localCurrency);
 		
 		if (size > ticker.size()) {
 			size = ticker.size();
 		}
 		
 		for(ATPTicker tick : ticker.subList(ticker.size() - size, ticker.size())){
-			sum = sum.plus(tick.getLast());
+			sumLast = sumLast.plus(tick.getLast());
 		}
 		
-		return sum.dividedBy(Long.valueOf(size),RoundingMode.HALF_UP);		
+		return sumLast.dividedBy(Long.valueOf(size),RoundingMode.HALF_UP);		
 	}
 }

@@ -36,8 +36,8 @@ The arbitrage engine uses the current trading algorithm to find the highest prof
 Buys take place as normal, but only do so on the pair with the lowest cost real cost (BTCAsk * normalizing factor (pair1/pair2))
 
 
-Volume-weighted average price (VWAP) based trend following algoritm
--------------------------------------------------------------------
+Volume-weighted average price (VWAP) based trend following algorithm
+--------------------------------------------------------------------
 
 The trend observer functionality constantly monitors the market for trends.
 
@@ -56,8 +56,8 @@ Once we have decided to buy or sell, then we look at the ask, bid and trend arro
 	current balance (BTC or local currency depending on Bid or Ask) * weight = how much we will be trading with.
 
 
-Simple Moving Average trending algorithm
-----------------------------------------
+Simple Moving Average based trend following algorithm
+-----------------------------------------------------
 
 Coming soon
 
@@ -98,8 +98,8 @@ When run for the first time a configuration needs to be created. This can be don
 The following switches are also available from the command line:
 
 	--simulation-mode=true/false	Enable or disable a test/simulation mode where live trades will not be performed
-	--use-arbitrage=true/false	Enable or disable the arbitrage trading engine
-	--use-trend=true/false	Enable or disable the trend-following trading agent
+	--use-arbitrage=true/false		Enable or disable the arbitrage trading engine
+	--use-trend=true/false			Enable or disable the trend-following trading agent
 
 The configuration file is stored in the ~/.java/.userPrefs/org/open/payment/alliance/isis/atp/prefs.xml file on Linux/UNIX systems or the HKEY_CURRENT_USER\Software\JavaSoft\Prefs\org\open\payment\alliance\isis\atp registry on Microsoft Windows systems.
 
@@ -116,6 +116,7 @@ When interviewed the user will be asked for the following information:
 	Minimum Profit to seek for Arbitrage (eg 10% = 0.10)
 	Minimum ticker size for trend following trade decisions
 	Maximum ticker age for trend following trade decisions (in minutes)
+	Number of ticks used to calculate Short Simple Moving Average
 	Trading fee (eg 0.6% = 0.006)
 	Which algorithm would you like to use? (1 or 2)
 		1: High Risk
