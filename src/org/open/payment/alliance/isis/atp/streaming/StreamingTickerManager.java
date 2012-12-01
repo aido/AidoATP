@@ -112,11 +112,11 @@ public class StreamingTickerManager implements Runnable{
 							new Thread(ArbitrageEngine.getInstance()).start();
 							ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
 						}
-					if (Application.getInstance().getTrendMode()) {
-						new Thread(new TrendObserver(this)).start();
-					}
+						if (Application.getInstance().getTrendMode()) {
+							new Thread(new TrendObserver(this)).start();
+						}
 						tickerCache.add(new ATPTicker(tick));
-					lastVolume = currentVolume;
+						lastVolume = currentVolume;
 					}
 				}
 				saveMarketData();

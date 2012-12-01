@@ -6,15 +6,16 @@ Isis Advance Trading Platform courtesy of the Open Payment Alliance.
 forked from openpay/OpenPay 
 
 What is IsisATP?
-----------------
+================
 IsisATP is an Automated Trading Platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
 
 How does it work?
------------------
+=================
 
-On startup IsisATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over the trading algorithms make a decision on whether is it favourable to trade at any given time. There trading algorithms currently implemented are:
+On startup IsisATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over the trading algorithms make a decision on whether it is favourable to trade at any given time. The trading algorithms currently implemented are:
 
 Arbitrage algorithm:
+--------------------
 
 Quite frequently there is a difference in the price of BTC in different currency pairs.
 
@@ -35,7 +36,8 @@ The arbitrage engine uses the current trading algorithm to find the highest prof
 Buys take place as normal, but only do so on the pair with the lowest cost real cost (BTCAsk * normalizing factor (pair1/pair2))
 
 
-Volume-weighted average price (VWAP) based trend following algoritm:
+Volume-weighted average price (VWAP) based trend following algoritm
+-------------------------------------------------------------------
 
 The trend observer functionality constantly monitors the market for trends.
 
@@ -54,17 +56,18 @@ Once we have decided to buy or sell, then we look at the ask, bid and trend arro
 	current balance (BTC or local currency depending on Bid or Ask) * weight = how much we will be trading with.
 
 
-Simple Moving Average trending algorithm:
+Simple Moving Average trending algorithm
+----------------------------------------
 
 Coming soon
 
 Exchanges
----------
+=========
 
 IsisATP currently trades on the MtGOX exchange. More exchanges are planned.
 
 Risk
-----
+====
 
 The user has a choice of high risk or conservative trading.
 
@@ -72,18 +75,17 @@ First a weight is calculated one of two ways based on the choice of high risk or
 
 Here's how the weight is calculated for bid/buy:
 
-Code:
-			if(algorithm == 1) {
-				weight = (askArrow + trendArrow) / ticker.size();
-			}else {
-				weight = (askArrow / ticker.size()) * (trendArrow / ticker.size());
-			}
+	if(algorithm == 1) {
+		weight = (askArrow + trendArrow) / ticker.size();
+	}else {
+		weight = (askArrow / ticker.size()) * (trendArrow / ticker.size());
+	}
 			
 Algorithm 1 is high risk, algorithm 2 is conservative risk
 
 
 Usage
------
+=====
 
 IsisATP may be launched using the following command line:
 
@@ -120,6 +122,6 @@ When interviewed the user will be asked for the following information:
 		2: Conservative
 		
 Further reading
----------------
+===============
 
 A detailed discussion about this project may be found at: https://bitcointalk.org/index.php?topic=109831.0
