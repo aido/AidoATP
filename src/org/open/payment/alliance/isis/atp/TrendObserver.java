@@ -16,7 +16,6 @@ public class TrendObserver implements Runnable {
 	private BigMoney vwap;
 	private ATPTicker high;
 	private ATPTicker low;
-	private ATPTicker lastTick;
 	private ArrayList<ATPTicker> ticker;
 	private int bidArrow;
 	private int askArrow;
@@ -60,8 +59,6 @@ public class TrendObserver implements Runnable {
 		
 		vwap = BigMoney.zero(tickerManager.getCurrency());
 		
-		ATPTicker tick = null;
-		
 		synchronized(ticker) {
 			
 			//ticker - could be empty if there is no new data in over an hour, we've been disconnected, or the TickerManager thread has crashed.
@@ -71,36 +68,22 @@ public class TrendObserver implements Runnable {
 			}
 			
 			//Items in here are done once for every item in the ticker
-			BigDecimal newVolume = null,absVolume = null,oldVolume = null,changedVolume = null;
-			BigDecimal totalVolume = new BigDecimal("0");
-			BigMoney oldPrice = null, newPrice = null;
-			BigMoney newBid = null, oldBid = null;
-			BigMoney newAsk = null, oldAsk = null;
+			BigMoney newBid = null, oldBid = BigMoney.zero(localCurrency);
+			BigMoney newAsk = null, oldAsk = BigMoney.zero(localCurrency);
+			BigMoney newPrice = null, oldPrice = BigMoney.zero(localCurrency);
+			BigDecimal newVolume = null, oldVolume = BigDecimal.ZERO;
+			BigDecimal totalVolume = BigDecimal.ZERO, absVolume = null, changedVolume = null;
 			
 			trendArrow = 0;
 			bidArrow = 0;
 			askArrow = 0;
 			
-			for(int idx =0; idx < ticker.size(); idx++){
-				
-				tick = ticker.get(idx);
+			for(ATPTicker tick : ticker){				
 				
 				//The first thing we want to look at is the volume
 				//We need a changed volume
 				//Changed volume is new volume - old volume
 				//We need 2 volumes, a total volume & an absolute volume
-				
-				if(idx == 0){
-					oldVolume = BigDecimal.ZERO;
-					oldPrice = BigMoney.zero(localCurrency);
-					oldBid = BigMoney.zero(localCurrency);
-					oldAsk = BigMoney.zero(localCurrency);
-					}else{
-					oldVolume = newVolume;
-					oldPrice = newPrice;
-					oldBid = newBid;
-					oldAsk = newAsk;	
-				}
 				
 				//The volume of this tick, by itself
 				newVolume = new BigDecimal(new BigInteger(""+tick.getVolume()));
@@ -137,15 +120,18 @@ public class TrendObserver implements Runnable {
 				
 				vwap = vwap.plus(newPrice.multipliedBy(absVolume));
 				totalVolume = totalVolume.add(absVolume);
+				
+				oldVolume = newVolume;
+				oldPrice = newPrice;
+				oldBid = newBid;
+				oldAsk = newAsk;
 			}
-			
-			vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);
-			lastTick = tick;
+			vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);	
 		}
 		
 		log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
 		log.info("Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
-		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+tick.toString());
+		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+ticker.get(ticker.size() - 1).toString());
 		log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
 		
 		if(learningComplete) {
@@ -186,7 +172,7 @@ public class TrendObserver implements Runnable {
 	}
 	
 	public ATPTicker getLastTick() {
-		return lastTick;
+		return ticker.get(ticker.size() - 1);
 	}
 
 	public StreamingTickerManager getTickerManager() {
