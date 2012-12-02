@@ -16,11 +16,12 @@ public class TrendObserver implements Runnable {
 	private BigMoney vwap;
 	private ATPTicker high;
 	private ATPTicker low;
+	private ATPTicker lastTick;
+	private ArrayList<ATPTicker> ticker;
 	private int bidArrow;
 	private int askArrow;
 	private int trendArrow;
 	private Logger log;
-	private ATPTicker lastTick;
 	private boolean learningComplete;
 	private StreamingTickerManager tickerManager;
 	private CurrencyUnit localCurrency;
@@ -28,7 +29,7 @@ public class TrendObserver implements Runnable {
 	public TrendObserver(StreamingTickerManager tickerManager) {
 		this.tickerManager = tickerManager;
 		log = LoggerFactory.getLogger(TrendObserver.class);
-		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
+		ticker = tickerManager.getMarketData();
 		localCurrency = tickerManager.getCurrency();
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
@@ -59,7 +60,6 @@ public class TrendObserver implements Runnable {
 		
 		vwap = BigMoney.zero(tickerManager.getCurrency());
 		
-		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
 		ATPTicker tick = null;
 		
 		synchronized(ticker) {
@@ -157,15 +157,34 @@ public class TrendObserver implements Runnable {
 	public int getTrendArrow() {
 		return trendArrow;
 	}
+	
 	public int getBidArrow() {
 		return bidArrow;
 	}
+	
 	public int getAskArrow() {
 		return askArrow;
 	}
+	
 	public BigMoney getVwap() {
 		return vwap;
 	}
+	
+	public BigMoney getSMA(Integer size){
+		
+		BigMoney sumLast = BigMoney.zero(localCurrency);
+		
+		if (size > ticker.size()) {
+			size = ticker.size();
+		}
+		
+		for(ATPTicker tick : ticker.subList(ticker.size() - size, ticker.size())){
+			sumLast = sumLast.plus(tick.getLast());
+		}
+		
+		return sumLast.dividedBy(Long.valueOf(size),RoundingMode.HALF_UP);		
+	}
+	
 	public ATPTicker getLastTick() {
 		return lastTick;
 	}

@@ -170,5 +170,4 @@ public class StreamingTickerManager implements Runnable{
 	public CurrencyUnit getCurrency() {
 		return currency;
 	}
-
 }

@@ -85,10 +85,10 @@ public class TrendTradingAgent implements Runnable {
 		str.append(vwap);
 		str.append(" | ");
 		str.append("Long SMA: ");
-		str.append(calcSMA(ticker.size()).toString());
+		str.append(observer.getSMA(ticker.size()).toString());
 		str.append(" | ");
 		str.append("Short SMA: ");
-		str.append(calcSMA(Integer.valueOf(Application.getInstance().getConfig("shortSMATickSize"))).toString());
+		str.append(observer.getSMA(Integer.valueOf(Application.getInstance().getConfig("shortSMATickSize"))).toString());
 		log.info(str.toString());
 		
 		str.setLength(0);
@@ -366,20 +366,5 @@ public class TrendTradingAgent implements Runnable {
 		}else{
 			log.error("ERROR: Failed to"+failAction+qty.toPlainString()+" at current market price. Please investigate");
 		}
-	}
-	
-	private BigMoney calcSMA(Integer size){
-		
-		BigMoney sumLast = BigMoney.zero(localCurrency);
-		
-		if (size > ticker.size()) {
-			size = ticker.size();
-		}
-		
-		for(ATPTicker tick : ticker.subList(ticker.size() - size, ticker.size())){
-			sumLast = sumLast.plus(tick.getLast());
-		}
-		
-		return sumLast.dividedBy(Long.valueOf(size),RoundingMode.HALF_UP);		
 	}
 }
