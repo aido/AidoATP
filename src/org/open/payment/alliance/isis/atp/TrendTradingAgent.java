@@ -61,6 +61,9 @@ public class TrendTradingAgent implements Runnable {
 
 	public void run(){
 		
+		NumberFormat numberFormat = NumberFormat.getNumberInstance();
+		numberFormat.setMaximumFractionDigits(8);
+		
 		trendArrow = observer.getTrendArrow();
 		bidArrow = observer.getBidArrow();
 		askArrow = observer.getAskArrow();
@@ -83,12 +86,20 @@ public class TrendTradingAgent implements Runnable {
 		str.append(" | ");
 		str.append("VWAP: ");
 		str.append(vwap);
-		str.append(" | ");
+		log.info(str.toString());
+		
+		str.setLength(0);
 		str.append("Long SMA: ");
 		str.append(observer.getSMA(ticker.size()).toString());
 		str.append(" | ");
 		str.append("Short SMA: ");
-		str.append(observer.getSMA(Integer.valueOf(Application.getInstance().getConfig("shortSMATickSize"))).toString());
+		str.append(observer.getSMA(Integer.valueOf(Application.getInstance().getConfig("shortMATickSize"))).toString());
+		str.append(" | ");
+		str.append("Long EMA: ");
+		str.append(localCurrency.getCode()+" "+numberFormat.format(observer.getEMA(ticker.size()).getAmount()));
+		str.append(" | ");
+		str.append("Short EMA: ");
+		str.append(localCurrency.getCode()+" "+numberFormat.format(observer.getEMA(Integer.valueOf(Application.getInstance().getConfig("shortMATickSize"))).getAmount()));
 		log.info(str.toString());
 		
 		str.setLength(0);

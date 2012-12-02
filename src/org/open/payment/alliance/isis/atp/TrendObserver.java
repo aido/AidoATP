@@ -171,6 +171,22 @@ public class TrendObserver implements Runnable {
 		return sumLast.dividedBy(Long.valueOf(size),RoundingMode.HALF_UP);		
 	}
 	
+	public BigMoney getEMA(Integer size){
+		
+		if (size > ticker.size()) {
+			size = ticker.size();
+		}
+
+		BigMoney ema = ticker.get(0).getLast();
+		double exponent = (double) 2 / (size + 1);
+		
+		for(ATPTicker tick : ticker.subList(ticker.size() - size, ticker.size())){
+			ema = tick.getLast().multipliedBy(exponent).plus(ema.multipliedBy(1 - exponent));
+		}
+		
+		return ema;
+	}
+		
 	public ATPTicker getLastTick() {
 		return ticker.get(ticker.size() - 1);
 	}
