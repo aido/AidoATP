@@ -108,6 +108,7 @@ public class StreamingTickerManager implements Runnable{
 				currentVolume = tick.getVolume().longValue();
 				if(currentVolume != lastVolume) {
 					synchronized(tickerCache) {
+						tickerCache.add(new ATPTicker(tick));
 						if (Application.getInstance().getArbMode()) {
 							new Thread(ArbitrageEngine.getInstance()).start();
 							ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
@@ -115,7 +116,6 @@ public class StreamingTickerManager implements Runnable{
 						if (Application.getInstance().getTrendMode()) {
 							new Thread(new TrendObserver(this)).start();
 						}
-						tickerCache.add(new ATPTicker(tick));
 						lastVolume = currentVolume;
 					}
 				}

@@ -33,7 +33,7 @@ public class TrendObserver implements Runnable {
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
 			if (ticker.size() < Integer.valueOf(Application.getInstance().getConfig("minTickSize"))){
-				log.info("Trend observer does not currently have enough data to determine trend. "+localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size());
+				log.info("Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" data to determine trend. "+localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size());
 				learningComplete = false;
 			} else {
 				learningComplete = true;
@@ -59,18 +59,8 @@ public class TrendObserver implements Runnable {
 		
 		vwap = BigMoney.zero(tickerManager.getCurrency());
 		
-		//We can't have multiple threads messing with the ticker object
-		//Ideally this should have been a deep copy, but went this way for speed.
-		ArrayList<ATPTicker> ticker = null;
+		ArrayList<ATPTicker> ticker = tickerManager.getMarketData();
 		ATPTicker tick = null;
-		while(ticker == null || ticker.isEmpty()) {
-			ticker = tickerManager.getMarketData();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 		
 		synchronized(ticker) {
 			
@@ -158,11 +148,9 @@ public class TrendObserver implements Runnable {
 		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+tick.toString());
 		log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
 		
-		if(!learningComplete) {
-			log.info("Trend observer has not run long enough to build a profile for "+localCurrency.getCurrencyCode()+" market. " +localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size());
-		} else {
-				log.debug("Starting "+localCurrency.getCurrencyCode()+" trend trading agent.");
-				new Thread(new TrendTradingAgent(this)).start();
+		if(learningComplete) {
+			log.debug("Starting "+localCurrency.getCurrencyCode()+" trend trading agent.");
+			new Thread(new TrendTradingAgent(this)).start();
 		}
 	}
 
