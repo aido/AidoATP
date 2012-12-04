@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
-import java.net.Socket;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
@@ -51,8 +50,9 @@ public class StreamingTickerManager implements Runnable{
 
 			Exchange exchange = com.xeiam.xchange.mtgox.v1.MtGoxExchange.newInstance();
 			marketData = exchange.getStreamingMarketDataService();
-			tickerQueue = marketData.requestTicker(Currencies.BTC, currency.getCurrencyCode());				
-		} catch (Exception e) {
+			tickerQueue = marketData.requestTicker(Currencies.BTC, currency.getCurrencyCode());
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		} 	
 	}
@@ -120,24 +120,6 @@ public class StreamingTickerManager implements Runnable{
 					}
 				}
 				saveMarketData();
-			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
-				ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
-				Socket testSock = null;
-				while (true) {
-					try {
-						log.warn("WARNING: Testing connection to exchange");
-						testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
-						if (testSock != null) { break; }
-					}
-					catch (java.io.IOException e1) {
-						try {
-							log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
-							Thread.currentThread().sleep(Constants.ONEMINUTE);
-						} catch (InterruptedException e2) {
-							e2.printStackTrace();
-						}
-					}
-				}
 			} catch (Exception e) {
 				log.error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
 				e.printStackTrace();

@@ -14,12 +14,16 @@ import org.slf4j.LoggerFactory;
 public class TrendObserver implements Runnable {
 
 	private BigMoney vwap;
+	private BigMoney shortSMA;
+	private BigMoney longSMA;
+	private BigMoney shortEMA;
+	private BigMoney longEMA;
 	private ATPTicker high;
 	private ATPTicker low;
 	private ArrayList<ATPTicker> ticker;
-	private int bidArrow;
-	private int askArrow;
-	private int trendArrow;
+	private Integer bidArrow;
+	private Integer askArrow;
+	private Integer trendArrow;
 	private Logger log;
 	private boolean learningComplete;
 	private StreamingTickerManager tickerManager;
@@ -51,6 +55,25 @@ public class TrendObserver implements Runnable {
 		trendArrow = 0;
 		bidArrow = 0;
 		askArrow = 0;
+		shortSMA = BigMoney.zero(localCurrency);
+		longSMA = BigMoney.zero(localCurrency);
+		shortEMA = BigMoney.zero(localCurrency);
+		longEMA = BigMoney.zero(localCurrency);
+		
+		Integer shortMASize = Integer.valueOf(Application.getInstance().getConfig("shortMATickSize"));
+		Integer idx = 0;
+		double expShortEMA = 0;
+		double expLongEMA = 0;
+		BigMoney sumShortSMA = BigMoney.zero(localCurrency);
+		BigMoney sumLongSMA = BigMoney.zero(localCurrency);
+		
+		
+		//Items in here are done once for every item in the ticker
+		BigMoney newBid = null, oldBid = BigMoney.zero(localCurrency);
+		BigMoney newAsk = null, oldAsk = BigMoney.zero(localCurrency);
+		BigMoney newPrice = null, oldPrice = BigMoney.zero(localCurrency);
+		BigDecimal newVolume = null, oldVolume = BigDecimal.ZERO;
+		BigDecimal totalVolume = BigDecimal.ZERO, absVolume = null, changedVolume = null;
 		
 		//VWAP = Volume Weighted Average Price
 		//Each (transaction price * transaction volume) / total volume
@@ -65,19 +88,15 @@ public class TrendObserver implements Runnable {
 			if(!ticker.isEmpty()) {
 				low = ticker.get(0);
 				high = ticker.get(0);
+				if (shortMASize > ticker.size()) {
+					shortMASize = ticker.size();
+				}
+				shortEMA = ticker.get(ticker.size() - shortMASize).getLast();
+				longEMA = ticker.get(0).getLast();
+				expShortEMA = (double) 2 / (shortMASize + 1);
+				expLongEMA = (double) 2 / (ticker.size() + 1);
 			}
-			
-			//Items in here are done once for every item in the ticker
-			BigMoney newBid = null, oldBid = BigMoney.zero(localCurrency);
-			BigMoney newAsk = null, oldAsk = BigMoney.zero(localCurrency);
-			BigMoney newPrice = null, oldPrice = BigMoney.zero(localCurrency);
-			BigDecimal newVolume = null, oldVolume = BigDecimal.ZERO;
-			BigDecimal totalVolume = BigDecimal.ZERO, absVolume = null, changedVolume = null;
-			
-			trendArrow = 0;
-			bidArrow = 0;
-			askArrow = 0;
-			
+						
 			for(ATPTicker tick : ticker){				
 				
 				//The first thing we want to look at is the volume
@@ -100,9 +119,9 @@ public class TrendObserver implements Runnable {
 					low = tick;
 				}
 				
-				if(newPrice.minus(oldPrice).isPositive()){
+				if(newPrice.isGreaterThan(oldPrice)){
 					trendArrow++;
-				}else if(newPrice.minus(oldPrice).isNegative()){
+				}else if(newPrice.isLessThan(oldPrice)){
 					trendArrow--;
 				}
 				
@@ -125,8 +144,20 @@ public class TrendObserver implements Runnable {
 				oldPrice = newPrice;
 				oldBid = newBid;
 				oldAsk = newAsk;
+				
+				if ( idx >= ticker.size() - shortMASize ) {
+					sumShortSMA = sumShortSMA.plus(newPrice);
+					shortEMA = newPrice.multipliedBy(expShortEMA).plus(shortEMA.multipliedBy(1 - expShortEMA));
+				}
+				
+				sumLongSMA = sumLongSMA.plus(newPrice);
+				longEMA = newPrice.multipliedBy(expLongEMA).plus(longEMA.multipliedBy(1 - expLongEMA));
+				
+				idx++;
 			}
-			vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);	
+			vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);
+			shortSMA = sumShortSMA.dividedBy(Long.valueOf(shortMASize),RoundingMode.HALF_UP);
+			longSMA = sumLongSMA.dividedBy(Long.valueOf(ticker.size()),RoundingMode.HALF_UP);
 		}
 		
 		log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
@@ -156,39 +187,28 @@ public class TrendObserver implements Runnable {
 		return vwap;
 	}
 	
-	public BigMoney getSMA(Integer size){
-		
-		BigMoney sumLast = BigMoney.zero(localCurrency);
-		
-		if (size > ticker.size()) {
-			size = ticker.size();
-		}
-		
-		for(ATPTicker tick : ticker.subList(ticker.size() - size, ticker.size())){
-			sumLast = sumLast.plus(tick.getLast());
-		}
-		
-		return sumLast.dividedBy(Long.valueOf(size),RoundingMode.HALF_UP);		
+	public BigMoney getShortSMA() {
+		return shortSMA;
 	}
 	
-	public BigMoney getEMA(Integer size){
-		
-		if (size > ticker.size()) {
-			size = ticker.size();
-		}
-
-		BigMoney ema = ticker.get(0).getLast();
-		double exponent = (double) 2 / (size + 1);
-		
-		for(ATPTicker tick : ticker.subList(ticker.size() - size, ticker.size())){
-			ema = tick.getLast().multipliedBy(exponent).plus(ema.multipliedBy(1 - exponent));
-		}
-		
-		return ema;
+	public BigMoney getLongSMA() {
+		return longSMA;
 	}
-		
+	
+	public BigMoney getShortEMA() {
+		return shortEMA;
+	}
+	
+	public BigMoney getLongEMA() {
+		return longEMA;
+	}
+	
 	public ATPTicker getLastTick() {
 		return ticker.get(ticker.size() - 1);
+	}
+	
+	public Integer getTickerSize() {
+		return ticker.size();
 	}
 
 	public StreamingTickerManager getTickerManager() {

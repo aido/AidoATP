@@ -36,8 +36,8 @@ The arbitrage engine uses the current trading algorithm to find the highest prof
 Buys take place as normal, but only do so on the pair with the lowest cost real cost (BTCAsk * normalizing factor (pair1/pair2))
 
 
-Volume-weighted average price (VWAP) based trend following algorithm
---------------------------------------------------------------------
+Volume Participation Algorithm
+------------------------------
 
 The trend observer functionality constantly monitors the market for trends.
 
