@@ -125,8 +125,8 @@ public class ArbitrageEngine implements Runnable {
 		
 		BigMoney lastTickAskFrom = lastTickMap.get(from.getCurrencyUnit()).getAsk();
 		BigMoney lastTickBidTo = lastTickMap.get(to.getCurrencyUnit()).getBid();
-		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16,RoundingMode.HALF_UP);
-		BigDecimal oneDivTo = BigDecimal.ONE.divide(lastTickBidTo.getAmount(),16,RoundingMode.HALF_UP);
+		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16,RoundingMode.HALF_EVEN);
+		BigDecimal oneDivTo = BigDecimal.ONE.divide(lastTickBidTo.getAmount(),16,RoundingMode.HALF_EVEN);
 		
 		log.debug("Last ticker Ask price was "+lastTickAskFrom.toString());		
 		log.debug("BTC/"+from.getCurrencyUnit().toString()+" is "+oneDivFrom.toString());
@@ -191,8 +191,8 @@ public class ArbitrageEngine implements Runnable {
 				BigMoney testPrice = lastTickMap.get(currency).getBid();
 				
 				BigMoney factor = basePrice.getCurrencyUnit() == testPrice.getCurrencyUnit() ?
-							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_UP) :
-							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_UP));
+							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_EVEN) :
+							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_EVEN));
 
 				if(factor.getAmount().compareTo(highFactor.getAmount()) > 0 ) {
 					highFactor = factor;
@@ -215,8 +215,8 @@ public class ArbitrageEngine implements Runnable {
 				BigMoney testPrice = lastTickMap.get(currency).getAsk();
 				
 				BigMoney factor = basePrice.getCurrencyUnit() == testPrice.getCurrencyUnit() ?
-							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_UP) : 
-							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_UP));							
+							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_EVEN) : 
+							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_EVEN));							
 
 				if(factor.getAmount().compareTo(lowFactor.getAmount()) < 0 ) {
 					lowFactor = factor;

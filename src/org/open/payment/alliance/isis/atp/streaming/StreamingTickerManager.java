@@ -47,7 +47,6 @@ public class StreamingTickerManager implements Runnable{
 			if(tickerCache == null) {
 				tickerCache = new ArrayList<ATPTicker>();
 			}
-
 			Exchange exchange = com.xeiam.xchange.mtgox.v1.MtGoxExchange.newInstance();
 			marketData = exchange.getStreamingMarketDataService();
 			tickerQueue = marketData.requestTicker(Currencies.BTC, currency.getCurrencyCode());
@@ -128,7 +127,6 @@ public class StreamingTickerManager implements Runnable{
 		}
 	}
 
-
 	public ArrayList<ATPTicker> getMarketData(){
 		
 		synchronized(tickerCache) {
@@ -136,7 +134,7 @@ public class StreamingTickerManager implements Runnable{
 			DateTime now = new DateTime();
 			for(ATPTicker tick : tickerCache){
 				DateTime time = tick.getTimestamp();
-				if(now.getMillis() - time.getMillis() > Integer.valueOf(Application.getInstance().getConfig("maxTickAge")) * Constants.ONEMINUTE ) {
+				if(now.getMillis() - time.getMillis() > Integer.valueOf(Application.getInstance().getConfig("MaxTickAge")) * Constants.ONEMINUTE ) {
 					removeList.add(tick);
 				}
 			}

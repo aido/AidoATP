@@ -113,7 +113,7 @@ public class TrendTradingAgent implements Runnable {
 		log.info(str.toString());
 		
 		str.setLength(0);
-		str.append("The trend arrow has determined that the ");
+		str.append("Advance/Decline spread has determined that the ");
 		str.append(localCurrency.getCode());
 		str.append(" market is trending");
 		if(trendArrow > 0) {
@@ -199,11 +199,11 @@ public class TrendTradingAgent implements Runnable {
 					weight = bidArrow / tickerSize * trendArrow / tickerSize;
 				}
 				
-				log.info("Weight is "+weight);
+				log.info("Calculated weight is "+weight);
 				weight = Math.abs(weight);
 				
 				if(weight > maxWeight) {
-					log.info("Weight is above maxWeight, limiting weight to "+maxWeight);
+					log.info("Weight is above stop loss value, limiting weight to "+maxWeight);
 					weight = maxWeight;
 				}
 				
@@ -244,14 +244,14 @@ public class TrendTradingAgent implements Runnable {
 						}
 					}
 					
-					log.info("Trend following trade agent is attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_UP).toString()+" of "+balanceBTC.toString()+" available");
+					log.info("Trend following trade agent is attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString()+" of "+balanceBTC.toString()+" available");
 					if(qtyToSell.isGreaterThan(maxBTC)) {
-						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was more than the configured limit of "+maxBTC.toString());
+						log.info(qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString() + " was more than the configured limit of "+maxBTC.toString());
 						log.info("Reducing order size to "+maxBTC.toString());
 						qtyToSell = maxBTC;
 					}
 					if(qtyToSell.isLessThan(minBTC)) {
-						log.info(qtyToSell.withScale(8,RoundingMode.HALF_UP).toString() + " was less than the configured limit of "+minBTC.toString());
+						log.info(qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured limit of "+minBTC.toString());
 						log.info("Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
 						return;
 					}
@@ -291,10 +291,10 @@ public class TrendTradingAgent implements Runnable {
 			
 			weight = Math.abs(weight);
 			
-			log.info("Weight is "+weight);
+			log.info("Calculated weight is "+weight);
 			BigDecimal bigWeight = new BigDecimal(weight);			
 			if(weight > maxWeight) {
-				log.info("Weight is above maxWeight, limiting weight to "+maxWeight);
+				log.info("Weight is above stop loss value, limiting weight to "+maxWeight);
 				weight = maxWeight;
 			}
 			
@@ -338,14 +338,14 @@ public class TrendTradingAgent implements Runnable {
 						}
 					}
 					
-					log.info("Attempting to buy "+qtyToBuy.withScale(8,RoundingMode.HALF_UP).toString());
+					log.info("Attempting to buy "+qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString());
 					if(qtyToBuy.isGreaterThan(maxLocal)){
-						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_UP).toString() +" was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
+						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() +" was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
 						qtyToBuy = maxLocal;
 					}
 					
 					if(qtyToBuy.isLessThan(minLocal)){
-						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_UP).toString() + " was less than the configured minimum of "+minLocal.toString());
+						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured minimum of "+minLocal.toString());
 						log.info("There just isn't enough momentum to trade at this time.");
 						return;
 					}

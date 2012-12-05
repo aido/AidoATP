@@ -79,32 +79,23 @@ public class Application {
 		if(config.get("ApiKey", null) == null) {
 			interview();
 		}
-
 	
 		if(params.get("--simulation-mode") != null){
-			if(params.get("--simulation-mode").equalsIgnoreCase("true")) {
-				setSimMode(true);
-			}else {
-				setSimMode(false);
-			}
+			setSimMode(Boolean.valueOf(params.get("--simulation-mode")));
 		}else if (getSimMode()) {
 			showAgreement();
 		}
-
+		
+		setArbMode(getConfig("UseArbitrage").equals("1"));
+					
 		if(params.get("--use-arbitrage") != null){
-			if(params.get("--use-arbitrage").equalsIgnoreCase("true")) {
-				setArbMode(true);
-			}else {
-				setArbMode(false);
-			}
+			setArbMode(Boolean.valueOf(params.get("--use-arbitrage")));
 		}
+		
+		setTrendMode(getConfig("UseTrend").equals("1"));
 	
 		if(params.get("--use-trend") != null){
-			if(params.get("--use-trend").equalsIgnoreCase("true")) {
-				setTrendMode(true);
-			}else {
-				setTrendMode(false);
-			}
+			setTrendMode(Boolean.valueOf(params.get("--use-trend")));
 		}
 
 		exchange = IsisMtGoxExchange.getInstance();
@@ -191,24 +182,49 @@ public class Application {
 		out.print("Overall maximum loss tolerance (eg 25% = 0.25): ");
 		config.put("MaxLoss", console.readLine());
 		
+		out.println("Enable Arbitrage trading engine");
+		out.println("0: Disable");
+		out.println("1: Enable");
+		config.put("UseArbitrage", console.readLine());
+		
 		out.print("Minimum Profit to seek for Arbitrage (eg 10% = 0.10): ");
 		config.put("TargetProfit", console.readLine());
 
+		out.println("Enable Trend-following trading engine");
+		out.println("0: Disable");
+		out.println("1: Enable");
+		config.put("UseTrend", console.readLine());
+
 		out.print("Minimum ticker size for trending trade decisions: ");
-		config.put("minTickSize", console.readLine());
+		config.put("MinTickSize", console.readLine());
 
-		out.print("Maximum ticker age for trending trade decisions (in minutes): ");
-		config.put("maxTickAge", console.readLine());
+		out.print("Maximum ticker age for trending trade decisions (in minutes): ");		
+		config.put("MaxTickAge", console.readLine());
 		
-		out.print("Number of ticks used to calculate Short Moving Average: ");
-		config.put("shortMATickSize", console.readLine());
+		out.println("Use Advance/Decline Spread algorithm");
+		out.println("0: No");
+		out.println("1: Yes");
+		config.put("UseADS", console.readLine());
 
+		out.println("Use Simple Moving Average algorithm (SMA)");
+		out.println("0: No");
+		out.println("1: Yes");
+		config.put("UseSMA", console.readLine());
+		
+		out.println("Use Exponential Moving Average algorithm (EMA)");
+		out.println("0: No");
+		out.println("1: Yes");
+		config.put("UseEMA", console.readLine());
+		
+		out.print("Number of ticks used to calculate short Moving Average: ");
+		config.put("ShortMATickSize", console.readLine());
+		
 		out.print("Trading fee (eg 0.6% = 0.006): ");
 		config.put("TradingFee", console.readLine());
 		
-		out.println("Which algorithm would you like to use? (1 or 2)");
-		out.println("1: \"High Risk\"");
-		out.println("2: \"Conservative\"");
+		out.println("Which risk algorithm would you like to use? (1 or 2)");
+		out.println("1: High Risk");
+		out.println("2: Conservative");
 		config.put("Algorithm", console.readLine());
 		
 		try {
@@ -232,8 +248,6 @@ public class Application {
 			interview();
 		}
 		
-	}
-	public void stop() {
 	}
 	
 	private void parseArgs(String[] args) {
@@ -263,28 +277,28 @@ public class Application {
 		return simModeFlag;
 	}
 	
+	public void setSimMode(boolean b) {
+		this.simModeFlag = b;
+	}
+	
 	public boolean getArbMode() {
 		return arbModeFlag;
+	}
+	
+	public void setArbMode(boolean b) {
+		this.arbModeFlag = b;
 	}
 	
 	public boolean getTrendMode() {
 		return trendModeFlag;
 	}
 	
-	public AccountInfo getAccountInfo() {
-		return AccountManager.getInstance().getAccountInfo();
-	}
-
-	public void setSimMode(boolean b) {
-		this.simModeFlag = b;
-	}
-	
-	public void setArbMode(boolean b) {
-		this.arbModeFlag = b;
-	}
-
 	public void setTrendMode(boolean b) {
 		this.trendModeFlag = b;
+	}
+	
+	public AccountInfo getAccountInfo() {
+		return AccountManager.getInstance().getAccountInfo();
 	}
 
 	public Exchange getExchange() {

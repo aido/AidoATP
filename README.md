@@ -7,6 +7,7 @@ forked from openpay/OpenPay
 
 What is IsisATP?
 ================
+
 IsisATP is an Automated Trading Platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
 
 How does it work?
@@ -23,7 +24,7 @@ For instance, at time of writing, USD/BTC rate is $11.80 whereas the EUR/BTC rat
 
 At the same time the USD/EUR rate is 0.77 and the EUR/USD rate is 1.29
 
-According to the math, you could buy BTC in USD, then turn around and sell that same BTC back into EUR and make a tidy little profit of 0.52 EUR.  Next you buy BTC with all the 0.52EUR profit you just made and sell that BTC back to USD for a profit of 0.67USD
+You could buy BTC in USD, then turn around and sell that same BTC back into EUR and make a profit of 0.52 EUR.  Next you buy BTC with all the 0.52EUR profit you just made and sell that BTC back to USD for a profit of 0.67USD
 
 	1 BTC = 11.80 USD
 	1 BTC = 9.14 EUR
@@ -35,31 +36,40 @@ The arbitrage engine uses the current trading algorithm to find the highest prof
 
 Buys take place as normal, but only do so on the pair with the lowest cost real cost (BTCAsk * normalizing factor (pair1/pair2))
 
+Advance/Decline Spread Algorithm
+--------------------------------
+
+A simple Advance/Decline Spread algorithm is used to interpret the breadth of the market. This oscillator is extremely fast, so a moving average is usually applied to slow the signals.
+
+Simple Moving Average based trend following algorithm
+-----------------------------------------------------
+
+Coming soon
+
+Exponential Moving Average based trend following algorithm
+----------------------------------------------------------
+
+Coming soon
 
 Volume Participation Algorithm
 ------------------------------
 
-The trend observer functionality constantly monitors the market for trends.
+The trend observer functionality constantly monitors the market for trends. A combination of the Advance/Decline Spread, SMA and EMA algorithms decide what way the market is trending.
 
 	Market Trending Down = Look at buying
 	Market Trending Up = Look at selling 
 
-Once it's decided the trend is up (ask) or down (bid) it then compares the last transaction to the VWAP.
+Once it is decided the trend is up (ask) or down (bid) it then compares the last transaction to the VWAP.
 
 The ratio of last price versus VWAP is used as a waterline to make the final determination that we will take an action. 
 
 	If trend = down & last < VWAP then buy
 	If trend = up & last > VWAP then sell
 
-Once we have decided to buy or sell, then we look at the ask, bid and trend arrows. This gives us an indication of how much momentum is in the current trend and is used to calculate a weight.
+Once we have decided to buy or sell, then we look at the ask, bid and trend arrows calculated from the Advance/Decline Spread Algorithm. This gives us an indication of how much momentum is in the current trend and is used to calculate a weight.
 
 	current balance (BTC or local currency depending on Bid or Ask) * weight = how much we will be trading with.
 
-
-Simple Moving Average based trend following algorithm
------------------------------------------------------
-
-Coming soon
 
 Exchanges
 =========
@@ -71,7 +81,9 @@ Risk
 
 The user has a choice of high risk or conservative trading.
 
-First a weight is calculated one of two ways based on the choice of high risk or conservative, and compared to stop loss value. If the calculated weight is above the stop loss value, weight is reduced to the configured stop loss value.
+The Trend Observer calculates the Advance/Decline spread for ask, bid and last prices to give a askArrow, bidArrow and trendArrow values. These values are then used to calculate a weight.
+
+The weight is calculated one of two ways based on the choice of high risk or conservative and compared to stop loss value. If the calculated weight is above the stop loss value, weight is reduced to the configured stop loss value.
 
 Here's how the weight is calculated for bid/buy:
 
@@ -82,7 +94,6 @@ Here's how the weight is calculated for bid/buy:
 	}
 			
 Algorithm 1 is high risk, algorithm 2 is conservative risk
-
 
 Usage
 =====
@@ -113,14 +124,21 @@ When interviewed the user will be asked for the following information:
 	Maximum amount of local currency to trade in a single order
 	Minimum amount of local currency to trade in a single order
 	Overall maximum loss tolerance (eg 25% = 0.25)
+	Enable Arbitrage trading engine
 	Minimum Profit to seek for Arbitrage (eg 10% = 0.10)
+	Enable Trend-following trading engine
 	Minimum ticker size for trend following trade decisions
 	Maximum ticker age for trend following trade decisions (in minutes)
-	Number of ticks used to calculate Short Simple Moving Average
+	Use Advance/Decline Spread algorithm
+	Use Simple Moving Average algorithm (SMA)
+	Use Exponential Moving Average algorithm (EMA)
+	Number of ticks used to calculate short Moving Average
 	Trading fee (eg 0.6% = 0.006)
-	Which algorithm would you like to use? (1 or 2)
+	Which risk algorithm would you like to use? (1 or 2)
 		1: High Risk
 		2: Conservative
+		
+If used, the --use-arbitrage and --use-trend command line switches will over-ride their respective configuration file values. 
 		
 Further reading
 ===============

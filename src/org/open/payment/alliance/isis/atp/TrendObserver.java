@@ -20,10 +20,12 @@ public class TrendObserver implements Runnable {
 	private BigMoney longEMA;
 	private ATPTicker high;
 	private ATPTicker low;
+	private ATPTicker last;
 	private ArrayList<ATPTicker> ticker;
 	private Integer bidArrow;
 	private Integer askArrow;
 	private Integer trendArrow;
+	private Integer tickerSize;
 	private Logger log;
 	private boolean learningComplete;
 	private StreamingTickerManager tickerManager;
@@ -36,7 +38,7 @@ public class TrendObserver implements Runnable {
 		localCurrency = tickerManager.getCurrency();
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
-			if (ticker.size() < Integer.valueOf(Application.getInstance().getConfig("minTickSize"))){
+			if (ticker.size() < Integer.valueOf(Application.getInstance().getConfig("MinTickSize"))){
 				log.info("Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" data to determine trend. "+localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size());
 				learningComplete = false;
 			} else {
@@ -60,7 +62,7 @@ public class TrendObserver implements Runnable {
 		shortEMA = BigMoney.zero(localCurrency);
 		longEMA = BigMoney.zero(localCurrency);
 		
-		Integer shortMASize = Integer.valueOf(Application.getInstance().getConfig("shortMATickSize"));
+		Integer shortMASize = Integer.valueOf(Application.getInstance().getConfig("ShortMATickSize"));
 		Integer idx = 0;
 		double expShortEMA = 0;
 		double expLongEMA = 0;
@@ -86,18 +88,21 @@ public class TrendObserver implements Runnable {
 			
 			//ticker - could be empty if there is no new data in over an hour, we've been disconnected, or the TickerManager thread has crashed.
 			if(!ticker.isEmpty()) {
+				tickerSize = ticker.size();
 				low = ticker.get(0);
 				high = ticker.get(0);
-				if (shortMASize > ticker.size()) {
-					shortMASize = ticker.size();
+				last = ticker.get(tickerSize - 1);
+				
+				if (shortMASize > tickerSize) {
+					shortMASize = tickerSize;
 				}
-				shortEMA = ticker.get(ticker.size() - shortMASize).getLast();
+				shortEMA = ticker.get(tickerSize - shortMASize).getLast();
 				longEMA = ticker.get(0).getLast();
 				expShortEMA = (double) 2 / (shortMASize + 1);
-				expLongEMA = (double) 2 / (ticker.size() + 1);
+				expLongEMA = (double) 2 / (tickerSize + 1);
 			}
 						
-			for(ATPTicker tick : ticker){				
+			for(ATPTicker tick : ticker){		
 				
 				//The first thing we want to look at is the volume
 				//We need a changed volume
@@ -145,7 +150,7 @@ public class TrendObserver implements Runnable {
 				oldBid = newBid;
 				oldAsk = newAsk;
 				
-				if ( idx >= ticker.size() - shortMASize ) {
+				if ( idx >= tickerSize - shortMASize ) {
 					sumShortSMA = sumShortSMA.plus(newPrice);
 					shortEMA = newPrice.multipliedBy(expShortEMA).plus(shortEMA.multipliedBy(1 - expShortEMA));
 				}
@@ -156,13 +161,13 @@ public class TrendObserver implements Runnable {
 				idx++;
 			}
 			vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);
-			shortSMA = sumShortSMA.dividedBy(Long.valueOf(shortMASize),RoundingMode.HALF_UP);
-			longSMA = sumLongSMA.dividedBy(Long.valueOf(ticker.size()),RoundingMode.HALF_UP);
+			shortSMA = sumShortSMA.dividedBy(Long.valueOf(shortMASize),RoundingMode.HALF_EVEN);
+			longSMA = sumLongSMA.dividedBy(Long.valueOf(tickerSize),RoundingMode.HALF_EVEN);
 		}
 		
 		log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
 		log.info("Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
-		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+ticker.get(ticker.size() - 1).toString());
+		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+ticker.get(tickerSize - 1).toString());
 		log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
 		
 		if(learningComplete) {
@@ -204,11 +209,11 @@ public class TrendObserver implements Runnable {
 	}
 	
 	public ATPTicker getLastTick() {
-		return ticker.get(ticker.size() - 1);
+		return last;
 	}
 	
 	public Integer getTickerSize() {
-		return ticker.size();
+		return tickerSize;
 	}
 
 	public StreamingTickerManager getTickerManager() {
