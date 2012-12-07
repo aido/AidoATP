@@ -66,7 +66,15 @@ public class TrendTradingAgent implements Runnable {
 
 	public void run(){
 		
+		boolean adsUp = false, adsDown = false;
+		boolean emaUp = false, emaDown = false;
+		boolean smaUp = false, smaDown = false;
+		boolean evalAsk = false, evalBid = false;
+		boolean useADS = Application.getInstance().getConfig("UseADS").equals("1");
+		boolean useSMA = Application.getInstance().getConfig("UseSMA").equals("1");
+		boolean useEMA = Application.getInstance().getConfig("UseEMA").equals("1");
 		NumberFormat numberFormat = NumberFormat.getNumberInstance();
+		
 		numberFormat.setMaximumFractionDigits(8);
 		
 		trendArrow = observer.getTrendArrow();
@@ -93,85 +101,146 @@ public class TrendTradingAgent implements Runnable {
 		str.append(vwap);
 		log.info(str.toString());
 		
-		smaLong=observer.getLongSMA();
-		smaShort=observer.getShortSMA();
 		emaLong=observer.getLongEMA();
 		emaShort=observer.getShortEMA();
+		smaLong=observer.getLongSMA();
+		smaShort=observer.getShortSMA();
 		
 		str.setLength(0);
-		str.append("Long SMA: ");
-		str.append(smaLong.toString());
-		str.append(" | ");
-		str.append("Short SMA: ");
-		str.append(smaShort.toString());
-		str.append(" | ");
 		str.append("Long EMA: ");
 		str.append(localCurrency.getCode()+" "+numberFormat.format(emaLong.getAmount()));
 		str.append(" | ");
 		str.append("Short EMA: ");
 		str.append(localCurrency.getCode()+" "+numberFormat.format(emaShort.getAmount()));
+		str.append(" | ");
+		str.append("Long SMA: ");
+		str.append(smaLong.toString());
+		str.append(" | ");
+		str.append("Short SMA: ");
+		str.append(smaShort.toString());
+
 		log.info(str.toString());
 		
-		str.setLength(0);
-		str.append("Advance/Decline spread has determined that the ");
-		str.append(localCurrency.getCode());
-		str.append(" market is trending");
-		if(trendArrow > 0) {
-			//Market is going up, look at selling some BTC
-			str.append(" up.");
-			
-		}else if(trendArrow < 0) {
-			//Market is going down, look at buying some BTC
-			str.append(" down.");
-		}else {
-			//Market is stagnant, hold position
-			str.append(" flat.");
+		// if Advance/Decline Spread algorithm is enabled, use it to decide trade action
+		if (useADS){
+			if(trendArrow > 0 && bidArrow > 0){
+				//If market is trending up, we should look at selling
+				adsUp = true;
+			}else if(trendArrow < 0 && askArrow < 0){
+				//If market is trending down, we should look at buying
+				adsDown = true;
+			}
+			str.setLength(0);
+			str.append("Advance/Decline spread has determined that the ");
+			str.append(localCurrency.getCode());
+			str.append(" market is trending");
+			if(trendArrow > 0) {
+				//Market is going up, look at selling some BTC
+				str.append(" up.");
+				
+			}else if(trendArrow < 0) {
+				//Market is going down, look at buying some BTC
+				str.append(" down.");
+			}else {
+				//Market is stagnant, hold position
+				str.append(" flat.");
+			}
+			log.info(str.toString());
 		}
-		log.info(str.toString());
 		
-		str.setLength(0);
-		str.append("SMA has determined that the ");
-		str.append(localCurrency.getCode());
-		str.append(" market is trending");
-		if(smaShort.isGreaterThan(smaLong)) {
-			//Market is going up, look at selling some BTC
-			str.append(" up.");
-		}else if(smaShort.isLessThan(smaLong)) {
-			//Market is going down, look at buying some BTC
-			str.append(" down.");
-		}else {
-			//Market is stagnant, hold position
-			str.append(" flat.");
+		// if EMA algorithm is enabled, use it to decide trade action
+		if (useEMA){
+			if(emaShort.isGreaterThan(emaLong)){
+				//If market is trending up, we should look at selling
+				emaUp = true;
+			}else if(emaShort.isLessThan(emaLong)){
+				//If market is trending down, we should look at buying
+				emaDown = true;
+			}
+			str.setLength(0);
+			str.append("EMA has determined that the ");
+			str.append(localCurrency.getCode());
+			str.append(" market is trending");
+			if(emaUp) {
+				//Market is going up, look at selling some BTC
+				str.append(" up.");
+			}else if(emaDown) {
+				//Market is going down, look at buying some BTC
+				str.append(" down.");
+			}else {
+				//Market is stagnant, hold position
+				str.append(" flat.");
+			}
+			log.info(str.toString());
 		}
-		log.info(str.toString());
 		
-		str.setLength(0);
-		str.append("EMA has determined that the ");
-		str.append(localCurrency.getCode());
-		str.append(" market is trending");
-		if(emaShort.isGreaterThan(emaLong)) {
-			//Market is going up, look at selling some BTC
-			str.append(" up.");
-		}else if(emaShort.isLessThan(emaLong)) {
-			//Market is going down, look at buying some BTC
-			str.append(" down.");
-		}else {
-			//Market is stagnant, hold position
-			str.append(" flat.");
+		// if SMA algorithm is enabled, use it to decide trade action
+		if (useSMA){
+			if(smaShort.isGreaterThan(smaLong)){
+				//If market is trending up, we should look at selling
+				smaUp = true;
+			}else if(smaShort.isLessThan(smaLong)){
+				//If market is trending down, we should look at buying
+				smaDown = true;
+			}
+			str.setLength(0);
+			str.append("SMA has determined that the ");
+			str.append(localCurrency.getCode());
+			str.append(" market is trending");
+			if(smaUp) {
+				//Market is going up, look at selling some BTC
+				str.append(" up.");
+			}else if(smaDown) {
+				//Market is going down, look at buying some BTC
+				str.append(" down.");
+			}else {
+				//Market is stagnant, hold position
+				str.append(" flat.");
+			}
+			log.info(str.toString());
 		}
-		log.info(str.toString());
 		
 		try {
-			if (Application.getInstance().getTrendMode()) {
-				if(trendArrow > 0 && bidArrow > 0){
-					//If market is trending up, we should look at selling
-					evalAsk();
-				}else if(trendArrow < 0 && askArrow < 0){
-					//If market is trending down, we should look at buying
-					evalBid();
-				}else {
-					log.info("Trend following trading agent has decided no "+localCurrency.getCode()+" action will be taken at this time.");
-				}
+			// Look to Buy if :
+			// AD spread is trending up and EMA & SMA are disabled
+			//		or
+			// AD spread is trending up and EMA is trending down and SMA is disabled
+			// 		or
+			// AD spread is trending up and EMA is trending down and SMA is trending down
+			// 		or
+			// AD spread is trending up and EMA is disabled and SMA is trending down
+			// 		or
+			// AD spread is disabled and EMA is trending up and SMA is trending down
+			// 		or
+			// AD spread is disabled and EMA is trending up and SMA is disabled
+			// 		or
+			// AD spread is disabled and EMA is disabled SMA is trending up
+			
+			evalAsk = (adsUp && ((!useSMA && (emaDown || !useEMA)) || (smaDown && (!useEMA || emaDown)))) || (!useADS && ((emaUp && (smaDown || !useSMA)) || (!useEMA && smaUp)));
+			
+			// Look to Sell if :
+			// AD spread is trending down and EMA & SMA are disabled
+			//		or
+			// AD spread is trending down and EMA is trending up and SMA is disabled
+			//		or
+			// AD spread is trending down and EMA is trending up and SMA is trending up
+			// 		or
+			// AD spread is trending down and EMA is disabled and SMA is trending up
+			//		or
+			// AD spread is disabled and EMA is trending down and SMA is trending up
+			// 		or
+			// AD spread is disabled and EMA is trending down and SMA is disabled
+			// 		or
+			// AD spread is disabled and EMA is disabled SMA is trending down
+			
+			evalBid = (adsDown && ((!useEMA && (smaUp || !useSMA)) || (emaUp && (!useSMA || smaUp)))) || (!useADS && ((emaDown && (smaUp || !useSMA)) || (!useEMA && smaDown)));
+			
+			if (evalAsk) {
+				evalAsk();
+			}else if (evalBid) {
+				evalBid();
+			}else {
+				log.info("Trend following trading agent has decided no "+localCurrency.getCode()+" action will be taken at this time.");
 			}
 		} catch (Exception e) {
 				log.error("ERROR: Caught unexpected exception, shutting down trend following trading agent now!. Details are listed below.");

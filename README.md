@@ -1,19 +1,19 @@
 Isis ATP
 ========
 
-Isis Advance Trading Platform courtesy of the Open Payment Alliance.
+Isis Advanced Trading Platform courtesy of the Open Payment Alliance.
 
 forked from openpay/OpenPay 
 
 What is IsisATP?
 ================
 
-IsisATP is an Automated Trading Platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
+IsisATP is an automated trading platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
 
 How does it work?
 =================
 
-On startup IsisATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over the trading algorithms make a decision on whether it is favourable to trade at any given time. The trading algorithms currently implemented are:
+On startup IsisATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over the trading algorithms make a decision on whether it is favourable to trade that time. The trading algorithms currently implemented are:
 
 Arbitrage algorithm:
 --------------------
@@ -36,23 +36,24 @@ The arbitrage engine uses the current trading algorithm to find the highest prof
 
 Buys take place as normal, but only do so on the pair with the lowest cost real cost (BTCAsk * normalizing factor (pair1/pair2))
 
-Advance/Decline Spread Algorithm
+Advance/Decline Spread algorithm
 --------------------------------
 
 A simple Advance/Decline Spread algorithm is used to interpret the breadth of the market. This oscillator is extremely fast, so a moving average is usually applied to slow the signals.
 
-Simple Moving Average based trend following algorithm
------------------------------------------------------
-
-Coming soon
-
 Exponential Moving Average based trend following algorithm
 ----------------------------------------------------------
 
-Coming soon
+The EMA algorithm reacts to trends very quickly but not a quick a the Advance/Decline Spread algorithm. It lags somewhat behind the Advance/Decline Spread algorithm. The EMA buy and sell deciscion is based on the crossover between two EMAs, one long and one short. The length of these moving averages is configurable.
 
-Volume Participation Algorithm
-------------------------------
+Simple Moving Average based trend following algorithm
+-----------------------------------------------------
+
+The SMA algorithm reaction to trends is slower than both the EMA algorithm and the Advance/Decline Spread algorithm. Similar to the EMA, the SMA buy and sell deciscion is based on the crossover between rwo SMAs, one long and one short. The length of these moving averages is configurable.
+
+
+Volume Participation algorithm (VWAP Cross)
+------------------------------------------
 
 The trend observer functionality constantly monitors the market for trends. A combination of the Advance/Decline Spread, SMA and EMA algorithms decide what way the market is trending.
 
@@ -66,11 +67,52 @@ The ratio of last price versus VWAP is used as a waterline to make the final det
 	If trend = down & last < VWAP then buy
 	If trend = up & last > VWAP then sell
 
+Deciding when to buy or sell
+============================
+Any of the above algorithms may be disbled and not used in the buy / sell decision. Based on the speed of reaction of each algorithm the following logic is used to make a buy or sell decision:
+
+	Look to Buy if :
+	
+	Advance/Decline spread is trending up and EMA & SMA are disabled
+			or
+	Advance/Decline spread is trending up and EMA is trending down and SMA is disabled
+			or
+	Advance/Decline spread is trending up and EMA is trending down and SMA is trending down
+		or
+	Advance/Decline spread is trending up and EMA is disabled and SMA is trending down
+			or
+	Advance/Decline spread is disabled and EMA is trending up and SMA is trending down
+			or
+	Advance/Decline spread is disabled and EMA is trending up and SMA is disabled
+			or
+	Advance/Decline spread is disabled and EMA is disabled SMA is trending up
+
+	Look to Sell if :
+	
+	Advance/Decline spread is trending down and EMA & SMA are disabled
+			or
+	Advance/Decline spread is trending down and EMA is trending up and SMA is disabled
+			or
+	Advance/Decline spread is trending down and EMA is trending up and SMA is trending up
+			or
+	Advance/Decline spread is trending down and EMA is disabled and SMA is trending up
+			or
+	Advance/Decline spread is disabled and EMA is trending down and SMA is trending up
+			or
+	Advance/Decline spread is disabled and EMA is trending down and SMA is disabled
+			or
+	Advance/Decline spread is disabled and EMA is disabled SMA is trending down
+	
+THE WRONG COMBINATION AND CONFIGURATION OF ANY OF THE ABOVE ALGOITHMS MAY LEAD TO SUBSTANTIAL LOSSES!!!
+
+To protect against complete financial ruin, a VWAP cross algorithm is used to make the final call on a buy or sell decision. And then a stop loss value is used to calculate the trade amount.
+
+How much currency to use in a trade
+===================================
 Once we have decided to buy or sell, then we look at the ask, bid and trend arrows calculated from the Advance/Decline Spread Algorithm. This gives us an indication of how much momentum is in the current trend and is used to calculate a weight.
 
 	current balance (BTC or local currency depending on Bid or Ask) * weight = how much we will be trading with.
-
-
+	
 Exchanges
 =========
 
