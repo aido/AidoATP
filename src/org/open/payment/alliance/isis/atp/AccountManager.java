@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.net.Socket;
 
 import org.joda.money.BigMoney;
@@ -81,7 +82,7 @@ public class AccountManager  implements Runnable {
 				catch (java.io.IOException e1) {
 					try {
 						log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
-						Thread.currentThread().sleep(Constants.ONEMINUTE);
+						TimeUnit.MINUTES.sleep(1);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
 					}

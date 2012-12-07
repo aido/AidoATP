@@ -1,6 +1,7 @@
 package org.open.payment.alliance.isis.atp;
 
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.math.RoundingMode;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -100,7 +101,7 @@ public class ArbitrageEngine implements Runnable {
 				catch (java.io.IOException e1) {
 					try {
 						log.error("ERROR: Cannot connect to exchange.");
-						Thread.currentThread().sleep(Constants.ONEMINUTE);
+						TimeUnit.MINUTES.sleep(1);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
 					}

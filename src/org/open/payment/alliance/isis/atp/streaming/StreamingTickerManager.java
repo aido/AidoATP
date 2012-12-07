@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
@@ -134,7 +135,7 @@ public class StreamingTickerManager implements Runnable{
 			DateTime now = new DateTime();
 			for(ATPTicker tick : tickerCache){
 				DateTime time = tick.getTimestamp();
-				if(now.getMillis() - time.getMillis() > Integer.valueOf(Application.getInstance().getConfig("MaxTickAge")) * Constants.ONEMINUTE ) {
+				if(now.getMillis() - time.getMillis() > TimeUnit.MILLISECONDS.convert(Long.valueOf(Application.getInstance().getConfig("MaxTickAge")),TimeUnit.MINUTES)) {
 					removeList.add(tick);
 				}
 			}
