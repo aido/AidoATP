@@ -3,7 +3,7 @@ Isis ATP
 
 Isis Advanced Trading Platform courtesy of the Open Payment Alliance.
 
-forked from openpay/OpenPay 
+forked from openpay/OpenPay
 
 What is IsisATP?
 ================
@@ -32,7 +32,7 @@ You could buy BTC in USD, then turn around and sell that same BTC back into EUR 
 	1 USD = 0.76 EUR
 	1 EUR = 1.29 USD
 
-The arbitrage engine uses the current trading algorithm to find the highest profit place to sell when it detects that the market conditions are right to sell.  
+The arbitrage engine uses the current trading algorithm to find the highest profit place to sell when it detects that the market conditions are right to sell.
 
 Buys take place as normal, but only do so on the pair with the lowest cost real cost (BTCAsk * normalizing factor (pair1/pair2))
 
@@ -49,7 +49,7 @@ The EMA algorithm reacts to trends very quickly but not a quick a the Advance/De
 Simple Moving Average based trend following algorithm
 -----------------------------------------------------
 
-The SMA algorithm reaction to trends is slower than both the EMA algorithm and the Advance/Decline Spread algorithm. Similar to the EMA, the SMA buy and sell deciscion is based on the crossover between rwo SMAs, one long and one short. The length of these moving averages is configurable.
+The SMA algorithm reaction to trends is slower than both the EMA algorithm and the Advance/Decline Spread algorithm. Similar to the EMA, the SMA buy and sell deciscion is based on the crossover between two SMAs, one long and one short. The length of these moving averages is configurable.
 
 
 Volume Participation algorithm (VWAP Cross)
@@ -58,11 +58,11 @@ Volume Participation algorithm (VWAP Cross)
 The trend observer functionality constantly monitors the market for trends. A combination of the Advance/Decline Spread, SMA and EMA algorithms decide what way the market is trending.
 
 	Market Trending Down = Look at buying
-	Market Trending Up = Look at selling 
+	Market Trending Up = Look at selling
 
 Once it is decided the trend is up (ask) or down (bid) it then compares the last transaction to the VWAP.
 
-The ratio of last price versus VWAP is used as a waterline to make the final determination that we will take an action. 
+The ratio of last price versus VWAP is used as a waterline to make the final determination that we will take an action.
 
 	If trend = down & last < VWAP then buy
 	If trend = up & last > VWAP then sell
@@ -177,12 +177,11 @@ When interviewed the user will be asked for the following information:
 	Use Simple Moving Average algorithm (SMA)
 	Use Exponential Moving Average algorithm (EMA)
 	Number of ticks used to calculate short Moving Average
+	Use VWAP Cross algorithm
+	Which risk algorithm would you like to use? (High Risk or Conservative)
 	Trading fee (eg 0.6% = 0.006)
-	Which risk algorithm would you like to use? (1 or 2)
-		1: High Risk
-		2: Conservative
 		
-If used, the --use-arbitrage and --use-trend command line switches will over-ride their respective configuration file values. 
+If used, the --use-arbitrage and --use-trend command line switches will over-ride their respective configuration file values.
 		
 Further reading
 ===============

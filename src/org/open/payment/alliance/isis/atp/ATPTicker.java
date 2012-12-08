@@ -14,9 +14,6 @@ import com.xeiam.xchange.dto.marketdata.Ticker;
 */
 public class ATPTicker implements Serializable{
 	
-	/**
-	* 
-	*/
 	private static final long serialVersionUID = 3857496442807778974L;
 	private BigMoney   last;
 	private BigMoney   ask;
@@ -25,24 +22,8 @@ public class ATPTicker implements Serializable{
 	private DateTime   timestamp;
 	private String     tradeableIdentifier;
 	
-	public ATPTicker(
-	BigMoney   last,
-	BigMoney   ask,
-	BigMoney   bid,
-	long       volume,
-	DateTime   timestamp,
-	String     tradeableIdentifier) {
-		
-		this.setLast(last);
-		this.setAsk(ask);
-		this.setBid(bid);
-		this.setVolume(volume);
-		this.setTimestamp(timestamp);
-		this.setTradeableIdentifier(tradeableIdentifier);
-		
-	}
-
 	public ATPTicker(Ticker tick) {
+		
 		this.setLast(tick.getLast());
 		this.setAsk(tick.getAsk());
 		this.setBid(tick.getBid());

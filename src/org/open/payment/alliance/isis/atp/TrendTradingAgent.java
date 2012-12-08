@@ -284,17 +284,28 @@ public class TrendTradingAgent implements Runnable {
 
 	//Let's decide whether or not to sell & how much to sell
 	private void evalAsk(){
+		StringBuilder str = new StringBuilder();
+		
+		str.setLength(0);
 		
 		try {
 			Double weight;
+			
+			str.append("Used ");
+			
 			//Look at bid arrow and calculate weight
 			if(algorithm == 1) {
+				str.append("High");
 				weight = (bidArrow + trendArrow) / tickerSize;
 			}else {
+				str.append("Conservative");
 				weight = bidArrow / tickerSize * trendArrow / tickerSize;
 			}
 			
-			log.info("Calculated weight is "+weight);
+			str.append(" risk algorithm to calculate weight of ");
+			str.append(weight);
+			log.info(str.toString());
+			
 			weight = Math.abs(weight);
 			
 			if(weight > maxWeight) {
@@ -363,17 +374,27 @@ public class TrendTradingAgent implements Runnable {
 	
 	//Decide whether or not to buy and how much to buy
 	private void evalBid(){
+		StringBuilder str = new StringBuilder();
+		
+		str.setLength(0);
 		
 		try {
 			//Formula for bid is the same as for ASK with USD/BTC instead of BTC/USD
 			Double weight;
 			
+			str.append("Used ");
+			
 			//Look at bid arrow and calculate weight
 			if(algorithm == 1) {
+				str.append("High");
 				weight = (askArrow + trendArrow) / tickerSize;
 			}else {
+				str.append("Conservative");
 				weight = askArrow / tickerSize * trendArrow / tickerSize;
 			}
+			str.append(" risk algorithm to calculate weight of ");
+			str.append(weight);
+			log.info(str.toString());
 			
 			weight = Math.abs(weight);
 			
