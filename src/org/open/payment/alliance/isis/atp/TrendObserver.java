@@ -39,7 +39,7 @@ public class TrendObserver implements Runnable {
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
 			if (ticker.size() < Integer.valueOf(Application.getInstance().getConfig("MinTickSize"))){
-				log.info("Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" data to determine trend. "+localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size());
+				log.info(localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size()+". Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" data to determine trend.");
 				learningComplete = false;
 			} else {
 				learningComplete = true;
@@ -168,7 +168,6 @@ public class TrendObserver implements Runnable {
 		log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
 		log.info("Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
 		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+ticker.get(tickerSize - 1).toString());
-		log.info("VWAP "+localCurrency.getCurrencyCode()+" : "+vwap.getAmount().toPlainString());
 		
 		if(learningComplete) {
 			log.debug("Starting "+localCurrency.getCurrencyCode()+" trend trading agent.");

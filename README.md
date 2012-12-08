@@ -69,7 +69,7 @@ The ratio of last price versus VWAP is used as a waterline to make the final det
 
 Deciding when to buy or sell
 ============================
-Any of the above algorithms may be disbled and not used in the buy / sell decision. Based on the speed of reaction of each algorithm the following logic is used to make a buy or sell decision:
+Any of the above algorithms may be disbled and not used in the buy / sell decision. Based on the reaction speed of each algorithm the following logic is used to make a buy or sell decision:
 
 	Look to Buy if :
 	
@@ -78,7 +78,7 @@ Any of the above algorithms may be disbled and not used in the buy / sell decisi
 	Advance/Decline spread is trending up and EMA is trending down and SMA is disabled
 			or
 	Advance/Decline spread is trending up and EMA is trending down and SMA is trending down
-		or
+			or
 	Advance/Decline spread is trending up and EMA is disabled and SMA is trending down
 			or
 	Advance/Decline spread is disabled and EMA is trending up and SMA is trending down
@@ -103,9 +103,11 @@ Any of the above algorithms may be disbled and not used in the buy / sell decisi
 			or
 	Advance/Decline spread is disabled and EMA is disabled SMA is trending down
 	
-THE WRONG COMBINATION AND CONFIGURATION OF ANY OF THE ABOVE ALGOITHMS MAY LEAD TO SUBSTANTIAL LOSSES!!!
+THE WRONG COMBINATION AND CONFIGURATION OF ANY OF THE ABOVE ALGORITHMS MAY LEAD TO SUBSTANTIAL LOSSES!!!
 
-To protect against complete financial ruin, a VWAP cross algorithm is used to make the final call on a buy or sell decision. And then a stop loss value is used to calculate the trade amount.
+To protect against complete financial ruin, a VWAP cross algorithm is used to make the final call on a buy or sell decision. The VWAP cross algorithm may be disabled from the configuration file.
+
+Once a final buy or sell decision has been made a stop loss value and risk calclation is used to determine the trade amount.
 
 How much currency to use in a trade
 ===================================
@@ -113,11 +115,6 @@ Once we have decided to buy or sell, then we look at the ask, bid and trend arro
 
 	current balance (BTC or local currency depending on Bid or Ask) * weight = how much we will be trading with.
 	
-Exchanges
-=========
-
-IsisATP currently trades on the MtGOX exchange. More exchanges are planned.
-
 Risk
 ====
 
@@ -136,6 +133,11 @@ Here's how the weight is calculated for bid/buy:
 	}
 			
 Algorithm 1 is high risk, algorithm 2 is conservative risk
+
+Exchanges
+=========
+
+IsisATP currently trades on the MtGOX exchange. More exchanges are planned.
 
 Usage
 =====

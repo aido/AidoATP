@@ -20,7 +20,7 @@ import com.xeiam.xchange.service.account.polling.PollingAccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AccountManager  implements Runnable {
+public class AccountManager implements Runnable {
 
 	private static AccountManager instance = null;
 	private AccountInfo accountInfo;	

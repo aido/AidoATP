@@ -1,5 +1,5 @@
 /**
-* 
+*
 */
 package org.open.payment.alliance.isis.atp;
 
@@ -219,14 +219,19 @@ public class Application {
 		out.print("Number of ticks used to calculate short Moving Average: ");
 		config.put("ShortMATickSize", console.readLine());
 		
-		out.print("Trading fee (eg 0.6% = 0.006): ");
-		config.put("TradingFee", console.readLine());
-		
+		out.println("Use VWAP Cross algorithm");
+		out.println("0: No");
+		out.println("1: Yes");
+		config.put("UseVWAPCross", console.readLine());
+
 		out.println("Which risk algorithm would you like to use? (1 or 2)");
 		out.println("1: High Risk");
 		out.println("2: Conservative");
 		config.put("Algorithm", console.readLine());
 		
+		out.print("Trading fee (eg 0.6% = 0.006): ");
+		config.put("TradingFee", console.readLine());
+
 		try {
 			config.exportNode(out);
 		} catch (Exception e) {
