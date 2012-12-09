@@ -302,11 +302,11 @@ public class TrendTradingAgent implements Runnable {
 				weight = bidArrow / tickerSize * trendArrow / tickerSize;
 			}
 			
+			weight = Math.abs(weight);
+			
 			str.append(" risk algorithm to calculate weight of ");
 			str.append(weight);
 			log.info(str.toString());
-			
-			weight = Math.abs(weight);
 			
 			if(weight > maxWeight) {
 				log.info("Weight is above stop loss value, limiting weight to "+maxWeight);
@@ -394,13 +394,13 @@ public class TrendTradingAgent implements Runnable {
 				str.append("Conservative");
 				weight = askArrow / tickerSize * trendArrow / tickerSize;
 			}
+			
+			weight = Math.abs(weight);
+			
 			str.append(" risk algorithm to calculate weight of ");
 			str.append(weight);
 			log.info(str.toString());
 			
-			weight = Math.abs(weight);
-			
-			log.info("Calculated weight is "+weight);
 			BigDecimal bigWeight = new BigDecimal(weight);			
 			if(weight > maxWeight) {
 				log.info("Weight is above stop loss value, limiting weight to "+maxWeight);
@@ -428,7 +428,7 @@ public class TrendTradingAgent implements Runnable {
 			
 			if(balanceLocal != null && maxLocal != null && minLocal != null) {
 					
-				if(balanceLocal.isZero()) {
+				if(!balanceLocal.isZero()) {
 					BigMoney qtyToBuy;
 					bigWeight = new BigDecimal(weight);
 					if(algorithm == 1) {
@@ -493,7 +493,7 @@ public class TrendTradingAgent implements Runnable {
 		}
 		
 		if(success){
-			log.info("Successfully"+action+numberFormat.format(qty)+" at current market price.");
+			log.info("Successfully"+action+numberFormat.format(qty)+" at current "+localCurrency.getCurrencyCode()+" market price.");
 			PLModel localProfit = AccountManager.getInstance().getPLFor(localCurrency);
 			PLModel btcProfit = AccountManager.getInstance().getPLFor(CurrencyUnit.of("BTC"));
 			
@@ -508,7 +508,7 @@ public class TrendTradingAgent implements Runnable {
 			log.info("Overall P/L: "+overall+" "+localCurrency.getCurrencyCode());
 			log.info(AccountManager.getInstance().getAccountInfo().toString());			
 		}else{
-			log.error("ERROR: Failed to"+failAction+numberFormat.format(qty)+" at current market price. Please investigate");
+			log.error("ERROR: Failed to"+failAction+numberFormat.format(qty)+" at current "+localCurrency.getCurrencyCode()+" market price. Please investigate");
 		}
 		return;
 	}
