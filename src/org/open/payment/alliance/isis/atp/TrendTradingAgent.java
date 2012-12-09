@@ -354,8 +354,10 @@ public class TrendTradingAgent implements Runnable {
 					if(qtyToSell.isLessThan(minBTC)) {
 						log.info(qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured limit of "+minBTC.toString());
 						log.info("Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
-					} else if (!ArbitrageEngine.getInstance().getDisableTrendTrade()) {
-						log.info("Trend following trades disabled by Arbitrage Engine.");
+					} else if (Application.getInstance().getArbMode()) {
+						if (ArbitrageEngine.getInstance().getDisableTrendTrade()) {
+							log.info("Trend following trades disabled by Arbitrage Engine.");
+						}
 					} else {
 						marketOrder(qtyToSell.getAmount(),OrderType.ASK);
 					}
@@ -448,8 +450,10 @@ public class TrendTradingAgent implements Runnable {
 					if(qtyToBuy.isLessThan(minLocal)){
 						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured minimum of "+minLocal.toString());
 						log.info("Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
-					} else if (ArbitrageEngine.getInstance().getDisableTrendTrade()) {
-						log.info("Trend following trades disabled by Arbitrage Engine.");
+					} else if (Application.getInstance().getArbMode()) {
+						if (ArbitrageEngine.getInstance().getDisableTrendTrade()) {
+							log.info("Trend following trades disabled by Arbitrage Engine.");
+						}
 					} else {
 						marketOrder(qtyToBuy.getAmount(),OrderType.BID);
 					}
@@ -467,6 +471,9 @@ public class TrendTradingAgent implements Runnable {
 	private void marketOrder(BigDecimal qty, OrderType orderType) {
 		MarketOrder order = new MarketOrder(orderType,qty,"BTC",localCurrency.getCurrencyCode());
 		boolean success = true;
+		NumberFormat numberFormat = NumberFormat.getNumberInstance();
+		
+		numberFormat.setMaximumFractionDigits(8);
 		
 		if(!Application.getInstance().getSimMode()){
 			String marketOrderReturnValue = tradeService.placeMarketOrder(order);
@@ -486,7 +493,7 @@ public class TrendTradingAgent implements Runnable {
 		}
 		
 		if(success){
-			log.info("Successfully"+action+qty.toPlainString()+" at current market price.");
+			log.info("Successfully"+action+numberFormat.format(qty)+" at current market price.");
 			PLModel localProfit = AccountManager.getInstance().getPLFor(localCurrency);
 			PLModel btcProfit = AccountManager.getInstance().getPLFor(CurrencyUnit.of("BTC"));
 			
@@ -501,7 +508,7 @@ public class TrendTradingAgent implements Runnable {
 			log.info("Overall P/L: "+overall+" "+localCurrency.getCurrencyCode());
 			log.info(AccountManager.getInstance().getAccountInfo().toString());			
 		}else{
-			log.error("ERROR: Failed to"+failAction+qty.toPlainString()+" at current market price. Please investigate");
+			log.error("ERROR: Failed to"+failAction+numberFormat.format(qty)+" at current market price. Please investigate");
 		}
 		return;
 	}
