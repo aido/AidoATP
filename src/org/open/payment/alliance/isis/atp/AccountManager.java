@@ -26,7 +26,6 @@ public class AccountManager implements Runnable {
 	private AccountInfo accountInfo;	
 
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
-	private HashMap<CurrencyUnit, PLModel> PL; //PL is Profit/Loss and is per currency unit
 	private HashMap<CurrencyUnit, StreamingTickerManager> tickerTracker;
 	private ThreadGroup tickerThreadGroup;
 	
@@ -47,11 +46,10 @@ public class AccountManager implements Runnable {
 		
 		try {	
 			tickerTracker = new HashMap<CurrencyUnit, StreamingTickerManager>();
-			tickerThreadGroup = new ThreadGroup("Tickers"); 
+			tickerThreadGroup = new ThreadGroup("Tickers");
 			
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
-			PL = new HashMap<CurrencyUnit, PLModel>();
 			
 			exchange = Application.getInstance().getExchange();
 			// Interested in the private account functionality (authentication)
@@ -68,7 +66,7 @@ public class AccountManager implements Runnable {
 					continue;
 				}
 				tickerTracker.put(currency, new StreamingTickerManager(currency));
-				new Thread(tickerThreadGroup,tickerTracker.get(currency),currency.getCode()).start(); 
+				new Thread(tickerThreadGroup,tickerTracker.get(currency),currency.getCode()).start();
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
@@ -103,7 +101,7 @@ public class AccountManager implements Runnable {
 	public BigMoney getBalance(CurrencyUnit currency) throws WalletNotFoundException{
 		refreshAccounts();
 		wallets = accountInfo.getWallets();
-		//log.info("You have wallets for "+wallets.size()+" currencies.");
+		
 		for(Wallet wallet : wallets){
 			BigMoney balance = wallet.getBalance();
 			CurrencyUnit unit = balance.getCurrencyUnit();
@@ -119,32 +117,9 @@ public class AccountManager implements Runnable {
 	public synchronized void refreshAccounts() {
 		accountInfo = accountService.getAccountInfo();
 		updateBooks();
-		calculatePL();
+		ProfitLossAgent.getInstance().updateBalances(accountInfo.getWallets());
 	}
-	
-	private synchronized void calculatePL() {
-		synchronized(books) {
-			synchronized(PL) {
-				PL.clear();
-				for(CurrencyUnit currency : books.keySet()) {
-					ArrayList<BigMoney> ledger = books.get(currency);
-					BigMoney beginBal = ledger.get(0);
-					BigMoney endBal = ledger.get(ledger.size()-1);
-					BigDecimal profitAsPercent;
-					BigMoney profitAsCurrency = endBal.minus(beginBal);
-					
-					if(beginBal.getAmount().compareTo(BigDecimal.ZERO) !=0 && endBal.getAmount().compareTo(BigDecimal.ZERO) != 0) {
-						profitAsPercent = profitAsCurrency.getAmount().divide(beginBal.getAmount(),RoundingMode.HALF_EVEN);
-					}else {
-						profitAsPercent = BigDecimal.ZERO;
-					}
-					
-					profitAsPercent = profitAsPercent.multiply(new BigDecimal("100"));
-					PL.put(currency, new PLModel(profitAsCurrency, profitAsPercent));
-				}
-			}
-		}
-	}
+
 	private void updateBooks() {
 		wallets = accountInfo.getWallets();
 		for(Wallet wallet : wallets){
@@ -159,10 +134,6 @@ public class AccountManager implements Runnable {
 			ArrayList<BigMoney> ledger = books.get(currency);
 			ledger.add(wallet.getBalance());
 		}
-	}
-	
-	public PLModel getPLFor(CurrencyUnit currency){
-		return PL.get(currency);
 	}
 
 	public AccountInfo getAccountInfo() {

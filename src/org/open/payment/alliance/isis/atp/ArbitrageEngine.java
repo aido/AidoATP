@@ -61,12 +61,12 @@ public class ArbitrageEngine implements Runnable {
 					e1.printStackTrace();
 				}
 				
-				Double fee = new Double(Application.getInstance().getConfig("TradingFee"));
-				Double targetProfit = new Double(Application.getInstance().getConfig("TargetProfit"));
+				double fee = Double.parseDouble(Application.getInstance().getConfig("TradingFee"));
+				double targetProfit = Double.parseDouble(Application.getInstance().getConfig("TargetProfit"));
 				
 				//We buy from the lowestAsk & sell to the highestBid;
-				Double profit = highestBid.getAmount().subtract(lowestAsk.getAmount()).doubleValue();
-				Double profitAfterFee = profit - (fee * 2);
+				double profit = highestBid.getAmount().subtract(lowestAsk.getAmount()).doubleValue();
+				double profitAfterFee = profit - (fee * 2);
 
 				NumberFormat percentFormat = NumberFormat.getPercentInstance();
 				percentFormat.setMaximumFractionDigits(8);
@@ -118,7 +118,7 @@ public class ArbitrageEngine implements Runnable {
 	* Create 2 orders, a buy & a sell
 	* @param from
 	* @param to
-	* @throws WalletNotFoundException 
+	* @throws WalletNotFoundException
 	*/
 	private synchronized void executeTrade(BigMoney from, BigMoney to) throws WalletNotFoundException {
 		
@@ -168,6 +168,8 @@ public class ArbitrageEngine implements Runnable {
 				if (marketsellOrderReturnValue != null && !marketsellOrderReturnValue.isEmpty()){
 					log.info("Arbitrage bought "+qtyTo.toString() +" for "+ qtyToBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
 					log.info("Arbitrage successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString());
+					log.info(AccountManager.getInstance().getAccountInfo().toString());	
+					ProfitLossAgent.getInstance().calcProfitLoss();		
 				} else {
 					log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
 				}
@@ -191,7 +193,7 @@ public class ArbitrageEngine implements Runnable {
 				
 				BigMoney testPrice = lastTickMap.get(currency).getBid();
 				
-				BigMoney factor = basePrice.getCurrencyUnit() == testPrice.getCurrencyUnit() ?
+				BigMoney factor = basePrice.isSameCurrency(testPrice) ?
 							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_EVEN) :
 							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_EVEN));
 
@@ -215,8 +217,8 @@ public class ArbitrageEngine implements Runnable {
 
 				BigMoney testPrice = lastTickMap.get(currency).getAsk();
 				
-				BigMoney factor = basePrice.getCurrencyUnit() == testPrice.getCurrencyUnit() ?
-							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_EVEN) : 
+				BigMoney factor = basePrice.isSameCurrency(testPrice) ?
+							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_EVEN) :
 							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_EVEN));							
 
 				if(factor.getAmount().compareTo(lowFactor.getAmount()) < 0 ) {

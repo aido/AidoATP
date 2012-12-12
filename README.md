@@ -5,18 +5,18 @@ Isis Advanced Trading Platform courtesy of the Open Payment Alliance.
 
 forked from openpay/OpenPay
 
-What is IsisATP?
+What is Isis ATP?
 ================
 
-IsisATP is an automated trading platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
+Isis ATP is an automated trading platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
 
 How does it work?
 =================
 
-On startup IsisATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over the trading algorithms make a decision on whether it is favourable to trade that time. The trading algorithms currently implemented are:
+On startup Isis ATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over the trading algorithms make a decision on whether it is favourable to trade that time. The trading algorithms currently implemented are:
 
-Arbitrage algorithm:
---------------------
+Arbitrage algorithm
+-------------------
 
 Quite frequently there is a difference in the price of BTC in different currency pairs.
 
@@ -39,12 +39,12 @@ Buys take place as normal, but only do so on the pair with the lowest cost real 
 Advance/Decline Spread algorithm
 --------------------------------
 
-A simple Advance/Decline Spread algorithm is used to interpret the breadth of the market. This oscillator is extremely fast, so a moving average is usually applied to slow the signals.
+A simple Advance/Decline Spread algorithm is used to interpret the breadth of the market. This oscillator is extremely fast.
 
 Exponential Moving Average based trend following algorithm
 ----------------------------------------------------------
 
-The EMA algorithm reacts to trends very quickly but not a quick a the Advance/Decline Spread algorithm. It lags somewhat behind the Advance/Decline Spread algorithm. The EMA buy and sell deciscion is based on the crossover between two EMAs, one long and one short. The length of these moving averages is configurable.
+The EMA algorithm reacts to trends very quickly but not as quick as the Advance/Decline Spread algorithm. It lags somewhat behind the Advance/Decline Spread algorithm. The EMA buy and sell decision is based on the crossover between two EMAs, one long and one short. The length of these moving averages is configurable.
 
 Simple Moving Average based trend following algorithm
 -----------------------------------------------------
@@ -52,7 +52,7 @@ Simple Moving Average based trend following algorithm
 The SMA algorithm reaction to trends is slower than both the EMA algorithm and the Advance/Decline Spread algorithm. Similar to the EMA, the SMA buy and sell deciscion is based on the crossover between two SMAs, one long and one short. The length of these moving averages is configurable.
 
 
-Volume Participation algorithm (VWAP Cross)
+Volume articipation algorithm (VWAP Cross)
 ------------------------------------------
 
 The trend observer functionality constantly monitors the market for trends. A combination of the Advance/Decline Spread, SMA and EMA algorithms decide what way the market is trending.
@@ -71,7 +71,7 @@ Deciding when to buy or sell
 ============================
 Any of the above algorithms may be disbled and not used in the buy / sell decision. Based on the reaction speed of each algorithm the following logic is used to make a buy or sell decision:
 
-	Look to Buy if :
+	Look to Sell if :
 	
 	Advance/Decline spread is trending up and EMA & SMA are disabled
 			or
@@ -87,7 +87,7 @@ Any of the above algorithms may be disbled and not used in the buy / sell decisi
 			or
 	Advance/Decline spread is disabled and EMA is disabled SMA is trending up
 
-	Look to Sell if :
+	Look to Buy if :
 	
 	Advance/Decline spread is trending down and EMA & SMA are disabled
 			or
@@ -107,7 +107,7 @@ THE WRONG COMBINATION AND CONFIGURATION OF ANY OF THE ABOVE ALGORITHMS MAY LEAD 
 
 To protect against complete financial ruin, a VWAP cross algorithm is used to make the final call on a buy or sell decision. The VWAP cross algorithm may be disabled from the configuration file.
 
-Once a final buy or sell decision has been made a stop loss value and risk calclation is used to determine the trade amount.
+Once a final buy or sell decision has been made a stop loss value and risk calculation is used to determine the trade amount.
 
 How much currency to use in a trade
 ===================================
@@ -137,12 +137,12 @@ Algorithm 1 is high risk, algorithm 2 is conservative risk
 Exchanges
 =========
 
-IsisATP currently trades on the MtGOX exchange. More exchanges are planned.
+Isis ATP currently trades on the MtGOX exchange. More exchanges are planned.
 
 Usage
 =====
 
-IsisATP may be launched using the following command line:
+Isis ATP may be launched using the following command line:
 
 	java -jar aido.jar
 
@@ -182,6 +182,43 @@ When interviewed the user will be asked for the following information:
 	Trading fee (eg 0.6% = 0.006)
 		
 If used, the --use-arbitrage and --use-trend command line switches will over-ride their respective configuration file values.
+Use of --simulation-mode=false command line switch implies the user agrees with the license terms.
+
+Practical example of Trend-following logic
+==========================================
+
+If we have 100 ticks in our ticker.
+If of those ticks 60 were up and 40 were down the trendarrow will be +20, the market is now trending up.
+During that same time there were 75 instances where the bidArrow went up and 25 where it went down, the bidArrow is now+50
+The last trade was 10.25, the VWAP is 10.20.
+Now is a good time to sell because there is enormous pressure in the market to buy.
+
+So how much do we sell?
+Let's assume we have 100 BTC.
+trendArrow / ticker size = 20/100 = 0.2
+bidArrow / ticker size = 0.5
+
+Using the conservative risk weight calculation:
+
+(0.2 * 0.5) =  10% of our 100 BTC balance.
+100BTC * 0.1 = 10BTC
+
+So now we sell 10 BTC at market price for 102.5 local currency.
+
+Now an hour later the market has taken a dip.
+We have 100 ticks in our ticker.
+60 were down, 40 were up the trendArrow is now -20
+There were 75 instances where the askArrow went down and 25 where it went up.  The askArrow is now -50
+The last trade was 10.20, the current VWAP is 10.25
+
+Our local currency balance is 102.5
+(0.2 * 0.5) = 10% of our 102.5 local currency balance
+102.5 * 0.1 = 10.25
+We now buy 1.025 BTC for 10.25, this gives us a profit of 0.025 BTC
+
+Now imagine that each of these trends continue on average for about 30 minutes before reversing and during that time we place 10 trades essentially identical (since these conditions are really only present for about 10 minutes out of each 30 minute trend), this is a profit of 0.25 BTC during that 30 minute period or 0.5 BTC per hour.
+24 * 0.5 BTC = 12 BTC or 12% profit in a day.
+
 		
 Further reading
 ===============

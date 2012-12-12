@@ -1,5 +1,5 @@
 /**
-* 
+*
 */
 package org.open.payment.alliance.isis.atp;
 
@@ -116,6 +116,7 @@ public class StreamingTickerManager implements Runnable{
 						if (Application.getInstance().getTrendMode()) {
 							new Thread(new TrendObserver(this)).start();
 						}
+						ProfitLossAgent.getInstance().updateRates(tick.getBid());
 						lastVolume = currentVolume;
 					}
 				}

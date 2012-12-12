@@ -22,10 +22,10 @@ public class TrendObserver implements Runnable {
 	private ATPTicker low;
 	private ATPTicker last;
 	private ArrayList<ATPTicker> ticker;
-	private Integer bidArrow;
-	private Integer askArrow;
-	private Integer trendArrow;
-	private Integer tickerSize;
+	private int bidArrow;
+	private int askArrow;
+	private int trendArrow;
+	private int tickerSize;
 	private Logger log;
 	private boolean learningComplete;
 	private StreamingTickerManager tickerManager;
@@ -38,7 +38,7 @@ public class TrendObserver implements Runnable {
 		localCurrency = tickerManager.getCurrency();
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
-			if (ticker.size() < Integer.valueOf(Application.getInstance().getConfig("MinTickSize"))){
+			if (ticker.size() < Integer.parseInt(Application.getInstance().getConfig("MinTickSize"))){
 				log.info(localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size()+". Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" data to determine trend.");
 				learningComplete = false;
 			} else {
@@ -62,8 +62,8 @@ public class TrendObserver implements Runnable {
 		shortEMA = BigMoney.zero(localCurrency);
 		longEMA = BigMoney.zero(localCurrency);
 		
-		Integer shortMASize = Integer.valueOf(Application.getInstance().getConfig("ShortMATickSize"));
-		Integer idx = 0;
+		int shortMASize = Integer.parseInt(Application.getInstance().getConfig("ShortMATickSize"));
+		int idx = 0;
 		double expShortEMA = 0;
 		double expLongEMA = 0;
 		BigMoney sumShortSMA = BigMoney.zero(localCurrency);
@@ -211,7 +211,7 @@ public class TrendObserver implements Runnable {
 		return last;
 	}
 	
-	public Integer getTickerSize() {
+	public int getTickerSize() {
 		return tickerSize;
 	}
 

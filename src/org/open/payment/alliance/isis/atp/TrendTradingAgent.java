@@ -28,6 +28,7 @@ public class TrendTradingAgent implements Runnable {
 	private double trendArrow;
 	private double bidArrow;
 	private double askArrow;
+	private double maxWeight;
 	private Exchange exchange;
 	private PollingTradeService tradeService;
 	private ATPTicker lastTick;
@@ -36,9 +37,8 @@ public class TrendTradingAgent implements Runnable {
 	private BigMoney minBTC;
 	private BigMoney maxLocal;
 	private BigMoney minLocal;
-	private Double maxWeight;
-	private Integer algorithm;
-	private Integer tickerSize;
+	private int algorithm;
+	private int tickerSize;
 	private CurrencyUnit localCurrency;
 	private Logger log;
 	private StreamingTickerManager tickerManager;
@@ -54,8 +54,8 @@ public class TrendTradingAgent implements Runnable {
 		maxLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MaxLocal")));
 		minBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MinBTC")));
 		minLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MinLocal")));
-		maxWeight = new Double(Application.getInstance().getConfig("MaxLoss"));
-		algorithm = new Integer(Application.getInstance().getConfig("Algorithm"));		
+		maxWeight = Double.parseDouble(Application.getInstance().getConfig("MaxLoss"));
+		algorithm = Integer.parseInt(Application.getInstance().getConfig("Algorithm"));		
 	}
 
 	public void run(){
@@ -230,7 +230,7 @@ public class TrendTradingAgent implements Runnable {
 		}
 		
 		try {
-			// Look to Buy if :
+			// Look to Sell if :
 			// AD spread is trending up and EMA & SMA are disabled
 			//		or
 			// AD spread is trending up and EMA is trending down and SMA is disabled
@@ -247,7 +247,7 @@ public class TrendTradingAgent implements Runnable {
 			
 			evalAsk = (adsUp && ((emaDown || !useEMA) && (smaDown || !useSMA))) || (!useADS && ((emaUp && (smaDown || !useSMA)) || (!useEMA && smaUp)));
 					
-			// Look to Sell if :
+			// Look to Buy if :
 			// AD spread is trending down and EMA & SMA are disabled
 			//		or
 			// AD spread is trending down and EMA is trending up and SMA is disabled
@@ -289,7 +289,7 @@ public class TrendTradingAgent implements Runnable {
 		str.setLength(0);
 		
 		try {
-			Double weight;
+			double weight;
 			
 			str.append("Used ");
 			
@@ -382,7 +382,7 @@ public class TrendTradingAgent implements Runnable {
 		
 		try {
 			//Formula for bid is the same as for ASK with USD/BTC instead of BTC/USD
-			Double weight;
+			double weight;
 			
 			str.append("Used ");
 			
@@ -493,22 +493,11 @@ public class TrendTradingAgent implements Runnable {
 		}
 		
 		if(success){
-			log.info("Successfully"+action+numberFormat.format(qty)+" at current "+localCurrency.getCurrencyCode()+" market price.");
-			PLModel localProfit = AccountManager.getInstance().getPLFor(localCurrency);
-			PLModel btcProfit = AccountManager.getInstance().getPLFor(CurrencyUnit.of("BTC"));
-			
-			log.info("Current P/L: "+btcProfit.getAmount()+" | "+btcProfit.getPercent()+"%");
-			//log.info("Current P/L: "+localProfit.getAmount()+" | "+localProfit.getPercent()+"%" );
-			
-			Double overall;
-			Double btc = btcProfit.getAmount().getAmount().doubleValue();
-			Double local = localProfit.getAmount().getAmount().doubleValue();
-			Double btcNormalized = btc * lastTick.getLast().getAmount().doubleValue();
-			overall = local + btcNormalized;
-			log.info("Overall P/L: "+overall+" "+localCurrency.getCurrencyCode());
-			log.info(AccountManager.getInstance().getAccountInfo().toString());			
+			log.info("Successfully"+action+numberFormat.format(qty)+" BTC at current "+localCurrency.getCurrencyCode()+" market price.");
+			log.info(AccountManager.getInstance().getAccountInfo().toString());	
+			ProfitLossAgent.getInstance().calcProfitLoss();		
 		}else{
-			log.error("ERROR: Failed to"+failAction+numberFormat.format(qty)+" at current "+localCurrency.getCurrencyCode()+" market price. Please investigate");
+			log.error("ERROR: Failed to"+failAction+numberFormat.format(qty)+" BTC at current "+localCurrency.getCurrencyCode()+" market price. Please investigate");
 		}
 		return;
 	}
