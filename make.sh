@@ -96,10 +96,10 @@ if $UPDATE; then
 	# logback is pain in ass to build from source so do it the easy way
 	echo "logback"
 	echo "========"
-	[[ ! -f $SRC_DIR/jars/logback-core-1.0.7.jar ]] || [[ ! -f $SRC_DIR/jars/logback-classic-1.0.7.jar ]] && cd $SRC_DIR/jars && wget -q -O - http://logback.qos.ch/dist/logback-1.0.7.tar.gz | tar --strip-components 1 -vxz logback-1.0.7/logback-core-1.0.7.jar logback-1.0.7/logback-classic-1.0.7.jar
+	[[ ! -f $SRC_DIR/jars/logback-core-1.0.9.jar ]] || [[ ! -f $SRC_DIR/jars/logback-classic-1.0.9.jar ]] && cd $SRC_DIR/jars && wget -q -O - http://logback.qos.ch/dist/logback-1.0.9.tar.gz | tar --strip-components 1 -vxz logback-1.0.9/logback-core-1.0.9.jar logback-1.0.9/logback-classic-1.0.9.jar
 	cd $CLASSPATH
-	jar xvf $SRC_DIR/jars/logback-core-1.0.7.jar > /dev/null
-	jar xvf $SRC_DIR/jars/logback-classic-1.0.7.jar > /dev/null
+	jar xvf $SRC_DIR/jars/logback-core-1.0.9.jar > /dev/null
+	jar xvf $SRC_DIR/jars/logback-classic-1.0.9.jar > /dev/null
 	
 	echo
 	echo "JSON-java"

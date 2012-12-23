@@ -116,7 +116,7 @@ public class StreamingTickerManager implements Runnable{
 						if (Application.getInstance().getTrendMode()) {
 							new Thread(new TrendObserver(this)).start();
 						}
-						ProfitLossAgent.getInstance().updateRates(tick.getBid());
+						ProfitLossAgent.getInstance().updateRates(tick.getAsk());
 						lastVolume = currentVolume;
 					}
 				}

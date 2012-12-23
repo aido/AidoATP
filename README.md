@@ -13,7 +13,7 @@ Isis ATP is an automated trading platform primarily used for trading bitcoins (B
 How does it work?
 =================
 
-On startup Isis ATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over the trading algorithms make a decision on whether it is favourable to trade that time. The trading algorithms currently implemented are:
+On startup Isis ATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over every time a new tick is received the trading algorithms make a decision on whether it is favourable to trade at that time. The trading algorithms currently implemented are:
 
 Arbitrage algorithm
 -------------------
@@ -52,7 +52,7 @@ Simple Moving Average based trend following algorithm
 The SMA algorithm reaction to trends is slower than both the EMA algorithm and the Advance/Decline Spread algorithm. Similar to the EMA, the SMA buy and sell deciscion is based on the crossover between two SMAs, one long and one short. The length of these moving averages is configurable.
 
 
-Volume articipation algorithm (VWAP Cross)
+Volume Participation algorithm (VWAP Cross)
 ------------------------------------------
 
 The trend observer functionality constantly monitors the market for trends. A combination of the Advance/Decline Spread, SMA and EMA algorithms decide what way the market is trending.
@@ -188,10 +188,9 @@ Practical example of Trend-following logic
 ==========================================
 
 If we have 100 ticks in our ticker.
-If of those ticks 60 were up and 40 were down the trendarrow will be +20, the market is now trending up.
-During that same time there were 75 instances where the bidArrow went up and 25 where it went down, the bidArrow is now+50
-The last trade was 10.25, the VWAP is 10.20.
-Now is a good time to sell because there is enormous pressure in the market to buy.
+If of those ticks 60 were up and 40 were down the trendarrow will be +20; the Advance/Decline alogrithm has determined that the market is now trending up.
+During that same time there were 75 instances where the bidArrow went up and 25 where it went down, the bidArrow is now +50
+If the last trade was 10.25 and the VWAP is 10.20; the Volume articipation algorithm (VWAP Cross) has determined that now is a good time to sell because there is enormous pressure in the market to buy.
 
 So how much do we sell?
 Let's assume we have 100 BTC.
@@ -207,9 +206,10 @@ So now we sell 10 BTC at market price for 102.5 local currency.
 
 Now an hour later the market has taken a dip.
 We have 100 ticks in our ticker.
-60 were down, 40 were up the trendArrow is now -20
+60 were down, 40 were up the trendArrow is now -20; the Advance/Decline alogrithm has determined that the market is now trending down.
 There were 75 instances where the askArrow went down and 25 where it went up.  The askArrow is now -50
-The last trade was 10.20, the current VWAP is 10.25
+The last trade was 10.20, the current VWAP is 10.25; the Volume articipation algorithm (VWAP Cross) has determined that now is a good time to buy because there is enormous pressure in the market to sell.
+
 
 Our local currency balance is 102.5
 (0.2 * 0.5) = 10% of our 102.5 local currency balance
@@ -219,6 +219,7 @@ We now buy 1.025 BTC for 10.25, this gives us a profit of 0.025 BTC
 Now imagine that each of these trends continue on average for about 30 minutes before reversing and during that time we place 10 trades essentially identical (since these conditions are really only present for about 10 minutes out of each 30 minute trend), this is a profit of 0.25 BTC during that 30 minute period or 0.5 BTC per hour.
 24 * 0.5 BTC = 12 BTC or 12% profit in a day.
 
+This strategy may not work for prolonged trends so it may be benificial to enable one of the slower reacting algorithms like EMA or SMA to determine when we are in a more prolonged trend and to disble trading until market direction changes.
 		
 Further reading
 ===============
