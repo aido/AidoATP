@@ -230,7 +230,7 @@ public class TrendTradingAgent implements Runnable {
 		}
 		
 		try {
-			// Look to Sell if :
+			// Look to buy if :
 			// AD spread is trending up and EMA & SMA are disabled
 			//		or
 			// AD spread is trending up and EMA is trending down and SMA is disabled
@@ -245,9 +245,9 @@ public class TrendTradingAgent implements Runnable {
 			// 		or
 			// AD spread is disabled and EMA is disabled SMA is trending up
 			
-			evalAsk = (adsUp && ((emaDown || !useEMA) && (smaDown || !useSMA))) || (!useADS && ((emaUp && (smaDown || !useSMA)) || (!useEMA && smaUp)));
+			evalBid = (adsUp && ((emaDown || !useEMA) && (smaDown || !useSMA))) || (!useADS && ((emaUp && (smaDown || !useSMA)) || (!useEMA && smaUp)));
 					
-			// Look to Buy if :
+			// Look to sell if :
 			// AD spread is trending down and EMA & SMA are disabled
 			//		or
 			// AD spread is trending down and EMA is trending up and SMA is disabled
@@ -262,7 +262,7 @@ public class TrendTradingAgent implements Runnable {
 			// 		or
 			// AD spread is disabled and EMA is disabled and SMA is trending down
 			
-			evalBid = (adsDown && ((emaUp || !useEMA) && (smaUp || !useSMA))) || (!useADS && ((emaDown && (smaUp || !useSMA)) || (!useEMA && smaDown)));
+			evalAsk = (adsDown && ((emaUp || !useEMA) && (smaUp || !useSMA))) || (!useADS && ((emaDown && (smaUp || !useSMA)) || (!useEMA && smaDown)));
 			
 			if (useVWAPCross) {
 				evalAsk = evalAsk && vwapCrossUp;
@@ -344,8 +344,6 @@ public class TrendTradingAgent implements Runnable {
 							qtyToSell = balanceBTC.multipliedBy(bigWeight);
 						}
 					}
-					
-					log.info("Trend following trade agent is attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString()+" of "+balanceBTC.toString()+" available");
 					if(qtyToSell.isGreaterThan(maxBTC)) {
 						log.info(qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString() + " was more than the configured limit of "+maxBTC.toString());
 						log.info("Reducing order size to "+maxBTC.toString());
@@ -359,6 +357,7 @@ public class TrendTradingAgent implements Runnable {
 							log.info("Trend following trades disabled by Arbitrage Engine.");
 						}
 					} else {
+						log.info("Trend following trade agent is attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString()+" of "+balanceBTC.toString()+" available");
 						marketOrder(qtyToSell.getAmount(),OrderType.ASK);
 					}
 				} else {
@@ -441,7 +440,6 @@ public class TrendTradingAgent implements Runnable {
 						}
 					}
 					
-					log.info("Attempting to buy "+qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString());
 					if(qtyToBuy.isGreaterThan(maxLocal)){
 						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() +" was more than the configured maximum of "+maxLocal.toString()+". Reducing order size to "+maxLocal.toString());
 						qtyToBuy = maxLocal;
@@ -455,7 +453,15 @@ public class TrendTradingAgent implements Runnable {
 							log.info("Trend following trades disabled by Arbitrage Engine.");
 						}
 					} else {
-						marketOrder(qtyToBuy.getAmount(),OrderType.BID);
+						// Convert local currency amount to BTC
+						BigMoney qtyBTCToBuy = qtyToBuy.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(lastTick.getAsk().getAmount(),16,RoundingMode.HALF_EVEN));
+						if(qtyBTCToBuy.isLessThan(minBTC)) {
+							log.info(qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured limit of "+minBTC.toString());
+							log.info("Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
+						} else {
+							log.info("Trend following trade agent is attempting to buy "+qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString()+" at current "+localCurrency.getCurrencyCode()+" market price.");
+							marketOrder(qtyBTCToBuy.getAmount(),OrderType.BID);
+						}
 					}
 				} else {
 					log.info(localCurrency+" balance is empty until the market corrects itself or funds are added to your account.");

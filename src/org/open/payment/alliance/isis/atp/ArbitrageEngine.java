@@ -157,7 +157,7 @@ public class ArbitrageEngine implements Runnable {
 			
 			String marketsellOrderReturnValue;
 			if (marketbuyOrderReturnValue != null && !marketbuyOrderReturnValue.isEmpty()){
-				log.info("Arbitrage sold "+qtyFrom.toString() +" for "+ qtyFromBTC.rounded(8,RoundingMode.HALF_EVEN).toString());				
+				log.info("Arbitrage sold "+qtyFrom.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyFromBTC.withScale(8,RoundingMode.HALF_EVEN).toString());				
 				if(!Application.getInstance().getSimMode()){
 					marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
 					log.info("Market Sell Order return value: " + marketsellOrderReturnValue);
@@ -166,7 +166,7 @@ public class ArbitrageEngine implements Runnable {
 					marketsellOrderReturnValue = "Simulation mode";
 				}				
 				if (marketsellOrderReturnValue != null && !marketsellOrderReturnValue.isEmpty()){
-					log.info("Arbitrage bought "+qtyTo.toString() +" for "+ qtyToBTC.rounded(8,RoundingMode.HALF_EVEN).toString());
+					log.info("Arbitrage bought "+qtyTo.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyToBTC.withScale(8,RoundingMode.HALF_EVEN).toString());
 					log.info("Arbitrage successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString());
 					log.info(AccountManager.getInstance().getAccountInfo().toString());	
 					ProfitLossAgent.getInstance().calcProfitLoss();		

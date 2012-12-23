@@ -67,8 +67,7 @@ public class TrendObserver implements Runnable {
 		double expShortEMA = 0;
 		double expLongEMA = 0;
 		BigMoney sumShortSMA = BigMoney.zero(localCurrency);
-		BigMoney sumLongSMA = BigMoney.zero(localCurrency);
-		
+		BigMoney sumLongSMA = BigMoney.zero(localCurrency);	
 		
 		//Items in here are done once for every item in the ticker
 		BigMoney newBid = null, oldBid = BigMoney.zero(localCurrency);
