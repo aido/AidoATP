@@ -112,7 +112,7 @@ public class PollingTickerManager implements Runnable{
 					}
 					new Thread(ArbitrageEngine.getInstance()).start();
 					new Thread(new TrendObserver(this)).start();
-					//new Thread(TrendObserver.getInstance(this)).start();
+//					new Thread(TrendObserver.getInstance(this)).start();
 				}
 				saveMarketData();
 				Thread.sleep(Constants.TENSECONDS);
