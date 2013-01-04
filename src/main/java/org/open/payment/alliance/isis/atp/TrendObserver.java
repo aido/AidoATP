@@ -28,10 +28,10 @@ public class TrendObserver implements Runnable {
 	private int tickerSize;
 	private Logger log;
 	private boolean learningComplete;
-	private StreamingTickerManager tickerManager;
+	private TickerManager tickerManager;
 	private CurrencyUnit localCurrency;
 	
-	public TrendObserver(StreamingTickerManager tickerManager) {
+	public TrendObserver(TickerManager tickerManager) {
 		this.tickerManager = tickerManager;
 		log = LoggerFactory.getLogger(TrendObserver.class);
 		ticker = tickerManager.getMarketData();
@@ -214,7 +214,7 @@ public class TrendObserver implements Runnable {
 		return tickerSize;
 	}
 
-	public StreamingTickerManager getTickerManager() {
+	public TickerManager getTickerManager() {
 		return tickerManager;
 	}
 }

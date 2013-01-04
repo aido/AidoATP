@@ -1,5 +1,5 @@
 /**
-* 
+*
 */
 package org.open.payment.alliance.isis.atp;
 

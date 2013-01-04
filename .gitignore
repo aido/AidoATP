@@ -1,6 +1,9 @@
 *.class
+*.dat
+*.error
+*.log
+target
 
 # Package Files #
 *.war
 *.ear
-*.dat
