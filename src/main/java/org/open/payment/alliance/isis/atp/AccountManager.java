@@ -26,7 +26,7 @@ public class AccountManager implements Runnable {
 	private AccountInfo accountInfo;	
 
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
-	private HashMap<CurrencyUnit, StreamingTickerManager> tickerTracker;
+	private HashMap<CurrencyUnit, TickerManager> tickerTracker;
 	private ThreadGroup tickerThreadGroup;
 	
 	private static Logger log;
@@ -45,13 +45,14 @@ public class AccountManager implements Runnable {
 	private AccountManager(){
 		
 		try {	
-			tickerTracker = new HashMap<CurrencyUnit, StreamingTickerManager>();
+			tickerTracker = new HashMap<CurrencyUnit, TickerManager>();
 			tickerThreadGroup = new ThreadGroup("Tickers");
 			
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
 			
 			exchange = Application.getInstance().getExchange();
+			
 			// Interested in the private account functionality (authentication)
 			accountService = exchange.getPollingAccountService();
 			

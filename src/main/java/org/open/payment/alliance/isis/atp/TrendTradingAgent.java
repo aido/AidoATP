@@ -41,7 +41,7 @@ public class TrendTradingAgent implements Runnable {
 	private int tickerSize;
 	private CurrencyUnit localCurrency;
 	private Logger log;
-	private StreamingTickerManager tickerManager;
+	private TickerManager tickerManager;
 	
 	public TrendTradingAgent(TrendObserver observer) {
 		log = LoggerFactory.getLogger(TrendTradingAgent.class);
