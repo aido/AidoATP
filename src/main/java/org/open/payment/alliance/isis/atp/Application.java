@@ -1,6 +1,21 @@
 /**
-*
-*/
+ * Copyright (c) 2013 Aido
+ * 
+ * This file is part of Isis ATP.
+ * 
+ * Isis ATP is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Isis ATP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Isis ATP.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.open.payment.alliance.isis.atp;
 
 import java.io.Console;
@@ -124,18 +139,18 @@ public class Application {
 	}
 	
 	private void showAgreement() {
-		InputStream license = this.getClass().getClassLoader().getResourceAsStream("license.txt");
+		InputStream disclaimer = this.getClass().getClassLoader().getResourceAsStream("disclaimer.txt");
 
 		byte[] buf = new byte[2048];
 		long total = 0;
 		int len = 0;
 		try {
-			while (-1 != (len = license.read(buf))) {
+			while (-1 != (len = disclaimer.read(buf))) {
 				System.out.write(buf, 0, len);
 				total += len;
 			}
 		} catch (IOException e) {
-			throw new RuntimeException("Error displaying license agreement", e);
+			throw new RuntimeException("Error displaying disclaimer", e);
 		}
 		System.out.print("Please type your response : ");
 		
