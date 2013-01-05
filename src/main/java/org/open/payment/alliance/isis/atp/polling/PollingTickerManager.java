@@ -21,9 +21,11 @@ import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 public class PollingTickerManager extends TickerManager{
 	
 	private PollingMarketDataService marketData;
+	private CurrencyUnit currency;
 
 	public PollingTickerManager(CurrencyUnit currency) {
 		super(currency);
+		this.currency = currency;
 		try {
 			Exchange exchange = Application.getInstance().getExchange();
 			marketData = exchange.getPollingMarketDataService();			
@@ -34,22 +36,22 @@ public class PollingTickerManager extends TickerManager{
 
 	@Override
 	public synchronized void run() {
-		while(!getQuit()){
+		while(!quit){
 			try {
-				checkTick(marketData.getTicker(Currencies.BTC, getCurrency().getCurrencyCode()));
+				checkTick(marketData.getTicker(Currencies.BTC, currency.getCurrencyCode()));
 				TimeUnit.SECONDS.sleep(10);
 			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
 				ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 				Socket testSock = null;
 				while (true) {
 					try {
-						getLog().warn("WARNING: Testing connection to exchange");
+						log.warn("WARNING: Testing connection to exchange");
 						testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
 						if (testSock != null) { break; }
 					}
 					catch (java.io.IOException e1) {
 						try {
-							getLog().error("ERROR: Cannot connect to exchange. Sleeping for one minute");
+							log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
 							TimeUnit.MINUTES.sleep(1);
 						} catch (InterruptedException e2) {
 							e2.printStackTrace();
@@ -57,7 +59,7 @@ public class PollingTickerManager extends TickerManager{
 					}
 				}
 			} catch (Exception e) {
-				getLog().error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
+				log.error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
 				e.printStackTrace();
 				stop();
 			}

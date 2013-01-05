@@ -25,16 +25,17 @@ import org.slf4j.LoggerFactory;
 */
 public class TickerManager implements Runnable{
 
-	private boolean quit;
 	private long currentVolume;
 	private long lastVolume;
-	private Logger log;
 	private ArrayList<ATPTicker> tickerCache;
 	private CurrencyUnit currency;
-
+	public boolean quit;
+	public Logger log;
+	
 	public TickerManager(CurrencyUnit currency) {
 		log = LoggerFactory.getLogger(TickerManager.class);
 		this.currency = currency;
+		
 		quit = false;
 		try {
 			tickerCache = loadMarketData();
@@ -46,8 +47,7 @@ public class TickerManager implements Runnable{
 		}
 	}
 	
-	@Override
-	public synchronized void run() {
+	public void run() {
 
 	}
 
@@ -119,7 +119,7 @@ public class TickerManager implements Runnable{
 					ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
 				}
 				if (Application.getInstance().getTrendMode()) {
-					new Thread(new TrendObserver(this)).start();
+					new Thread(new TrendObserver(getMarketData())).start();
 				}
 				ProfitLossAgent.getInstance().updateRates(tick.getAsk());
 				lastVolume = currentVolume;
@@ -130,17 +130,5 @@ public class TickerManager implements Runnable{
 	
 	public void stop() {
 		quit = true;
-	}
-	
-	public boolean getQuit() {
-		return quit;
-	}
-
-	public CurrencyUnit getCurrency() {
-		return currency;
-	}
-	
-	public Logger getLog() {
-		return log;
 	}
 }

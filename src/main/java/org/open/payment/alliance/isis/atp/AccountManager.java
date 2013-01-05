@@ -66,6 +66,7 @@ public class AccountManager implements Runnable {
 				if(currency.getCode().equals("BTC")) {
 					continue;
 				}
+//				tickerTracker.put(currency, new PollingTickerManager(currency));
 				tickerTracker.put(currency, new StreamingTickerManager(currency));
 				new Thread(tickerThreadGroup,tickerTracker.get(currency),currency.getCode()).start();
 			}
