@@ -17,30 +17,30 @@ import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService
 * @author Auberon
 *
 */
-public class StreamingTickerManager extends TickerManager{
+public class StreamingTickerManager extends TickerManager {
 	
 	private StreamingMarketDataService marketData;
 	private BlockingQueue<Ticker> tickerQueue;
-					
+
 	public StreamingTickerManager(CurrencyUnit currency) {
 		super(currency);
 		try {
-			Exchange exchange = com.xeiam.xchange.mtgox.v1.MtGoxExchange.newInstance();
+			Exchange exchange = Application.getInstance().newExchange();
 			marketData = exchange.getStreamingMarketDataService();
-			tickerQueue = marketData.requestTicker(Currencies.BTC, currency.getCurrencyCode());
+			tickerQueue = marketData.getTickerQueue(Currencies.BTC,currency.getCurrencyCode());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		} 	
 	}
-
+	
 	@Override
 	public synchronized void run() {
-		while(!getQuit()){
+		while(!quit){
 			try {
 				checkTick(tickerQueue.take());
 			} catch (Exception e) {
-				getLog().error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
+				log.error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
 				e.printStackTrace();
 				stop();
 			}

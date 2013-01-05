@@ -41,15 +41,13 @@ public class TrendTradingAgent implements Runnable {
 	private int tickerSize;
 	private CurrencyUnit localCurrency;
 	private Logger log;
-	private TickerManager tickerManager;
 	
 	public TrendTradingAgent(TrendObserver observer) {
 		log = LoggerFactory.getLogger(TrendTradingAgent.class);
 		this.observer = observer;
 		exchange = Application.getInstance().getExchange();
 		tradeService = exchange.getPollingTradeService();
-		tickerManager = observer.getTickerManager();
-		localCurrency = tickerManager.getCurrency();
+		localCurrency = observer.getCurrency();
 		maxBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MaxBTC")));
 		maxLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MaxLocal")));
 		minBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MinBTC")));

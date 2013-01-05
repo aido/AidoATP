@@ -28,14 +28,12 @@ public class TrendObserver implements Runnable {
 	private int tickerSize;
 	private Logger log;
 	private boolean learningComplete;
-	private TickerManager tickerManager;
 	private CurrencyUnit localCurrency;
 	
-	public TrendObserver(TickerManager tickerManager) {
-		this.tickerManager = tickerManager;
+	public TrendObserver(ArrayList<ATPTicker> marketData) {
 		log = LoggerFactory.getLogger(TrendObserver.class);
-		ticker = tickerManager.getMarketData();
-		localCurrency = tickerManager.getCurrency();
+		this.ticker = marketData;
+		localCurrency = ticker.get(0).getLast().getCurrencyUnit();
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
 			if (ticker.size() < Integer.parseInt(Application.getInstance().getConfig("MinTickSize"))){
@@ -52,7 +50,6 @@ public class TrendObserver implements Runnable {
 	
 	@Override
 	public void run() {
-
 		//(Re)initialize variables
 		trendArrow = 0;
 		bidArrow = 0;
@@ -61,7 +58,7 @@ public class TrendObserver implements Runnable {
 		longSMA = BigMoney.zero(localCurrency);
 		shortEMA = BigMoney.zero(localCurrency);
 		longEMA = BigMoney.zero(localCurrency);
-		
+
 		int shortMASize = Integer.parseInt(Application.getInstance().getConfig("ShortMATickSize"));
 		int idx = 0;
 		double expShortEMA = 0;
@@ -81,7 +78,7 @@ public class TrendObserver implements Runnable {
 		//We are concerned not only with current vwap, but previous vwap.
 		// This is because the differential between the two is an important market indicator
 		
-		vwap = BigMoney.zero(tickerManager.getCurrency());
+		vwap = BigMoney.zero(localCurrency);
 		
 		synchronized(ticker) {
 			
@@ -116,7 +113,7 @@ public class TrendObserver implements Runnable {
 				newPrice = tick.getLast();
 				newBid = tick.getBid();
 				newAsk = tick.getAsk();
-				
+		
 				if(newPrice.isGreaterThan(high.getLast())){					
 					high = tick;
 				}else if(newPrice.isLessThan(low.getLast())){
@@ -213,8 +210,8 @@ public class TrendObserver implements Runnable {
 	public int getTickerSize() {
 		return tickerSize;
 	}
-
-	public TickerManager getTickerManager() {
-		return tickerManager;
+	
+	public CurrencyUnit getCurrency() {
+		return localCurrency;
 	}
 }

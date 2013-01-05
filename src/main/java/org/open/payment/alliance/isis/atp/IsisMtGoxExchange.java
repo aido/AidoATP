@@ -20,8 +20,15 @@ public class IsisMtGoxExchange extends MtGoxExchange {
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(IsisMtGoxExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
+	
 	public static Exchange getInstance() {
 		if(instance == null) {
+			instance = newInstance();
+		}
+		return instance;
+	}
+	
+	public static Exchange newInstance() {	
 			exchangeSpecification = new ExchangeSpecification("com.xeiam.xchange.mtgox.v1.MtGoxExchange");
 
 			String apiKey = Application.getInstance().getConfig("ApiKey");
@@ -33,9 +40,9 @@ public class IsisMtGoxExchange extends MtGoxExchange {
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);
 			exchangeSpecification.setUri("https://mtgox.com");
+			exchangeSpecification.setHost("mtgox.com");
 			exchangeSpecification.setVersion("1");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
-		}
 		return instance;
 	}
 }

@@ -309,4 +309,8 @@ public class Application {
 	public Exchange getExchange() {
 		return exchange;
 	}
+
+	public Exchange newExchange() {
+		return IsisMtGoxExchange.newInstance();
+	}
 }
