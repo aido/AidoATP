@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 * @author Auberon
 *
 */
-public class TickerManager implements Runnable{
+public class TickerManager implements Runnable {
 
 	private long currentVolume;
 	private long lastVolume;
@@ -62,10 +62,17 @@ public class TickerManager implements Runnable{
 		}
 	}
 	
+	@Override
 	public void run() {
-
+		while(!quit){
+			getTick();
+		}
 	}
 
+	public void getTick() {
+	
+	}
+	
 	@SuppressWarnings("unchecked")
 	private synchronized ArrayList<ATPTicker> loadMarketData() {
 		

@@ -53,7 +53,9 @@ public class IsisMtGoxExchange extends MtGoxExchange {
 			exchangeSpecification.setUri("https://mtgox.com");
 			exchangeSpecification.setHost("mtgox.com");
 			exchangeSpecification.setVersion("1");
+			ExchangeManager.getInstance().setExchangeSpecification(exchangeSpecification);
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+			log.info("Connection to MtGOX succcessful");
 		return instance;
 	}
 }

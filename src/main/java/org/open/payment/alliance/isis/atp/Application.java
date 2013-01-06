@@ -26,11 +26,6 @@ import java.util.HashMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.dto.account.AccountInfo;
-
-import org.joda.money.CurrencyUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +42,9 @@ public class Application {
 	private boolean simModeFlag;
 	private boolean arbModeFlag;
 	private boolean trendModeFlag;
-	private Exchange exchange;
 	private Console console;
 	private Thread accountManagerThread;
+	
 	private Application() {
 		log = LoggerFactory.getLogger(Application.class);
 		params = new HashMap<String,String>();
@@ -112,8 +107,6 @@ public class Application {
 		if(params.get("--use-trend") != null){
 			setTrendMode(Boolean.valueOf(params.get("--use-trend")));
 		}
-
-		exchange = IsisMtGoxExchange.getInstance();
 		
 		accountManagerThread = new Thread(AccountManager.getInstance());
 		accountManagerThread.start();
@@ -315,17 +308,5 @@ public class Application {
 	
 	public void setTrendMode(boolean b) {
 		this.trendModeFlag = b;
-	}
-	
-	public AccountInfo getAccountInfo() {
-		return AccountManager.getInstance().getAccountInfo();
-	}
-
-	public Exchange getExchange() {
-		return exchange;
-	}
-
-	public Exchange newExchange() {
-		return IsisMtGoxExchange.newInstance();
 	}
 }

@@ -27,8 +27,6 @@ import java.net.Socket;
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
 
-import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
@@ -47,7 +45,6 @@ public class TrendTradingAgent implements Runnable {
 	private double bidArrow;
 	private double askArrow;
 	private double maxWeight;
-	private Exchange exchange;
 	private PollingTradeService tradeService;
 	private ATPTicker lastTick;
 	private TrendObserver observer;
@@ -63,8 +60,7 @@ public class TrendTradingAgent implements Runnable {
 	public TrendTradingAgent(TrendObserver observer) {
 		log = LoggerFactory.getLogger(TrendTradingAgent.class);
 		this.observer = observer;
-		exchange = Application.getInstance().getExchange();
-		tradeService = exchange.getPollingTradeService();
+		tradeService = ExchangeManager.getInstance().getExchange().getPollingTradeService();
 		localCurrency = observer.getCurrency();
 		maxBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MaxBTC")));
 		maxLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MaxLocal")));
@@ -346,7 +342,7 @@ public class TrendTradingAgent implements Runnable {
 			}else {
 				log.error("ERROR: Min. BTC is null");
 			}
-							
+			
 			if(balanceBTC != null && maxBTC != null && minBTC != null) {				
 				if(!balanceBTC.isZero()) {
 					BigMoney qtyToSell;
@@ -415,8 +411,7 @@ public class TrendTradingAgent implements Runnable {
 			str.append(" risk algorithm to calculate weight of ");
 			str.append(weight);
 			log.info(str.toString());
-			
-			BigDecimal bigWeight = new BigDecimal(weight);			
+						
 			if(weight > maxWeight) {
 				log.info("Weight is above stop loss value, limiting weight to "+maxWeight);
 				weight = maxWeight;
@@ -445,7 +440,7 @@ public class TrendTradingAgent implements Runnable {
 					
 				if(!balanceLocal.isZero()) {
 					BigMoney qtyToBuy;
-					bigWeight = new BigDecimal(weight);
+					BigDecimal bigWeight = new BigDecimal(weight);
 					if(algorithm == 1) {
 						qtyToBuy = balanceLocal.multipliedBy(bigWeight);
 					}else {

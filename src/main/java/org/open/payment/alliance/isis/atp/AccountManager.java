@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Isis ATP.  If not, see <http://www.gnu.org/licenses/>.
  */
- package org.open.payment.alliance.isis.atp;
+package org.open.payment.alliance.isis.atp;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -29,8 +29,6 @@ import java.net.Socket;
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
 
-import com.xeiam.xchange.Exchange;
-import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.trade.Wallet;
 import com.xeiam.xchange.service.account.polling.PollingAccountService;
@@ -41,15 +39,11 @@ import org.slf4j.LoggerFactory;
 public class AccountManager implements Runnable {
 
 	private static AccountManager instance = null;
-	private AccountInfo accountInfo;	
-
+	private AccountInfo accountInfo;
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
 	private HashMap<CurrencyUnit, TickerManager> tickerTracker;
 	private ThreadGroup tickerThreadGroup;
-	
 	private static Logger log;
-	
-	private Exchange exchange;
 	private PollingAccountService accountService;
 	private List<Wallet> wallets;
 	
@@ -68,11 +62,21 @@ public class AccountManager implements Runnable {
 			
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
+
+			new Thread(ExchangeManager.getInstance()).start();
 			
-			exchange = Application.getInstance().getExchange();
+			while ( ExchangeManager.getInstance().getExchange() == null )
+			{
+				try {
+					log.info("Waiting to connect.");
+					TimeUnit.SECONDS.sleep(2);
+				} catch (InterruptedException e2) {
+						e2.printStackTrace();
+				}
+			}			
 			
 			// Interested in the private account functionality (authentication)
-			accountService = exchange.getPollingAccountService();
+			accountService = ExchangeManager.getInstance().getExchange().getPollingAccountService();
 			
 			// Get the account information
 			accountInfo = accountService.getAccountInfo();
@@ -89,12 +93,11 @@ public class AccountManager implements Runnable {
 				new Thread(tickerThreadGroup,tickerTracker.get(currency),currency.getCode()).start();
 			}
 		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
-			ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 			Socket testSock = null;
 			while (true) {
 				try {
 					log.warn("WARNING: Testing connection to exchange");
-					testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
+					testSock = new Socket(ExchangeManager.getInstance().getHost(),ExchangeManager.getInstance().getPort());
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
@@ -155,8 +158,9 @@ public class AccountManager implements Runnable {
 			ledger.add(wallet.getBalance());
 		}
 	}
-
+	
 	public AccountInfo getAccountInfo() {
 		return accountInfo;
 	}
+
 }

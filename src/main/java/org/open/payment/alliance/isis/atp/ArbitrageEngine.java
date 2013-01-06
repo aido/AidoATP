@@ -30,7 +30,6 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
-import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.service.trade.polling.PollingTradeService;
 
 import org.slf4j.Logger;
@@ -110,11 +109,10 @@ public class ArbitrageEngine implements Runnable {
 					log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
 				}
 			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
-				ExchangeSpecification exchangeSpecification = Application.getInstance().getExchange().getDefaultExchangeSpecification();
 				Socket testSock = null;
 				try {
 					log.warn("WARNING: Testing connection to exchange");
-					testSock = new Socket(exchangeSpecification.getHost(),exchangeSpecification.getPort());
+					testSock = new Socket(ExchangeManager.getInstance().getHost(),ExchangeManager.getInstance().getPort());
 				}
 				catch (java.io.IOException e1) {
 					try {
@@ -140,7 +138,7 @@ public class ArbitrageEngine implements Runnable {
 	*/
 	private synchronized void executeTrade(BigMoney from, BigMoney to) throws WalletNotFoundException {
 		
-		PollingTradeService tradeService = Application.getInstance().getExchange().getPollingTradeService();
+		PollingTradeService tradeService = ExchangeManager.getInstance().getExchange().getPollingTradeService();
 		
 		BigMoney lastTickAskFrom = lastTickMap.get(from.getCurrencyUnit()).getAsk();
 		BigMoney lastTickBidTo = lastTickMap.get(to.getCurrencyUnit()).getBid();

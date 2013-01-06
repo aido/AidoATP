@@ -24,7 +24,6 @@ import java.util.concurrent.BlockingQueue;
 import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Currencies;
-import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService;
 
@@ -33,15 +32,14 @@ import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService
 *
 */
 public class StreamingTickerManager extends TickerManager {
-	
+
 	private StreamingMarketDataService marketData;
 	private BlockingQueue<Ticker> tickerQueue;
 
 	public StreamingTickerManager(CurrencyUnit currency) {
 		super(currency);
 		try {
-			Exchange exchange = Application.getInstance().newExchange();
-			marketData = exchange.getStreamingMarketDataService();
+			marketData = ExchangeManager.getInstance().newExchange().getStreamingMarketDataService();
 			tickerQueue = marketData.getTickerQueue(Currencies.BTC,currency.getCurrencyCode());
 		}
 		catch (Exception e) {
@@ -49,9 +47,7 @@ public class StreamingTickerManager extends TickerManager {
 		} 	
 	}
 	
-	@Override
-	public synchronized void run() {
-		while(!quit){
+	public void getTick() {
 			try {
 				checkTick(tickerQueue.take());
 			} catch (Exception e) {
@@ -59,6 +55,5 @@ public class StreamingTickerManager extends TickerManager {
 				e.printStackTrace();
 				stop();
 			}
-		}
 	}
 }

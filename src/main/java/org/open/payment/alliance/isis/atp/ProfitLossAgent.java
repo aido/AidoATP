@@ -36,10 +36,8 @@ import org.slf4j.LoggerFactory;
 public class ProfitLossAgent implements Runnable {
 	
 	private static ProfitLossAgent instance = null;
-	
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> balances;
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> rates;
-	
 	private static Logger log;
 	
 	public static ProfitLossAgent getInstance() {
