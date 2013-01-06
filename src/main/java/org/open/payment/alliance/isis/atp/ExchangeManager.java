@@ -18,8 +18,13 @@
  */
 package org.open.payment.alliance.isis.atp;
 
+import java.util.HashMap;
+
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
+
+import org.joda.money.CurrencyUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +34,9 @@ public class ExchangeManager implements Runnable {
 	private static Logger log;
 	private Exchange exchange;
 	private ExchangeSpecification exchangeSpecification;
+	private HashMap<CurrencyUnit, Double> asksInARow;
+	private HashMap<CurrencyUnit, Double> bidsInARow;
+	
 	
 	public static ExchangeManager getInstance() {
 		if(instance == null) {
@@ -39,6 +47,8 @@ public class ExchangeManager implements Runnable {
 	
 	private ExchangeManager(){
 		log = LoggerFactory.getLogger(ExchangeManager.class);
+		asksInARow = new HashMap<CurrencyUnit, Double>();
+		bidsInARow = new HashMap<CurrencyUnit, Double>();
 	}
 	
 	@Override
@@ -64,5 +74,21 @@ public class ExchangeManager implements Runnable {
 	
 	public int getPort() {
 		return exchangeSpecification.getPort();
+	}
+	
+	public HashMap<CurrencyUnit, Double> getAsksInARow() {
+		return asksInARow;
+	}
+	
+	public void setAsksInARow(HashMap<CurrencyUnit, Double> asksInARow) {
+		this.asksInARow = asksInARow;
+	}
+	
+	public HashMap<CurrencyUnit, Double> getBidsInARow() {
+		return bidsInARow;
+	}
+
+	public void setBidsInARow(HashMap<CurrencyUnit, Double> bidsInARow) {
+		this.bidsInARow = bidsInARow;
 	}
 }

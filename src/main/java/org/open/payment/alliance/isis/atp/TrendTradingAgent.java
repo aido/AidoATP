@@ -22,6 +22,7 @@ import java.text.NumberFormat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.net.Socket;
 
 import org.joda.money.BigMoney;
@@ -45,6 +46,8 @@ public class TrendTradingAgent implements Runnable {
 	private double bidArrow;
 	private double askArrow;
 	private double maxWeight;
+	private HashMap<CurrencyUnit, Double> asksInARow;
+	private HashMap<CurrencyUnit, Double> bidsInARow;
 	private PollingTradeService tradeService;
 	private ATPTicker lastTick;
 	private TrendObserver observer;
@@ -67,7 +70,15 @@ public class TrendTradingAgent implements Runnable {
 		minBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MinBTC")));
 		minLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MinLocal")));
 		maxWeight = Double.parseDouble(Application.getInstance().getConfig("MaxLoss"));
-		algorithm = Integer.parseInt(Application.getInstance().getConfig("Algorithm"));		
+		algorithm = Integer.parseInt(Application.getInstance().getConfig("Algorithm"));
+		asksInARow = ExchangeManager.getInstance().getAsksInARow();
+		bidsInARow = ExchangeManager.getInstance().getBidsInARow();
+		if(asksInARow.get(localCurrency) == null){
+			asksInARow.put(localCurrency,new Double(0));
+		}
+		if(bidsInARow.get(localCurrency) == null){
+			bidsInARow.put(localCurrency,new Double(0));
+		}
 	}
 
 	public void run(){
@@ -81,6 +92,7 @@ public class TrendTradingAgent implements Runnable {
 		boolean useSMA = Application.getInstance().getConfig("UseSMA").equals("1");
 		boolean useEMA = Application.getInstance().getConfig("UseEMA").equals("1");
 		boolean useVWAPCross = Application.getInstance().getConfig("UseVWAPCross").equals("1");
+		
 			
 		NumberFormat numberFormat = NumberFormat.getNumberInstance();
 		
@@ -346,7 +358,7 @@ public class TrendTradingAgent implements Runnable {
 			if(balanceBTC != null && maxBTC != null && minBTC != null) {				
 				if(!balanceBTC.isZero()) {
 					BigMoney qtyToSell;
-					BigDecimal bigWeight = new BigDecimal(weight);
+					BigDecimal bigWeight = new BigDecimal(weight / Math.pow(2, asksInARow.get(localCurrency)));
 					if(algorithm == 1) {
 						qtyToSell = balanceBTC.multipliedBy(bigWeight);
 					}else {
@@ -440,7 +452,7 @@ public class TrendTradingAgent implements Runnable {
 					
 				if(!balanceLocal.isZero()) {
 					BigMoney qtyToBuy;
-					BigDecimal bigWeight = new BigDecimal(weight);
+					BigDecimal bigWeight = new BigDecimal(weight / Math.pow(2, bidsInARow.get(localCurrency)));
 					if(algorithm == 1) {
 						qtyToBuy = balanceLocal.multipliedBy(bigWeight);
 					}else {
@@ -504,11 +516,20 @@ public class TrendTradingAgent implements Runnable {
 		if(orderType == OrderType.ASK) {
 			action = " sold ";
 			failAction = " sell ";
+			asksInARow.put(localCurrency,asksInARow.get(localCurrency) + 1);
+			bidsInARow.put(localCurrency,new Double(0));
 		}else {
 			action = " bought ";
 			failAction = " buy ";
+			bidsInARow.put(localCurrency,bidsInARow.get(localCurrency) + 1);
+			asksInARow.put(localCurrency,new Double(0));
 		}
+		ExchangeManager.getInstance().setAsksInARow(asksInARow);
+		ExchangeManager.getInstance().setBidsInARow(bidsInARow);
 		
+		log.debug(localCurrency.getCode() + " Asks in a row : " + asksInARow.get(localCurrency).toString());
+		log.debug(localCurrency.getCode() + " Bids in a row : " + bidsInARow.get(localCurrency).toString());
+
 		if(success){
 			log.info("Successfully"+action+numberFormat.format(qty)+" BTC at current "+localCurrency.getCurrencyCode()+" market price.");
 			log.info(AccountManager.getInstance().getAccountInfo().toString());	

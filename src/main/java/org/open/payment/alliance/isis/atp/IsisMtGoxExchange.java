@@ -55,7 +55,7 @@ public class IsisMtGoxExchange extends MtGoxExchange {
 			exchangeSpecification.setVersion("1");
 			ExchangeManager.getInstance().setExchangeSpecification(exchangeSpecification);
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
-			log.info("Connection to MtGOX succcessful");
+			log.info("Connection to MtGox succcessful");
 		return instance;
 	}
 }
