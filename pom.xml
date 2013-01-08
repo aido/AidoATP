@@ -1,21 +1,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<currentVersion>0.6.0</currentVersion>
+		<currentVersion>1.0.0</currentVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-	<groupId>org.open.payment.alliance</groupId>
-	<artifactId>isis-atp</artifactId>
+	<groupId>org.aido.atp</groupId>
+	<artifactId>aidoatp</artifactId>
 	<version>${currentVersion}</version>
-	<name>Isis ATP</name>
-	<description>Isis Advanced Trading Platform</description>
+	<name>Aido ATP</name>
+	<description>Aido Advanced Trading Platform</description>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/aido/IsisATP/issues</url>
+		<url>https://github.com/aido/AidoATP/issues</url>
 	</issueManagement>
 	<scm>
-		<url>git://github.com/aido/IsisATP</url>
+		<url>git://github.com/aido/AidoATP</url>
 	</scm>
 	<repositories>
 		<repository>
@@ -48,13 +48,13 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<finalName>aido</finalName>
+					<finalName>aidoatp</finalName>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>org/open/payment/alliance/isis/atp/Application</mainClass>
+							<mainClass>org/aido/atp/Application</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

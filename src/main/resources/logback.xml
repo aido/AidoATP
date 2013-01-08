@@ -9,7 +9,7 @@
 		</encoder>
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>aido.log</file>
+		<file>aidoatp.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
 			<fileNamePattern>aido.log.%i.gz</fileNamePattern>
 			<minIndex>1</minIndex>

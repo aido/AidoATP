@@ -1,19 +1,19 @@
-Isis ATP
+Aido ATP
 ========
 
-Isis Advanced Trading Platform courtesy of the Open Payment Alliance.
+Aido Advanced Trading Platform 
 
-forked from openpay/OpenPay
+Aido ATP is forked from IsisATP courtesy of the Open Payment Alliance.
 
-What is Isis ATP?
+What is Aido ATP?
 ================
 
-Isis ATP is an automated trading platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
+Aido ATP is an automated trading platform primarily used for trading bitcoins (BTC) on various bitcoin exchanges.
 
 How does it work?
 =================
 
-On startup Isis ATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over every time a new tick is received the trading algorithms make a decision on whether it is favourable to trade at that time. The trading algorithms currently implemented are:
+On startup Aido ATP goes into a learning mode for a configurable amount of time where it collects market data to be used by the trading algorithms. After the learning period is over every time a new tick is received the trading algorithms make a decision on whether it is favourable to trade at that time. The trading algorithms currently implemented are:
 
 Arbitrage algorithm
 -------------------
@@ -137,12 +137,12 @@ Algorithm 1 is high risk, algorithm 2 is conservative risk
 Exchanges
 =========
 
-Isis ATP currently trades on the MtGOX exchange. More exchanges are planned.
+Aido ATP currently trades on the MtGOX exchange. More exchanges are planned.
 
 Usage
 =====
 
-Isis ATP may be launched using the following command line:
+Aido ATP may be launched using the following command line:
 
 	java -jar aido.jar
 
@@ -156,7 +156,7 @@ The following switches are also available from the command line:
 	--use-arbitrage=true/false		Enable or disable the arbitrage trading engine
 	--use-trend=true/false			Enable or disable the trend-following trading agent
 
-The configuration file is stored in the ~/.java/.userPrefs/org/open/payment/alliance/isis/atp/prefs.xml file on Linux/UNIX systems or the HKEY_CURRENT_USER\Software\JavaSoft\Prefs\org\open\payment\alliance\isis\atp registry on Microsoft Windows systems.
+The configuration file is stored in the ~/.java/.userPrefs/org/aido/atp/prefs.xml file on Linux/UNIX systems or the HKEY_CURRENT_USER\Software\JavaSoft\Prefs\org\aido\atp registry on Microsoft Windows systems.
 
 When interviewed the user will be asked for the following information:
 
