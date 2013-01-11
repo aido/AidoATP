@@ -234,6 +234,12 @@ public class Application {
 		out.println("1: Yes");
 		config.put("UseVWAPCross", console.readLine());
 
+		out.print("Bid Logic: ");
+		config.put("BidLogic", console.readLine());
+
+		out.print("Ask Logic: ");
+		config.put("AskLogic", console.readLine());
+
 		out.println("Which risk algorithm would you like to use? (1 or 2)");
 		out.println("1: High Risk");
 		out.println("2: Conservative");

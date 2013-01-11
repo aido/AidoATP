@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<currentVersion>1.0.0</currentVersion>
+		<currentVersion>1.1.0</currentVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
@@ -20,8 +20,8 @@
 	<repositories>
 		<repository>
 			<id>xchange-release</id>
-			<url>http://nexus.xeiam.com/content/repositories/releases</url>
 			<releases/>
+			<url>http://nexus.xeiam.com/content/repositories/releases</url>
 		</repository>
 		<repository>
 			<id>xchange-snapshot</id>
@@ -99,6 +99,10 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.codehaus.janino</groupId>
+			<artifactId>janino</artifactId>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -116,6 +120,11 @@
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
 				<version>LATEST</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.janino</groupId>
+				<artifactId>janino</artifactId>
+				<version>2.6.1</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
