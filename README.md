@@ -85,17 +85,17 @@ The following logical operators may be used:
 
 	Operator	Result
 	--------	------
-	&	Logical AND
+		&		Logical AND
 
-	|	Logical OR
+		|		Logical OR
 
-	^	Logical XOR
+		^		Logical XOR
 
-	||	Short-circuit OR
+		||		Short-circuit OR
 
-	&&	Short-circuit AND
+		&&		Short-circuit AND
 
-	!	Logical unary NOT
+		!		Logical unary NOT
 		
 Expressions may be grouped using parentheses i.e. '(' and ')'.
 
