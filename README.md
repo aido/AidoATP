@@ -20,7 +20,7 @@ Arbitrage algorithm
 
 Quite frequently there is a difference in the price of BTC in different currency pairs.
 
-For instance, at time of writing, USD/BTC rate is $11.80 whereas the EUR/BTC rate is €9.14
+For instance, at time of writing, USD/BTC rate is $11.80 whereas the EUR/BTC rate is â‚¬9.14
 
 At the same time the USD/EUR rate is 0.77 and the EUR/USD rate is 1.29
 
@@ -69,45 +69,43 @@ The ratio of last price versus VWAP is used as a waterline to make the final det
 
 Deciding when to buy or sell
 ============================
-Any of the above algorithms may be disbled and not used in the buy / sell decision. Based on the reaction speed of each algorithm the following logic is used to make a buy or sell decision:
+Any of the above trending algorithms may be used in to make buy / sell decision. The trading logic is dynamic and is contained in the configuration file.
 
-	Look to Sell if :
-	
-	Advance/Decline spread is trending up and EMA & SMA are disabled
-			or
-	Advance/Decline spread is trending up and EMA is trending down and SMA is disabled
-			or
-	Advance/Decline spread is trending up and EMA is trending down and SMA is trending down
-			or
-	Advance/Decline spread is trending up and EMA is disabled and SMA is trending down
-			or
-	Advance/Decline spread is disabled and EMA is trending up and SMA is trending down
-			or
-	Advance/Decline spread is disabled and EMA is trending up and SMA is disabled
-			or
-	Advance/Decline spread is disabled and EMA is disabled SMA is trending up
+Boolean logic is use with the following parameters for each trading algorithm:
 
-	Look to Buy if :
-	
-	Advance/Decline spread is trending down and EMA & SMA are disabled
-			or
-	Advance/Decline spread is trending down and EMA is trending up and SMA is disabled
-			or
-	Advance/Decline spread is trending down and EMA is trending up and SMA is trending up
-			or
-	Advance/Decline spread is trending down and EMA is disabled and SMA is trending up
-			or
-	Advance/Decline spread is disabled and EMA is trending down and SMA is trending up
-			or
-	Advance/Decline spread is disabled and EMA is trending down and SMA is disabled
-			or
-	Advance/Decline spread is disabled and EMA is disabled SMA is trending down
-	
-THE WRONG COMBINATION AND CONFIGURATION OF ANY OF THE ABOVE ALGORITHMS MAY LEAD TO SUBSTANTIAL LOSSES!!!
+Advance/Decline Spread algorithm:				ADS_Up and ADS_Down
 
-To protect against complete financial ruin, a VWAP cross algorithm is used to make the final call on a buy or sell decision. The VWAP cross algorithm may be disabled from the configuration file.
+Exponential Moving Average algorithm:			EMA_Up and EMS_Down
 
-Once a final buy or sell decision has been made a stop loss value and risk calculation is used to determine the trade amount.
+Simple Moving Average algorithm:				SMA_Up and SMS_Down
+
+Volume Participation algorithm (VWAP Cross):	VWAPCross_Up and VWAPCross_Down
+
+The following logical operators may be used:
+
+	Operator	Result
+	--------	------
+	&	Logical AND
+
+	|	Logical OR
+
+	^	Logical XOR
+
+	||	Short-circuit OR
+
+	&&	Short-circuit AND
+
+	!	Logical unary NOT
+		
+Expressions may be grouped using parentheses i.e. '(' and ')'.
+
+For example, the following logic may be used in the configuration file to trigger a trade when the Advance/Decline Spread algorithm indicates that the market is trending down but the both the EMA and SMA algotithms indicate that the market is trending up.
+
+	ADS_Down && (EMA_Up && SMA_Up)
+
+THE WRONG CONFIGURATION OF ANY OF THE ABOVE ALGORITHMS MAY LEAD TO SUBSTANTIAL LOSSES!!!
+
+Once a buy or sell decision has been made a stop loss value and risk calculation is used to determine the trade amount.
 
 How much currency to use in a trade
 ===================================
