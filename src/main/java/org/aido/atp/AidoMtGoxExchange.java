@@ -61,7 +61,7 @@ public class AidoMtGoxExchange extends MtGoxExchange {
 			exchangeSpecification.setVersion("1");
 			ExchangeManager.getInstance().setExchangeSpecification(exchangeSpecification);
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
-			log.info("Connection to MtGox succcessful");
+			log.info("Connecting to MtGox Exchange");
 		return instance;
 	}
 }

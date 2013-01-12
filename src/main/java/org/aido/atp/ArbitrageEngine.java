@@ -17,7 +17,7 @@
  * along with Aido ATP.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.aido.atp;
- 
+
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.math.RoundingMode;

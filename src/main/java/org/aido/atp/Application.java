@@ -209,30 +209,10 @@ public class Application {
 		config.put("MinTickSize", console.readLine());
 
 		out.print("Maximum ticker age for trending trade decisions (in minutes): ");		
-		config.put("MaxTickAge", console.readLine());
-		
-		out.println("Use Advance/Decline Spread algorithm");
-		out.println("0: No");
-		out.println("1: Yes");
-		config.put("UseADS", console.readLine());
-
-		out.println("Use Simple Moving Average algorithm (SMA)");
-		out.println("0: No");
-		out.println("1: Yes");
-		config.put("UseSMA", console.readLine());
-		
-		out.println("Use Exponential Moving Average algorithm (EMA)");
-		out.println("0: No");
-		out.println("1: Yes");
-		config.put("UseEMA", console.readLine());
+		config.put("MaxTickAge", console.readLine());		
 		
 		out.print("Number of ticks used to calculate short Moving Average: ");
 		config.put("ShortMATickSize", console.readLine());
-		
-		out.println("Use VWAP Cross algorithm");
-		out.println("0: No");
-		out.println("1: Yes");
-		config.put("UseVWAPCross", console.readLine());
 
 		out.print("Bid Logic: ");
 		config.put("BidLogic", console.readLine());
@@ -243,7 +223,7 @@ public class Application {
 		out.println("Which risk algorithm would you like to use? (1 or 2)");
 		out.println("1: High Risk");
 		out.println("2: Conservative");
-		config.put("Algorithm", console.readLine());
+		config.put("RiskAlgorithm", console.readLine());
 		
 		out.print("Trading fee (eg 0.6% = 0.006): ");
 		config.put("TradingFee", console.readLine());
