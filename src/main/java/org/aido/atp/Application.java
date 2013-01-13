@@ -214,6 +214,15 @@ public class Application {
 		out.print("Number of ticks used to calculate short Moving Average: ");
 		config.put("ShortMATickSize", console.readLine());
 
+		out.print("Number of ticks used to calculate short Moving Average Convergence-Divergence: ");
+		config.put("ShortMACDTickSize", console.readLine());
+
+		out.print("Number of ticks used to calculate long Moving Average Convergence-Divergence: ");
+		config.put("LongMACDTickSize", console.readLine());
+
+		out.print("Number of MACD values used to calculate MACD Signal Line: ");
+		config.put("SigLineMACDSize", console.readLine());
+
 		out.print("Bid Logic: ");
 		config.put("BidLogic", console.readLine());
 

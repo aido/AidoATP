@@ -20,7 +20,7 @@ Arbitrage algorithm
 
 Quite frequently there is a difference in the price of BTC in different currency pairs.
 
-For instance, at time of writing, USD/BTC rate is $11.80 whereas the EUR/BTC rate is €9.14
+For instance, at time of writing, USD/BTC rate is $11.80 whereas the EUR/BTC rate is â‚¬9.14
 
 At the same time the USD/EUR rate is 0.77 and the EUR/USD rate is 1.29
 
@@ -66,10 +66,15 @@ The ratio of last price versus VWAP is used as a waterline to make the final det
 
 	If trend = down & last < VWAP then buy
 	If trend = up & last > VWAP then sell
+	
+Moving Average Convergence-Divergence algorithm
+-----------------------------------------------
+The MACD line turns two trend-following indicators, exponential moving averages, into a momentum oscillator by subtracting the longer moving average from the shorter moving average. A MACD Signal Line is calulated from EMA of the MACD Line.
+
 
 Deciding when to buy or sell
 ============================
-Any of the above trending algorithms may be used to make trade decision. The trading logic is dynamic and is contained in the configuration file.
+Any of the above trending algorithms may be used to make a trade decision. The trading logic is dynamic and is contained in the configuration file.
 
 Boolean logic is used with the following parameters for each trading algorithm:
 
@@ -79,7 +84,21 @@ Exponential Moving Average algorithm:			EMA_Up and EMA_Down
 
 Simple Moving Average algorithm:				SMA_Up and SMA_Down
 
+Any of the above trending algorithms may be used in to make buy / sell decision. The trading logic is dynamic and is contained in the configuration file.
+
+Boolean logic is use with the following parameters for each trading algorithm:
+
+Advance/Decline Spread algorithm:				ADS_Up and ADS_Down
+
+Exponential Moving Average algorithm:			EMA_Up and EMS_Down
+
+Simple Moving Average algorithm:				SMA_Up and SMS_Down
+
 Volume Participation algorithm (VWAP Cross):	VWAPCross_Up and VWAPCross_Down
+
+Moving Average Convergence-Divergence:			MACD_Positive and MACD_Negative	(MACD line above or below zero)
+
+Moving Average Convergence-Divergence:			MACD_Up and MACD_Down (MACD line above or below MACD Signal line)
 
 The following logical operators may be used:
 
@@ -142,11 +161,11 @@ Usage
 
 Aido ATP may be launched using the following command line:
 
-	java -jar aido.jar
+	java -jar aidoatp.jar
 
 When run for the first time a configuration needs to be created. This can be done by adding the --clear-config switch and the user will then be interviewed:
 
-	java -jar aido.jar --clear-config=true
+	java -jar aidoatp.jar --clear-config=true
 
 The following switches are also available from the command line:
 
@@ -171,11 +190,12 @@ When interviewed the user will be asked for the following information:
 	Enable Trend-following trading engine
 	Minimum ticker size for trend following trade decisions
 	Maximum ticker age for trend following trade decisions (in minutes)
-	Use Advance/Decline Spread algorithm
-	Use Simple Moving Average algorithm (SMA)
-	Use Exponential Moving Average algorithm (EMA)
 	Number of ticks used to calculate short Moving Average
-	Use VWAP Cross algorithm
+	Number of ticks used to calculate short Moving Average Convergence-Divergence
+	Number of ticks used to calculate long Moving Average Convergence-Divergence
+	Number of MACD values used to calculate MACD Signal Line
+	Bid Logic
+	Ask Logic
 	Which risk algorithm would you like to use? (High Risk or Conservative)
 	Trading fee (eg 0.6% = 0.006)
 		

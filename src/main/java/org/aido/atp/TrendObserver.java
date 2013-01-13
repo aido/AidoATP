@@ -42,6 +42,9 @@ public class TrendObserver implements Runnable {
 	private BigMoney longSMA;
 	private BigMoney shortEMA;
 	private BigMoney longEMA;
+	private BigMoney shortMACD;
+	private BigMoney longMACD;
+	private BigMoney sigLineMACD;
 	private ATPTicker high;
 	private ATPTicker low;
 	private ATPTicker last;
@@ -82,14 +85,23 @@ public class TrendObserver implements Runnable {
 		longSMA = BigMoney.zero(localCurrency);
 		shortEMA = BigMoney.zero(localCurrency);
 		longEMA = BigMoney.zero(localCurrency);
-
-		int shortMASize = Integer.parseInt(Application.getInstance().getConfig("ShortMATickSize"));
+		shortMACD = BigMoney.zero(localCurrency);
+		longMACD = BigMoney.zero(localCurrency);
+		sigLineMACD = BigMoney.zero(localCurrency);
+		
 		int idx = 0;
+		int shortMASize = Integer.parseInt(Application.getInstance().getConfig("ShortMATickSize"));
+		int shortMACDSize = Integer.parseInt(Application.getInstance().getConfig("ShortMACDTickSize"));
+		int longMACDSize = Integer.parseInt(Application.getInstance().getConfig("LongMACDTickSize"));
+		int sigLineMACDSize = Integer.parseInt(Application.getInstance().getConfig("SigLineMACDSize"));
 		double expShortEMA = 0;
 		double expLongEMA = 0;
+		double expShortMACD = 0;
+		double expLongMACD = 0;
+		double expSigLineMACD = 0;
 		BigMoney sumShortSMA = BigMoney.zero(localCurrency);
 		BigMoney sumLongSMA = BigMoney.zero(localCurrency);	
-		
+
 		//Items in here are done once for every item in the ticker
 		BigMoney newBid = null, oldBid = BigMoney.zero(localCurrency);
 		BigMoney newAsk = null, oldAsk = BigMoney.zero(localCurrency);
@@ -117,11 +129,26 @@ public class TrendObserver implements Runnable {
 					shortMASize = tickerSize;
 				}
 				shortEMA = ticker.get(tickerSize - shortMASize).getLast();
+
+				if (shortMACDSize > tickerSize) {
+					shortMACDSize = tickerSize;
+				}
+				shortMACD = ticker.get(tickerSize - shortMACDSize).getLast();
+
+				if (longMACDSize > tickerSize) {
+					longMACDSize = tickerSize;
+				}
+				longMACD = ticker.get(tickerSize - longMACDSize).getLast();
+				sigLineMACD = shortMACD.minus(longMACD);
+
 				longEMA = ticker.get(0).getLast();
 				expShortEMA = (double) 2 / (shortMASize + 1);
 				expLongEMA = (double) 2 / (tickerSize + 1);
+				expShortMACD = (double) 2 / (shortMACDSize + 1);
+				expLongMACD = (double) 2 / (longMACDSize + 1);
+				expSigLineMACD = (double) 2 / (sigLineMACDSize + 1);
 			}
-						
+
 			for(ATPTicker tick : ticker){		
 				
 				//The first thing we want to look at is the volume
@@ -169,15 +196,25 @@ public class TrendObserver implements Runnable {
 				oldPrice = newPrice;
 				oldBid = newBid;
 				oldAsk = newAsk;
-				
+
 				if ( idx >= tickerSize - shortMASize ) {
 					sumShortSMA = sumShortSMA.plus(newPrice);
 					shortEMA = newPrice.multipliedBy(expShortEMA).plus(shortEMA.multipliedBy(1 - expShortEMA));
 				}
 				
+				if ( idx >= tickerSize - shortMACDSize ) {
+					shortMACD = newPrice.multipliedBy(expShortMACD).plus(shortMACD.multipliedBy(1 - expShortMACD));
+				}
+
+				if ( idx >= tickerSize - longMACDSize ) {
+					longMACD = newPrice.multipliedBy(expLongMACD).plus(longMACD.multipliedBy(1 - expLongMACD));
+				}
+				
+				sigLineMACD = shortMACD.minus(longMACD).multipliedBy(expSigLineMACD).plus(sigLineMACD.multipliedBy(1 - expSigLineMACD));
+
 				sumLongSMA = sumLongSMA.plus(newPrice);
 				longEMA = newPrice.multipliedBy(expLongEMA).plus(longEMA.multipliedBy(1 - expLongEMA));
-				
+
 				idx++;
 			}
 			vwap = vwap.dividedBy(totalVolume, RoundingMode.HALF_EVEN);
@@ -226,7 +263,19 @@ public class TrendObserver implements Runnable {
 	public BigMoney getLongEMA() {
 		return longEMA;
 	}
+
+	public BigMoney getShortMACD() {
+		return shortMACD;
+	}
 	
+	public BigMoney getLongMACD() {
+		return longMACD;
+	}
+
+	public BigMoney getSigLineMACD() {
+		return sigLineMACD;
+	}
+
 	public ATPTicker getLastTick() {
 		return last;
 	}

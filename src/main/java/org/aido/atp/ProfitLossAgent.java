@@ -103,8 +103,8 @@ public class ProfitLossAgent implements Runnable {
 	
 	public void calcProfitLoss() {
 	
-		BigMoney normalisedBTCStartBal = BigMoney.zero(CurrencyUnit.of("BTC"));
-		BigMoney normalisedBTCEndBal = BigMoney.zero(CurrencyUnit.of("BTC"));
+		BigMoney equivBTCStartBal = BigMoney.zero(CurrencyUnit.of("BTC"));
+		BigMoney equivBTCEndBal = BigMoney.zero(CurrencyUnit.of("BTC"));
 		BigMoney startBal = BigMoney.zero(CurrencyUnit.of("BTC"));
 		BigMoney endBal = BigMoney.zero(CurrencyUnit.of("BTC"));
 		BigDecimal startRate = BigDecimal.ZERO;
@@ -122,8 +122,8 @@ public class ProfitLossAgent implements Runnable {
 				endBal = balances.get(currency).get(balances.get(currency).size() - 1);
 				
 				if (currency.equals(CurrencyUnit.of("BTC"))) {
-					normalisedBTCStartBal = normalisedBTCStartBal.plus(startBal);
-					normalisedBTCEndBal = normalisedBTCEndBal.plus(endBal);
+					equivBTCStartBal = equivBTCStartBal.plus(startBal);
+					equivBTCEndBal = equivBTCEndBal.plus(endBal);
 				} else {
 					if (startBal.isPositive() || endBal.isPositive()) {
 						if (rates.containsKey(currency)) {
@@ -131,8 +131,8 @@ public class ProfitLossAgent implements Runnable {
 								startRate=rates.get(currency).get(0).getAmount();
 								endRate=rates.get(currency).get(rates.get(currency).size() - 1).getAmount();
 								
-								normalisedBTCStartBal = normalisedBTCStartBal.plus(startBal.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(startRate,16,RoundingMode.HALF_EVEN)));
-								normalisedBTCEndBal = normalisedBTCEndBal.plus(endBal.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(endRate,16,RoundingMode.HALF_EVEN)));
+								equivBTCStartBal = equivBTCStartBal.plus(startBal.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(startRate,16,RoundingMode.HALF_EVEN)));
+								equivBTCEndBal = equivBTCEndBal.plus(endBal.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(endRate,16,RoundingMode.HALF_EVEN)));
 							} else {
 								log.info("Not enough "+currency.getCode()+" ticker data collected yet to calculate profit/loss");
 								return;
@@ -148,10 +148,10 @@ public class ProfitLossAgent implements Runnable {
 				return;
 			}
 		}
-		profitBTC = normalisedBTCEndBal.minus(normalisedBTCStartBal);
-		profitPercent = profitBTC.getAmount().divide(normalisedBTCStartBal.getAmount(),16,RoundingMode.HALF_EVEN);
+		profitBTC = equivBTCEndBal.minus(equivBTCStartBal);
+		profitPercent = profitBTC.getAmount().divide(equivBTCStartBal.getAmount(),16,RoundingMode.HALF_EVEN);
 		String profitToDisplay = percentFormat.format(profitPercent);
-		log.info("Normalised BTC Start Balance: "+normalisedBTCStartBal.withScale(8,RoundingMode.HALF_EVEN).toString()+" Normalised BTC Current Balance: "+normalisedBTCEndBal.withScale(8,RoundingMode.HALF_EVEN).toString());
+		log.info("Equivalent BTC Start Balance: "+equivBTCStartBal.withScale(8,RoundingMode.HALF_EVEN).toString()+" Equivalent BTC Current Balance: "+equivBTCEndBal.withScale(8,RoundingMode.HALF_EVEN).toString());
 		log.info("BTC Profit/Loss: "+profitBTC.withScale(8,RoundingMode.HALF_EVEN).toString()+" Percentage Profit/Loss: "+profitToDisplay);
 	}
 }

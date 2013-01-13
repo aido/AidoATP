@@ -107,6 +107,10 @@ public class TrendTradingAgent implements Runnable {
 		tradeIndicator.put("SMA_Down",false);
 		tradeIndicator.put("VWAPCross_Up",false);
 		tradeIndicator.put("VWAPCross_Down",false);
+		tradeIndicator.put("MACD_Up",false);
+		tradeIndicator.put("MACD_Down",false);
+		tradeIndicator.put("MACD_Positive",false);
+		tradeIndicator.put("MACD_Negative",false);
 
 		NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
@@ -266,7 +270,65 @@ public class TrendTradingAgent implements Runnable {
 			}	
 			log.info(str.toString());
 		}
-		
+
+		// if MACD algorithm is enabled, use it to decide trade action
+		if (askLogic.contains("MACD") || bidLogic.contains("MACD")){
+			BigMoney macdLong = observer.getLongMACD();
+			BigMoney macdShort = observer.getShortMACD();
+			BigMoney macdSigLine = observer.getSigLineMACD();
+			BigMoney macdLine = macdShort.minus(macdLong);
+			
+			str.setLength(0);
+			str.append("Long MACD: ");
+			str.append(macdLong.withScale(8,RoundingMode.HALF_EVEN).toString());
+			str.append(" | ");
+			str.append("Short MACD: ");
+			str.append(macdShort.withScale(8,RoundingMode.HALF_EVEN).toString());
+			str.append(" | ");
+			str.append("MACD Line: ");
+			str.append(macdLine.withScale(8,RoundingMode.HALF_EVEN).toString());
+			str.append(" | ");
+			str.append("MACD Signal Line: ");
+			str.append(macdSigLine.withScale(8,RoundingMode.HALF_EVEN).toString());
+			log.info(str.toString());
+
+			str.setLength(0);
+			str.append("MACD has determined that the ");
+			str.append(localCurrency.getCode());
+			str.append(" market is trending");
+			if(macdShort.isGreaterThan(macdLong)) {
+				//Market is going up, look at selling some BTC
+				tradeIndicator.put("MACD_Positive",true);
+				str.append(" up.");
+			}else if(macdShort.isLessThan(macdLong)) {
+				//Market is going down, look at buying some BTC
+				tradeIndicator.put("MACD_Negative",true);
+				str.append(" down.");
+			}else {
+				//Market is stagnant, hold position
+				str.append(" flat.");
+			}
+			log.info(str.toString());
+			str.setLength(0);
+			str.append("MACD has determined that the ");
+			str.append(localCurrency.getCode());
+			str.append(" MACD Line is ");
+			if(macdLine.isGreaterThan(macdSigLine)) {
+				//Market is going up, look at selling some BTC
+				tradeIndicator.put("MACD_Up",true);
+				str.append("above");
+			}else if(macdLine.isLessThan(macdLong)) {
+				//Market is going down, look at buying some BTC
+				tradeIndicator.put("MACD_Down",true);
+				str.append("below");
+			}else {
+				//Market is stagnant, hold position
+				str.append("equal to");
+			}
+			str.append(" the MACD Signal Line.");
+			log.info(str.toString());
+		}
+
 		try {
 			log.debug("Ask Logic: " + askLogic);
 			log.debug("Bid Logic: " + bidLogic);
