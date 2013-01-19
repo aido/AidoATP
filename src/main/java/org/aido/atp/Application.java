@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class Application {
 
+	private static String[] exchanges = { "MtGox" };
 	private static Application instance = null;
 	private static HashMap<String, String> params;
 	private final Logger log;
@@ -45,7 +46,8 @@ public class Application {
 	private boolean arbModeFlag;
 	private boolean trendModeFlag;
 	private Console console;
-	private Thread accountManagerThread;
+	private ThreadGroup exchangeManagerThreadGroup;
+	private HashMap<String, Thread> exchangeManagers;
 	
 	private Application() {
 		log = LoggerFactory.getLogger(Application.class);
@@ -58,7 +60,7 @@ public class Application {
 		trendModeFlag = true;
 		console = System.console();	
 	}
-	
+
 	public static Application getInstance() {
 		if(instance == null) {
 			instance = new Application();
@@ -88,7 +90,7 @@ public class Application {
 			}
 		}
 
-		if(config.get("ApiKey", null) == null) {
+		if(config.get("MtGoxApiKey", null) == null) {
 			interview();
 		}
 	
@@ -109,9 +111,13 @@ public class Application {
 		if(params.get("--use-trend") != null){
 			setTrendMode(Boolean.valueOf(params.get("--use-trend")));
 		}
-		
-		accountManagerThread = new Thread(AccountManager.getInstance());
-		accountManagerThread.start();
+
+		exchangeManagers = new HashMap<String, Thread>();
+		exchangeManagerThreadGroup = new ThreadGroup("ExchangeManagers");
+		for (String exchange : exchanges) {
+			exchangeManagers.put(exchange, new Thread(exchangeManagerThreadGroup,ExchangeManager.getInstance(exchange)));
+			exchangeManagers.get(exchange).start();	
+		}
 		log.info("Aido ATP has started successfully");	
 		
 		if(getSimMode()){		
@@ -127,7 +133,8 @@ public class Application {
 		}
 		
 		try {
-			accountManagerThread.join();
+			for (String exchange : exchanges)
+				exchangeManagers.get(exchange).join();	
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -168,12 +175,20 @@ public class Application {
 			System.exit(1);
 		}
 		out.println("\nPlease answer all questions.\nDon't worry if you make a mistake you will have a chance to review before comitting.");
-		out.print("Enter your API key: ");
-		config.put("ApiKey",console.readLine());
 		
-		out.print("Enter your secret key: ");
-		config.put("SecretKey", console.readLine());
-		
+		for (String exchange : exchanges) {
+			out.print("Use " + exchange + " exchange (y/n): ");
+			if(console.readLine().equalsIgnoreCase("Y") ) {
+				out.print("Enter your " + exchange + " API key: ");
+				config.put(exchange + "ApiKey",console.readLine());
+				out.print("Enter your " + exchange + " secret key: ");
+				config.put(exchange + "SecretKey", console.readLine());
+				config.put("Use"+ exchange, "1");
+			} else {
+				config.put("Use"+ exchange, "0");
+			}
+		}
+
 		out.print("ISO Code for Prefered Currency (i.e. USD, GBP, JPY, EUR etc): ");
 		config.put("LocalCurrency", console.readLine());
 		
@@ -192,18 +207,22 @@ public class Application {
 		out.print("Overall maximum loss tolerance (eg 25% = 0.25): ");
 		config.put("MaxLoss", console.readLine());
 		
-		out.println("Enable Arbitrage trading engine");
-		out.println("0: Disable");
-		out.println("1: Enable");
-		config.put("UseArbitrage", console.readLine());
-		
+		out.println("Enable Arbitrage trading engine (y/n): ");
+		if(console.readLine().equalsIgnoreCase("Y") ) {
+			config.put("UseArbitrage", "1");
+		} else {
+			config.put("UseArbitrage", "0");
+		}
+
 		out.print("Minimum Profit to seek for Arbitrage (eg 10% = 0.10): ");
 		config.put("TargetProfit", console.readLine());
 
-		out.println("Enable Trend-following trading engine");
-		out.println("0: Disable");
-		out.println("1: Enable");
-		config.put("UseTrend", console.readLine());
+		out.println("Enable Trend-following trading engine (y/n): ");
+		if(console.readLine().equalsIgnoreCase("Y") ) {
+			config.put("UseTrend", "1");
+		} else {
+			config.put("UseTrend", "0");
+		}
 
 		out.print("Minimum ticker size for trending trade decisions: ");
 		config.put("MinTickSize", console.readLine());

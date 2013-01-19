@@ -36,19 +36,19 @@ import org.slf4j.LoggerFactory;
 
 public class ExchangeManager implements Runnable {
 
-	private static ExchangeManager instance = null;
 	private static Logger log;
 	private Exchange exchange;
 	private ExchangeSpecification exchangeSpecification;
 	private HashMap<CurrencyUnit, Double> asksInARow;
 	private HashMap<CurrencyUnit, Double> bidsInARow;
+	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
+	private static String exchangeName;
 	
-	
-	public static ExchangeManager getInstance() {
-		if(instance == null) {
-			instance = new ExchangeManager();
-		}
-		return instance;
+	public static ExchangeManager getInstance(String exchangeString) {
+		exchangeName = exchangeString;
+		if(instances.get(exchangeName) == null)
+			instances.put(exchangeName, new ExchangeManager());
+		return instances.get(exchangeName);
 	}
 	
 	private ExchangeManager(){
@@ -59,7 +59,11 @@ public class ExchangeManager implements Runnable {
 	
 	@Override
 	public synchronized void run() {
-		exchange = AidoMtGoxExchange.getInstance();
+		if (Application.getInstance().getConfig("Use" + exchangeName).equals("1")) {
+			if (exchangeName.equals("MtGox"))
+				exchange = ATPMtGoxExchange.getInstance();
+			getAccount();
+		}
 	}
 	
 	public Exchange getExchange() {
@@ -67,11 +71,17 @@ public class ExchangeManager implements Runnable {
 	}
 
 	public Exchange newExchange() {
-		return AidoMtGoxExchange.newInstance();
+		if (exchangeName.equals("MtGox"))
+			exchange = ATPMtGoxExchange.newInstance();
+		return exchange;
 	}
-
 	public void setExchangeSpecification(ExchangeSpecification exchangeSpecification) {
 		this.exchangeSpecification = exchangeSpecification;
+	}
+
+	public void getAccount() {
+		Thread accountManagerThread = new Thread(AccountManager.getInstance(exchangeName));
+		accountManagerThread.start();
 	}
 
 	public String getHost() {

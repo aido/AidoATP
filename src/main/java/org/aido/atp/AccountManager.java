@@ -44,71 +44,45 @@ import org.slf4j.LoggerFactory;
 
 public class AccountManager implements Runnable {
 
-	private static AccountManager instance = null;
+	private static HashMap<String, AccountManager> instances = new HashMap<String, AccountManager>();
+	private static String exchangeName;
 	private AccountInfo accountInfo;
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
-	private HashMap<CurrencyUnit, TickerManager> tickerTracker;
-	private ThreadGroup tickerThreadGroup;
 	private static Logger log;
 	private PollingAccountService accountService;
 	private List<Wallet> wallets;
 	
-	public static AccountManager getInstance() {
-		if(instance == null) {
-			instance = new AccountManager();
-		}
-		return instance;
+	public static AccountManager getInstance(String exchangeString) {
+		exchangeName = exchangeString;
+		if(instances.get(exchangeName) == null)
+			instances.put(exchangeName, new AccountManager());
+		return instances.get(exchangeName);
 	}
-	
+
 	private AccountManager(){
-		
 		try {	
-			tickerTracker = new HashMap<CurrencyUnit, TickerManager>();
-			tickerThreadGroup = new ThreadGroup("Tickers");
-			
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
 
-			new Thread(ExchangeManager.getInstance()).start();
-			
-			while ( ExchangeManager.getInstance().getExchange() == null )
-			{
-				try {
-					log.info("Waiting to connect.");
-					TimeUnit.SECONDS.sleep(2);
-				} catch (InterruptedException e2) {
-						e2.printStackTrace();
-				}
-			}			
-			
 			// Interested in the private account functionality (authentication)
-			accountService = ExchangeManager.getInstance().getExchange().getPollingAccountService();
-			
+			accountService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingAccountService();
+				
 			// Get the account information
 			accountInfo = accountService.getAccountInfo();
-			log.info("AccountInfo as String: " + accountInfo.toString());
+			log.info(exchangeName+" AccountInfo as String: " + accountInfo.toString());
 			refreshAccounts();
-	
-			for(Wallet wallet : wallets) {
-				CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-				if(currency.getCode().equals("BTC")) {
-					continue;
-				}
-//				tickerTracker.put(currency, new PollingTickerManager(currency));
-				tickerTracker.put(currency, new StreamingTickerManager(currency));
-				new Thread(tickerThreadGroup,tickerTracker.get(currency),currency.getCode()).start();
-			}
-		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+			startTickers();
+		} catch (com.xeiam.xchange.ExchangeException | com.xeiam.xchange.rest.HttpException e) {
 			Socket testSock = null;
 			while (true) {
 				try {
-					log.warn("WARNING: Testing connection to exchange");
-					testSock = new Socket(ExchangeManager.getInstance().getHost(),ExchangeManager.getInstance().getPort());
+					log.warn("WARNING: Testing connection to exchange "+exchangeName);
+					testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
 					try {
-						log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
+						log.error("ERROR: Cannot connect to exchange "+exchangeName+". Sleeping for one minute");
 						TimeUnit.MINUTES.sleep(1);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
@@ -116,7 +90,7 @@ public class AccountManager implements Runnable {
 				}
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected exception, shutting down now!.Details are listed below.");
+			log.error("ERROR: Caught unexpected "+exchangeName+" exception, shutting down now!.Details are listed below.");
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -139,7 +113,7 @@ public class AccountManager implements Runnable {
 				return balance;
 			}
 		}
-		log.error("ERROR: Could not find a wallet for the currency "+currency+". Exiting now!");
+		log.error("ERROR: Could not find a "+exchangeName+" wallet for the currency "+currency+". Exiting now!");
 		throw new WalletNotFoundException();
 	}
 	
@@ -168,5 +142,15 @@ public class AccountManager implements Runnable {
 	public AccountInfo getAccountInfo() {
 		return accountInfo;
 	}
-
+	
+	public void startTickers() {
+		ThreadGroup tickerThreadGroup = new ThreadGroup("Tickers");	
+		for(Wallet wallet : wallets) {
+			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
+			if(!currency.getCode().equals("BTC")) {
+				Thread tickermanagerManagerThread = new Thread(tickerThreadGroup,TickerManager.getInstance(exchangeName,currency));
+				tickermanagerManagerThread.start();
+			}
+		}
+	}
 }

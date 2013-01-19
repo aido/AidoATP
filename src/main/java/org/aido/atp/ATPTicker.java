@@ -19,9 +19,9 @@
 package org.aido.atp;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import org.joda.money.BigMoney;
-import org.joda.time.DateTime;
 
 import com.xeiam.xchange.dto.marketdata.Ticker;
 
@@ -38,7 +38,7 @@ public class ATPTicker implements Serializable{
 	private BigMoney   ask;
 	private BigMoney   bid;
 	private long       volume;
-	private DateTime   timestamp;
+	private Date	   timestamp;
 	private String     tradeableIdentifier;
 	
 	public ATPTicker(Ticker tick) {
@@ -83,11 +83,11 @@ public class ATPTicker implements Serializable{
 		this.volume = volume;
 	}
 
-	public DateTime getTimestamp() {
+	public Date getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(DateTime timestamp) {
+	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
 

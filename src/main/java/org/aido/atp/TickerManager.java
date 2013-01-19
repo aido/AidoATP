@@ -23,11 +23,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.joda.money.CurrencyUnit;
-import org.joda.time.DateTime;
 
 import com.xeiam.xchange.dto.marketdata.Ticker;
 
@@ -42,17 +43,29 @@ import org.slf4j.LoggerFactory;
 
 public class TickerManager implements Runnable {
 
+	private static HashMap<Pair, TickerManager> instances = new HashMap<Pair, TickerManager>();
 	private long currentVolume;
 	private long lastVolume;
 	private ArrayList<ATPTicker> tickerCache;
-	private CurrencyUnit currency;
+	private String exchangeName;
+	private String fileName;
+	private ThreadGroup tickerThreadGroup;
 	public boolean quit;
 	public Logger log;
 	
-	public TickerManager(CurrencyUnit currency) {
+	public static TickerManager getInstance(String exchangeName, CurrencyUnit currency) {
+		Pair exchangeCurrency = new Pair(exchangeName, currency);
+		if(instances.get(exchangeCurrency) == null)
+			if (exchangeName.equals("MtGox"))
+				instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
+		return instances.get(exchangeCurrency);
+	}
+	
+	public TickerManager(CurrencyUnit currency, String exchangeName) {
 		log = LoggerFactory.getLogger(TickerManager.class);
-		this.currency = currency;
-		
+		this.exchangeName = exchangeName;
+		this.fileName = exchangeName+"_"+currency.getCurrencyCode()+".dat";
+
 		quit = false;
 		try {
 			tickerCache = loadMarketData();
@@ -72,7 +85,6 @@ public class TickerManager implements Runnable {
 	}
 
 	public void getTick() {
-	
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -82,11 +94,11 @@ public class TickerManager implements Runnable {
 		String path = System.getProperty("user.dir");
 		if(path == null) {path = "";}
 		
-		File file = new File(path+"/"+currency.getCurrencyCode()+".dat");
+		File file = new File(path+"/"+fileName);
 		
 		if(file.exists()) {
 			
-			log.info("Attempting to open market data file "+path+"/"+currency.getCurrencyCode()+".dat");
+			log.info("Attempting to open market data file "+path+"/"+fileName);
 			
 			try {
 				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
@@ -96,14 +108,14 @@ public class TickerManager implements Runnable {
 				e.printStackTrace();
 			}
 		}else {
-			log.info("File "+file+" does not exist yet.  Either this is the first run or the market data file did not save properly last time.");
+			log.info("File "+file+" does not exist yet. Either this is the first run or the market data file did not save properly last time.");
 		}
 		
 		return data;
 	}
 
 	private synchronized void saveMarketData() {
-		File file = new File(System.getProperty("user.dir")+"/"+currency.getCurrencyCode()+".dat");
+		File file = new File(System.getProperty("user.dir")+"/"+fileName);
 		ObjectOutputStream oos;
 		try {
 			oos = new ObjectOutputStream(new FileOutputStream(file));
@@ -121,10 +133,10 @@ public class TickerManager implements Runnable {
 		
 		synchronized(tickerCache) {
 			ArrayList<ATPTicker> removeList = new ArrayList<ATPTicker>();
-			DateTime now = new DateTime();
+			Date now = new Date();
 			for(ATPTicker tick : tickerCache){
-				DateTime time = tick.getTimestamp();
-				if(now.getMillis() - time.getMillis() > TimeUnit.MILLISECONDS.convert(Long.valueOf(Application.getInstance().getConfig("MaxTickAge")),TimeUnit.MINUTES)) {
+				Date time = tick.getTimestamp();
+				if(now.getTime() - time.getTime() > TimeUnit.MILLISECONDS.convert(Long.valueOf(Application.getInstance().getConfig("MaxTickAge")),TimeUnit.MINUTES)) {
 					removeList.add(tick);
 				}
 			}
@@ -139,17 +151,17 @@ public class TickerManager implements Runnable {
 			synchronized(tickerCache) {
 				tickerCache.add(new ATPTicker(tick));
 				if (Application.getInstance().getArbMode()) {
-					new Thread(ArbitrageEngine.getInstance()).start();
-					ArbitrageEngine.getInstance().addTick(new ATPTicker(tick));
+					new Thread(ArbitrageEngine.getInstance(exchangeName)).start();
+					ArbitrageEngine.getInstance(exchangeName).addTick(new ATPTicker(tick));
 				}
 				if (Application.getInstance().getTrendMode()) {
-					new Thread(new TrendObserver(getMarketData())).start();
+					new Thread(new TrendObserver(exchangeName,getMarketData())).start();
 				}
 				ProfitLossAgent.getInstance().updateRates(tick.getAsk());
 				lastVolume = currentVolume;
 			}
 		}
-		saveMarketData();
+		saveMarketData();	
 	}
 	
 	public void stop() {

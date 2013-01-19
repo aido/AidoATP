@@ -56,21 +56,23 @@ public class TrendObserver implements Runnable {
 	private Logger log;
 	private boolean learningComplete;
 	private CurrencyUnit localCurrency;
+	private String exchangeName;
 	
-	public TrendObserver(ArrayList<ATPTicker> marketData) {
+	public TrendObserver(String exchangeName, ArrayList<ATPTicker> marketData) {
 		log = LoggerFactory.getLogger(TrendObserver.class);
 		this.ticker = marketData;
+		this.exchangeName = exchangeName;
 		localCurrency = ticker.get(0).getLast().getCurrencyUnit();
 		learningComplete = false;
 		if(ticker != null && !ticker.isEmpty()) {
 			if (ticker.size() < Integer.parseInt(Application.getInstance().getConfig("MinTickSize"))){
-				log.info(localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size()+". Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" data to determine trend.");
+				log.info(exchangeName + " " + localCurrency.getCurrencyCode()+" Ticker size: "+ticker.size()+". Trend observer does not currently have enough "+localCurrency.getCurrencyCode()+" data to determine trend.");
 				learningComplete = false;
 			} else {
 				learningComplete = true;
 			}
 		} else {
-			log.info("Trend observer currently has no "+localCurrency.getCurrencyCode()+" ticker data");
+			log.info(exchangeName + "Trend observer currently has no "+localCurrency.getCurrencyCode()+" ticker data");
 			learningComplete = false;
 		}	
 	}
@@ -222,13 +224,13 @@ public class TrendObserver implements Runnable {
 			longSMA = sumLongSMA.dividedBy(Long.valueOf(tickerSize),RoundingMode.HALF_EVEN);
 		}
 		
-		log.info("High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
-		log.info("Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
-		log.info("Current "+localCurrency.getCurrencyCode()+" :- "+ticker.get(tickerSize - 1).toString());
+		log.info(exchangeName + " High "+localCurrency.getCurrencyCode()+" :- "+high.toString());
+		log.info(exchangeName + " Low "+localCurrency.getCurrencyCode()+" :- "+low.toString());			
+		log.info(exchangeName + " Current "+localCurrency.getCurrencyCode()+" :- "+ticker.get(tickerSize - 1).toString());
 		
 		if(learningComplete) {
-			log.debug("Starting "+localCurrency.getCurrencyCode()+" trend trading agent.");
-			new Thread(new TrendTradingAgent(this)).start();
+			log.debug("Starting "+exchangeName+" "+localCurrency.getCurrencyCode()+" trend trading agent.");
+			new Thread(new TrendTradingAgent(this,exchangeName)).start();
 		}
 	}
 

@@ -25,6 +25,7 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Currencies;
 import com.xeiam.xchange.dto.marketdata.Ticker;
+import com.xeiam.xchange.service.ExchangeEvent;
 import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService;
 
 /**
@@ -36,26 +37,42 @@ import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService
 public class StreamingTickerManager extends TickerManager {
 
 	private StreamingMarketDataService marketData;
+	private BlockingQueue<ExchangeEvent> eventQueue;
 	private BlockingQueue<Ticker> tickerQueue;
+	private String exchangeName;
 
-	public StreamingTickerManager(CurrencyUnit currency) {
-		super(currency);
+	public StreamingTickerManager(CurrencyUnit currency, String exchangeName) {
+		super(currency,exchangeName);
+		this.exchangeName = exchangeName;
 		try {
-			marketData = ExchangeManager.getInstance().newExchange().getStreamingMarketDataService();
+			marketData = ExchangeManager.getInstance(exchangeName).newExchange().getStreamingMarketDataService();
+			// Get blocking queue that receives streaming ticker data
 			tickerQueue = marketData.getTickerQueue(Currencies.BTC,currency.getCurrencyCode());
-		}
-		catch (Exception e) {
+			// Get blocking queue that receives exchange event data
+			eventQueue = marketData.getEventQueue();
+		} catch (Exception e) {
 			e.printStackTrace();
 		} 	
 	}
 	
 	public void getTick() {
-			try {
+		ExchangeEvent exchangeEvent;
+		
+		try {
+			do {				
+				// Exhaust exchange events first
+				exchangeEvent = eventQueue.take();
+//				log.debug(exchangeName + " Exchange event: {} {}", exchangeEvent.getEventType().name(), new String(exchangeEvent.getRawData()));
+				log.debug("{} Exchange event: {}", exchangeName, exchangeEvent.getEventType().name());
+			} while (!eventQueue.isEmpty());
+			while (!tickerQueue.isEmpty()) {
+				// Check for Tickers
 				checkTick(tickerQueue.take());
-			} catch (Exception e) {
-				log.error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
-				e.printStackTrace();
-				stop();
 			}
+		} catch (Exception e) {
+			log.error("ERROR: Caught unexpected {} exception, ticker manager shutting down now!. Details are listed below.", exchangeName);
+			e.printStackTrace();
+			stop();
+		}
 	}
 }

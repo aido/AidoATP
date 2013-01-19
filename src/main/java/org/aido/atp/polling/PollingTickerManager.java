@@ -37,12 +37,14 @@ public class PollingTickerManager extends TickerManager{
 	
 	private PollingMarketDataService marketData;
 	private CurrencyUnit currency;
+	private String exchangeName;
 
-	public PollingTickerManager(CurrencyUnit currency) {
-		super(currency);
+	public PollingTickerManager(CurrencyUnit currency, String exchangeName) {
+		super(currency,exchangeName);
 		this.currency = currency;
+		this.exchangeName = exchangeName;
 		try {
-			marketData = ExchangeManager.getInstance().getExchange().getPollingMarketDataService();			
+			marketData = ExchangeManager.getInstance(exchangeName).getExchange().getPollingMarketDataService();			
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 	
@@ -52,17 +54,17 @@ public class PollingTickerManager extends TickerManager{
 		try {
 			checkTick(marketData.getTicker(Currencies.BTC, currency.getCurrencyCode()));
 			TimeUnit.SECONDS.sleep(10);
-		} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+		} catch (com.xeiam.xchange.ExchangeException | com.xeiam.xchange.rest.HttpException  e) {
 			Socket testSock = null;
 			while (true) {
 				try {
-					log.warn("WARNING: Testing connection to exchange");
-					testSock = new Socket(ExchangeManager.getInstance().getHost(),ExchangeManager.getInstance().getPort());
+					log.warn("WARNING: Testing connection to "+exchangeName+" exchange");
+					testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
 					try {
-						log.error("ERROR: Cannot connect to exchange. Sleeping for one minute");
+						log.error("ERROR: Cannot connect to "+exchangeName+" exchange. Sleeping for one minute");
 						TimeUnit.MINUTES.sleep(1);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
@@ -70,7 +72,7 @@ public class PollingTickerManager extends TickerManager{
 				}
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected exception, ticker manager shutting down now!. Details are listed below.");
+			log.error("ERROR: Caught unexpected "+exchangeName+" exception, ticker manager shutting down now!. Details are listed below.");
 			e.printStackTrace();
 			stop();
 		}

@@ -23,6 +23,8 @@ import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.mtgox.v1.MtGoxExchange;
 
+import org.joda.money.CurrencyUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +34,10 @@ import org.slf4j.LoggerFactory;
 * @author Aido
 */
 
-public class AidoMtGoxExchange extends MtGoxExchange {
+public class ATPMtGoxExchange extends MtGoxExchange {
 	
 	private static Exchange instance = null;
-	private static Logger log = LoggerFactory.getLogger(AidoMtGoxExchange.class);
+	private static Logger log = LoggerFactory.getLogger(ATPMtGoxExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
 	
 	public static Exchange getInstance() {
@@ -48,8 +50,8 @@ public class AidoMtGoxExchange extends MtGoxExchange {
 	public static Exchange newInstance() {	
 			exchangeSpecification = new ExchangeSpecification("com.xeiam.xchange.mtgox.v1.MtGoxExchange");
 
-			String apiKey = Application.getInstance().getConfig("ApiKey");
-			String secretKey= Application.getInstance().getConfig("SecretKey");
+			String apiKey = Application.getInstance().getConfig("MtGoxApiKey");
+			String secretKey= Application.getInstance().getConfig("MtGoxSecretKey");
 			
 			log.debug("MtGox API Key: "+apiKey);
 			log.debug("MtGox Secret Key: "+secretKey);
@@ -58,9 +60,8 @@ public class AidoMtGoxExchange extends MtGoxExchange {
 			exchangeSpecification.setSecretKey(secretKey);
 			exchangeSpecification.setUri("https://mtgox.com");
 			exchangeSpecification.setHost("mtgox.com");
-			exchangeSpecification.setVersion("1");
-			ExchangeManager.getInstance().setExchangeSpecification(exchangeSpecification);
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+			ExchangeManager.getInstance("MtGox").setExchangeSpecification(exchangeSpecification);
 			log.info("Connecting to MtGox Exchange");
 		return instance;
 	}

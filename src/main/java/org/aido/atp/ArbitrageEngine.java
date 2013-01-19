@@ -43,13 +43,14 @@ import org.slf4j.LoggerFactory;
 
 public class ArbitrageEngine implements Runnable {
 	
-	private static ArbitrageEngine instance = null;
+	private static HashMap<String, ArbitrageEngine> instances;
 	private CurrencyUnit baseCurrency;
 	private double factor;
 	private Logger log;
 	private boolean quit;
 	private boolean disableTrendTradeFlag;
 	private HashMap<CurrencyUnit, ATPTicker> lastTickMap;
+	private static String exchangeName;
 	
 	private ArbitrageEngine() {
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
@@ -59,11 +60,12 @@ public class ArbitrageEngine implements Runnable {
 		baseCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
 	}
 
-	public static synchronized ArbitrageEngine getInstance() {
-		if(instance == null) {
-			instance = new ArbitrageEngine();
+	public static synchronized ArbitrageEngine getInstance(String exchangeString) {
+		exchangeName = exchangeString;
+		if(instances.get(exchangeName) == null) {
+			instances.put(exchangeName, new ArbitrageEngine());
 		}
-		return instance;
+		return instances.get(exchangeName);
 	}
 	@Override
 	public synchronized void run() {
@@ -96,13 +98,13 @@ public class ArbitrageEngine implements Runnable {
 				
 				String profitToDisplay = percentFormat.format(profitAfterFee);
 				
-				log.debug("Arbitrage profit after fee: "+profitAfterFee);
+				log.debug(exchangeName+" Arbitrage profit after fee: "+profitAfterFee);
 				
 				if(profitAfterFee > targetProfit){
 					log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
-							+" on currency pair "+lowestAsk.getCurrencyUnit().toString()+"/"+highestBid.getCurrencyUnit().toString());
+							+" on currency pair "+lowestAsk.getCurrencyUnit().toString()+"/"+highestBid.getCurrencyUnit().toString()+" on "+exchangeName);
 					
-					log.info("Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
+					log.info(exchangeName+" Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
 					
 					try {
 						disableTrendTradeFlag = true;	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
@@ -112,30 +114,29 @@ public class ArbitrageEngine implements Runnable {
 						e.printStackTrace();
 					}
 				}else {
-					log.info("Arbitrage Engine cannot find a profitable opportunity at this time.");
+					log.info("Arbitrage Engine cannot find a profitable opportunity on "+exchangeName+" at this time.");
 				}
-			} catch (com.xeiam.xchange.PacingViolationException | com.xeiam.xchange.HttpException e) {
+			} catch (com.xeiam.xchange.ExchangeException e) {
 				Socket testSock = null;
 				try {
-					log.warn("WARNING: Testing connection to exchange");
-					testSock = new Socket(ExchangeManager.getInstance().getHost(),ExchangeManager.getInstance().getPort());
+					log.warn("WARNING: Testing connection to "+exchangeName+" exchange");
+					testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
 				}
 				catch (java.io.IOException e1) {
 					try {
-						log.error("ERROR: Cannot connect to exchange.");
+						log.error("ERROR: Cannot connect to "+exchangeName+" exchange.");
 						TimeUnit.MINUTES.sleep(1);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
 					}
 				}
 			} catch (Exception e) {
-				log.error("ERROR: Caught unexpected exception, shutting down arbitrage engine now!. Details are listed below.");
+				log.error("ERROR: Caught unexpected exception, shutting down "+exchangeName+" arbitrage engine now!. Details are listed below.");
 				e.printStackTrace();
 			}
 		}
 	}
 
-	
 	/**
 	* Create 2 orders, a buy & a sell
 	* @param from
@@ -144,7 +145,7 @@ public class ArbitrageEngine implements Runnable {
 	*/
 	private synchronized void executeTrade(BigMoney from, BigMoney to) throws WalletNotFoundException {
 		
-		PollingTradeService tradeService = ExchangeManager.getInstance().getExchange().getPollingTradeService();
+		PollingTradeService tradeService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingTradeService();
 		
 		BigMoney lastTickAskFrom = lastTickMap.get(from.getCurrencyUnit()).getAsk();
 		BigMoney lastTickBidTo = lastTickMap.get(to.getCurrencyUnit()).getBid();
@@ -156,7 +157,7 @@ public class ArbitrageEngine implements Runnable {
 		log.debug("Last ticker Bid price was "+lastTickBidTo.toString());
 		log.debug("BTC/"+to.getCurrencyUnit().toString()+" is "+oneDivTo.toString());
 		
-		BigMoney qtyFrom = AccountManager.getInstance().getBalance(from.getCurrencyUnit());
+		BigMoney qtyFrom = AccountManager.getInstance(exchangeName).getBalance(from.getCurrencyUnit());
 		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),oneDivFrom);
 		BigMoney qtyTo = qtyFromBTC.convertedTo(to.getCurrencyUnit(),lastTickBidTo.getAmount());
 		BigMoney qtyToBTC = qtyTo.convertedTo(CurrencyUnit.of("BTC"),oneDivTo);
@@ -165,13 +166,13 @@ public class ArbitrageEngine implements Runnable {
 			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",from.getCurrencyUnit().toString());
 			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qtyToBTC.getAmount(),"BTC",to.getCurrencyUnit().toString());
 			
-			log.debug("Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+qtyFrom.toString());
-			log.debug("Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
+			log.debug(exchangeName+" Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+qtyFrom.toString());
+			log.debug(exchangeName+" Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
 			
 			String marketbuyOrderReturnValue;
 			if(!Application.getInstance().getSimMode()){
 				marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
-				log.info("Market Buy Order return value: " + marketbuyOrderReturnValue);
+				log.info(exchangeName+" Market Buy Order return value: " + marketbuyOrderReturnValue);
 			}else{
 				log.info("You were in simulation mode, the trade below did NOT actually occur.");
 				marketbuyOrderReturnValue = "Simulation mode";
@@ -179,27 +180,27 @@ public class ArbitrageEngine implements Runnable {
 			
 			String marketsellOrderReturnValue;
 			if (marketbuyOrderReturnValue != null && !marketbuyOrderReturnValue.isEmpty()){
-				log.info("Arbitrage sold "+qtyFrom.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyFromBTC.withScale(8,RoundingMode.HALF_EVEN).toString());				
+				log.info("Arbitrage sold "+qtyFrom.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyFromBTC.withScale(8,RoundingMode.HALF_EVEN).toString()+" on "+exchangeName);				
 				if(!Application.getInstance().getSimMode()){
 					marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
-					log.info("Market Sell Order return value: " + marketsellOrderReturnValue);
+					log.info(exchangeName+" Market Sell Order return value: " + marketsellOrderReturnValue);
 				}else{
 					log.info("You were in simulation mode, the trade below did NOT actually occur.");
 					marketsellOrderReturnValue = "Simulation mode";
 				}				
 				if (marketsellOrderReturnValue != null && !marketsellOrderReturnValue.isEmpty()){
-					log.info("Arbitrage bought "+qtyTo.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyToBTC.withScale(8,RoundingMode.HALF_EVEN).toString());
-					log.info("Arbitrage successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString());
-					log.info(AccountManager.getInstance().getAccountInfo().toString());	
+					log.info("Arbitrage bought "+qtyTo.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyToBTC.withScale(8,RoundingMode.HALF_EVEN).toString()+" on "+exchangeName);
+					log.info("Arbitrage successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString()+" on "+exchangeName);
+					log.info(AccountManager.getInstance(exchangeName).getAccountInfo().toString());	
 					ProfitLossAgent.getInstance().calcProfitLoss();		
 				} else {
-					log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
+					log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString()+" on "+exchangeName);
 				}
 			} else {
-				log.error("ERROR: Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString());
+				log.error("ERROR: Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString()+" on "+exchangeName);
 			}
 		} else {
-			log.info("Arbitrage could not trade with a balance of "+qtyFrom.toString());
+			log.info("Arbitrage could not trade with a balance of "+qtyFrom.toString()+" on "+exchangeName);
 		}
 	}
 
