@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class Application {
 
-	private static String[] exchanges = { "MtGox", "BTC-e" };
+	private static String[] exchanges = { "MtGox", "BTC-e", "Bitstamp" };
 	private static Application instance = null;
 	private static HashMap<String, String> params;
 	private final Logger log;
@@ -90,7 +90,7 @@ public class Application {
 			}
 		}
 
-		if(config.get("MtGoxApiKey", null) == null) {
+		if(config.get("MtGoxApiKey", null) == null && config.get("BTC-eApiKey", null) == null && config.get("BitstampUserName", null) == null) {
 			interview();
 		}
 	
@@ -179,10 +179,17 @@ public class Application {
 		for (String exchange : exchanges) {
 			out.print("Use " + exchange + " exchange (y/n): ");
 			if(console.readLine().equalsIgnoreCase("Y") ) {
-				out.print("Enter your " + exchange + " API key: ");
-				config.put(exchange + "ApiKey",console.readLine());
-				out.print("Enter your " + exchange + " secret key: ");
-				config.put(exchange + "SecretKey", console.readLine());
+				if (exchange.equals("Bitstamp")) {
+					out.print("Enter your " + exchange + " Username: ");
+					config.put(exchange + "UserName",console.readLine());
+					out.print("Enter your " + exchange + " Password: ");
+					config.put(exchange + "Password", console.readLine());
+				} else {
+					out.print("Enter your " + exchange + " API key: ");
+					config.put(exchange + "ApiKey",console.readLine());
+					out.print("Enter your " + exchange + " secret key: ");
+					config.put(exchange + "SecretKey", console.readLine());
+				}
 				config.put("Use"+ exchange, "1");
 			} else {
 				config.put("Use"+ exchange, "0");

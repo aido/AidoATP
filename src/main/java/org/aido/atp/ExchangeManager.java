@@ -64,6 +64,8 @@ public class ExchangeManager implements Runnable {
 				exchange = ATPMtGoxExchange.getInstance();
 			} else if (exchangeName.equals("BTC-e")) {
 				exchange = ATPBTCeExchange.newInstance();
+			} else if (exchangeName.equals("Bitstamp")) {
+				exchange = ATPBitstampExchange.newInstance();
 			}
 			getAccount();
 		}
