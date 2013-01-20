@@ -58,7 +58,7 @@ public class TickerManager implements Runnable {
 		if(instances.get(exchangeCurrency) == null)
 			if (exchangeName.equals("MtGox")) {
 				instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
-			} else if (exchangeName.equals("BTC-e")) {
+			} else {
 				instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
 			}
 		return instances.get(exchangeCurrency);
