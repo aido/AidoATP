@@ -45,21 +45,21 @@ import org.slf4j.LoggerFactory;
 public class AccountManager implements Runnable {
 
 	private static HashMap<String, AccountManager> instances = new HashMap<String, AccountManager>();
-	private static String exchangeName;
+	private String exchangeName;
 	private AccountInfo accountInfo;
 	private HashMap<CurrencyUnit, ArrayList<BigMoney>> books;//We only look at first and last right now, but it would be handy to have changes over time as well.
 	private static Logger log;
 	private PollingAccountService accountService;
 	private List<Wallet> wallets;
 	
-	public static AccountManager getInstance(String exchangeString) {
-		exchangeName = exchangeString;
+	public static AccountManager getInstance(String exchangeName) {
 		if(instances.get(exchangeName) == null)
-			instances.put(exchangeName, new AccountManager());
+			instances.put(exchangeName, new AccountManager(exchangeName));
 		return instances.get(exchangeName);
 	}
 
-	private AccountManager(){
+	private AccountManager(String exchangeName){
+		this.exchangeName = exchangeName;
 		try {	
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
@@ -147,7 +147,7 @@ public class AccountManager implements Runnable {
 		ThreadGroup tickerThreadGroup = new ThreadGroup("Tickers");	
 		for(Wallet wallet : wallets) {
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-			if(!currency.getCode().equals("BTC")) {
+			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC")) {
 				Thread tickermanagerManagerThread = new Thread(tickerThreadGroup,TickerManager.getInstance(exchangeName,currency));
 				tickermanagerManagerThread.start();
 			}

@@ -50,22 +50,22 @@ public class ArbitrageEngine implements Runnable {
 	private boolean quit;
 	private boolean disableTrendTradeFlag;
 	private HashMap<CurrencyUnit, ATPTicker> lastTickMap;
-	private static String exchangeName;
-	
-	private ArbitrageEngine() {
+	private String exchangeName;
+
+	public static synchronized ArbitrageEngine getInstance(String exchangeName) {
+		if(instances.get(exchangeName) == null) {
+			instances.put(exchangeName, new ArbitrageEngine(exchangeName));
+		}
+		return instances.get(exchangeName);
+	}
+
+	private ArbitrageEngine(String exchangeName) {
+		this.exchangeName = exchangeName;
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
 		quit = false;
 		disableTrendTradeFlag = false;
 		lastTickMap = new HashMap<CurrencyUnit, ATPTicker>();
 		baseCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
-	}
-
-	public static synchronized ArbitrageEngine getInstance(String exchangeString) {
-		exchangeName = exchangeString;
-		if(instances.get(exchangeName) == null) {
-			instances.put(exchangeName, new ArbitrageEngine());
-		}
-		return instances.get(exchangeName);
 	}
 	@Override
 	public synchronized void run() {

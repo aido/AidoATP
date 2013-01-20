@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class Application {
 
-	private static String[] exchanges = { "MtGox" };
+	private static String[] exchanges = { "MtGox", "BTC-e" };
 	private static Application instance = null;
 	private static HashMap<String, String> params;
 	private final Logger log;
@@ -116,7 +116,7 @@ public class Application {
 		exchangeManagerThreadGroup = new ThreadGroup("ExchangeManagers");
 		for (String exchange : exchanges) {
 			exchangeManagers.put(exchange, new Thread(exchangeManagerThreadGroup,ExchangeManager.getInstance(exchange)));
-			exchangeManagers.get(exchange).start();	
+			exchangeManagers.get(exchange).start();
 		}
 		log.info("Aido ATP has started successfully");	
 		

@@ -80,16 +80,6 @@ Boolean logic is used with the following parameters for each trading algorithm:
 
 Advance/Decline Spread algorithm:				ADS_Up and ADS_Down
 
-Exponential Moving Average algorithm:			EMA_Up and EMA_Down
-
-Simple Moving Average algorithm:				SMA_Up and SMA_Down
-
-Any of the above trending algorithms may be used in to make buy / sell decision. The trading logic is dynamic and is contained in the configuration file.
-
-Boolean logic is use with the following parameters for each trading algorithm:
-
-Advance/Decline Spread algorithm:				ADS_Up and ADS_Down
-
 Exponential Moving Average algorithm:			EMA_Up and EMS_Down
 
 Simple Moving Average algorithm:				SMA_Up and SMS_Down
@@ -125,6 +115,7 @@ For example, the following logic may be used in the configuration file to trigge
 THE WRONG CONFIGURATION OF ANY OF THE ABOVE ALGORITHMS MAY LEAD TO SUBSTANTIAL LOSSES!!!
 
 Once a trade decision has been made a stop loss value and risk calculation is used to determine the trade amount.
+
 
 How much currency to use in a trade
 ===================================

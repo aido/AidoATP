@@ -42,16 +42,16 @@ public class ExchangeManager implements Runnable {
 	private HashMap<CurrencyUnit, Double> asksInARow;
 	private HashMap<CurrencyUnit, Double> bidsInARow;
 	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
-	private static String exchangeName;
+	private String exchangeName;
 	
-	public static ExchangeManager getInstance(String exchangeString) {
-		exchangeName = exchangeString;
+	public static ExchangeManager getInstance(String exchangeName) {
 		if(instances.get(exchangeName) == null)
-			instances.put(exchangeName, new ExchangeManager());
+			instances.put(exchangeName, new ExchangeManager(exchangeName));
 		return instances.get(exchangeName);
 	}
 	
-	private ExchangeManager(){
+	private ExchangeManager(String exchangeName){
+		this.exchangeName = exchangeName;
 		log = LoggerFactory.getLogger(ExchangeManager.class);
 		asksInARow = new HashMap<CurrencyUnit, Double>();
 		bidsInARow = new HashMap<CurrencyUnit, Double>();
@@ -60,8 +60,11 @@ public class ExchangeManager implements Runnable {
 	@Override
 	public synchronized void run() {
 		if (Application.getInstance().getConfig("Use" + exchangeName).equals("1")) {
-			if (exchangeName.equals("MtGox"))
+			if (exchangeName.equals("MtGox")) {
 				exchange = ATPMtGoxExchange.getInstance();
+			} else if (exchangeName.equals("BTC-e")) {
+				exchange = ATPBTCeExchange.newInstance();
+			}
 			getAccount();
 		}
 	}
@@ -71,8 +74,11 @@ public class ExchangeManager implements Runnable {
 	}
 
 	public Exchange newExchange() {
-		if (exchangeName.equals("MtGox"))
+		if (exchangeName.equals("MtGox")) {
 			exchange = ATPMtGoxExchange.newInstance();
+		} else if (exchangeName.equals("BTC-e")) {
+			exchange = ATPBTCeExchange.newInstance();
+		}
 		return exchange;
 	}
 	public void setExchangeSpecification(ExchangeSpecification exchangeSpecification) {
