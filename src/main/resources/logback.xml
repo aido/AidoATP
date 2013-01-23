@@ -11,7 +11,7 @@
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>aidoatp.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-			<fileNamePattern>aido.log.%i.gz</fileNamePattern>
+			<fileNamePattern>aidoatp.log.%i.gz</fileNamePattern>
 			<minIndex>1</minIndex>
 			<maxIndex>8</maxIndex>
 		</rollingPolicy>

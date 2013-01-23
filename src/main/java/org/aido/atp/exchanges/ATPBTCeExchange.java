@@ -53,8 +53,8 @@ public class ATPBTCeExchange extends BTCEExchange {
 			String apiKey = Application.getInstance().getConfig("BTC-eApiKey");
 			String secretKey= Application.getInstance().getConfig("BTC-eSecretKey");
 			
-			log.debug("BTC-e API Key: "+apiKey);
-			log.debug("BTC-e Secret Key: "+secretKey);
+			log.debug("BTC-e API Key: {}",apiKey);
+			log.debug("BTC-e Secret Key: {}",secretKey);
 			
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);			

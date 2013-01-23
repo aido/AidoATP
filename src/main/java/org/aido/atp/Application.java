@@ -214,7 +214,7 @@ public class Application {
 		out.print("Overall maximum loss tolerance (eg 25% = 0.25): ");
 		config.put("MaxLoss", console.readLine());
 		
-		out.println("Enable Arbitrage trading engine (y/n): ");
+		out.print("Enable Arbitrage trading engine (y/n): ");
 		if(console.readLine().equalsIgnoreCase("Y") ) {
 			config.put("UseArbitrage", "1");
 		} else {
@@ -224,7 +224,7 @@ public class Application {
 		out.print("Minimum Profit to seek for Arbitrage (eg 10% = 0.10): ");
 		config.put("TargetProfit", console.readLine());
 
-		out.println("Enable Trend-following trading engine (y/n): ");
+		out.print("Enable Trend-following trading engine (y/n): ");
 		if(console.readLine().equalsIgnoreCase("Y") ) {
 			config.put("UseTrend", "1");
 		} else {
@@ -293,7 +293,7 @@ public class Application {
 				try {
 					params.put(pair[0], pair[1]);
 				}catch( Exception ex){
-					log.error("ERROR: Bad Parameter: " + pair[0]+". Parameters must be specified as \"-parameter=value\"");
+					log.error("ERROR: Bad Parameter: {}. Parameters must be specified as \"-parameter=value\"",pair[0]);
 					ex.printStackTrace();
 					System.exit(1);
 				}

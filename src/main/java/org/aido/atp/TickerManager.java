@@ -57,7 +57,7 @@ public class TickerManager implements Runnable {
 		Pair exchangeCurrency = new Pair(exchangeName, currency);
 		if(instances.get(exchangeCurrency) == null)
 			if (exchangeName.equals("MtGox")) {
-				instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
+				instances.put(exchangeCurrency,new StreamingTickerManager(currency,exchangeName));
 			} else {
 				instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
 			}
@@ -101,7 +101,7 @@ public class TickerManager implements Runnable {
 		
 		if(file.exists()) {
 			
-			log.info("Attempting to open market data file "+path+"/"+fileName);
+			log.info("Attempting to open market data file {}/{}",path,fileName);
 			
 			try {
 				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
@@ -111,7 +111,7 @@ public class TickerManager implements Runnable {
 				e.printStackTrace();
 			}
 		}else {
-			log.info("File "+file+" does not exist yet. Either this is the first run or the market data file did not save properly last time.");
+			log.info("File {} does not exist yet. Either this is the first run or the market data file did not save properly last time.", file);
 		}
 		
 		return data;

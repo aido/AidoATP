@@ -63,9 +63,9 @@ public class ExchangeManager implements Runnable {
 			if (exchangeName.equals("MtGox")) {
 				exchange = ATPMtGoxExchange.getInstance();
 			} else if (exchangeName.equals("BTC-e")) {
-				exchange = ATPBTCeExchange.newInstance();
+				exchange = ATPBTCeExchange.getInstance();
 			} else if (exchangeName.equals("Bitstamp")) {
-				exchange = ATPBitstampExchange.newInstance();
+				exchange = ATPBitstampExchange.getInstance();
 			}
 			getAccount();
 		}
@@ -80,6 +80,8 @@ public class ExchangeManager implements Runnable {
 			exchange = ATPMtGoxExchange.newInstance();
 		} else if (exchangeName.equals("BTC-e")) {
 			exchange = ATPBTCeExchange.newInstance();
+		} else if (exchangeName.equals("Bitstamp")) {
+				exchange = ATPBitstampExchange.newInstance();
 		}
 		return exchange;
 	}

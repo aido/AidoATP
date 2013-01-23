@@ -53,8 +53,8 @@ public class ATPBitstampExchange extends BitstampExchange {
 			String userName = Application.getInstance().getConfig("BitstampUserName");
 			String passWord = Application.getInstance().getConfig("BitstampPassword");
 			
-			log.debug("Bitstamp UserName: "+userName);
-			log.debug("Bitstamp Password: "+passWord);
+			log.debug("Bitstamp UserName: {}",userName);
+			log.debug("Bitstamp Password: {}",passWord);
 			
 			exchangeSpecification.setUserName(userName);
 			exchangeSpecification.setPassword(passWord);

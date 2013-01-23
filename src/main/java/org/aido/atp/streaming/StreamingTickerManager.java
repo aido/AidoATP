@@ -24,9 +24,10 @@ import java.util.concurrent.BlockingQueue;
 import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Currencies;
-import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.service.ExchangeEvent;
+import com.xeiam.xchange.service.ExchangeEventType;
 import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService;
+import com.xeiam.xchange.dto.marketdata.Ticker;
 
 /**
 * Streaming Ticker Manager class.
@@ -36,20 +37,17 @@ import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService
 
 public class StreamingTickerManager extends TickerManager {
 
-	private StreamingMarketDataService marketData;
 	private BlockingQueue<ExchangeEvent> eventQueue;
-	private BlockingQueue<Ticker> tickerQueue;
 	private String exchangeName;
 
 	public StreamingTickerManager(CurrencyUnit currency, String exchangeName) {
 		super(currency,exchangeName);
 		this.exchangeName = exchangeName;
+		
 		try {
-			marketData = ExchangeManager.getInstance(exchangeName).newExchange().getStreamingMarketDataService();
-			// Get blocking queue that receives streaming ticker data
-			tickerQueue = marketData.getTickerQueue(Currencies.BTC,currency.getCurrencyCode());
+			StreamingMarketDataService marketData = ExchangeManager.getInstance(exchangeName).newExchange().getStreamingMarketDataService();
 			// Get blocking queue that receives exchange event data
-			eventQueue = marketData.getEventQueue();
+			eventQueue = marketData.getEventQueue(Currencies.BTC,currency.getCurrencyCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 	
@@ -57,20 +55,23 @@ public class StreamingTickerManager extends TickerManager {
 	
 	public void getTick() {
 		ExchangeEvent exchangeEvent;
+		ExchangeEventType exchangeEventType;
 		
 		try {
-			do {				
-				// Exhaust exchange events first
-				exchangeEvent = eventQueue.take();
-//				log.debug(exchangeName + " Exchange event: {} {}", exchangeEvent.getEventType().name(), new String(exchangeEvent.getRawData()));
-				log.debug("{} Exchange event: {}", exchangeName, exchangeEvent.getEventType().name());
-			} while (!eventQueue.isEmpty());
-			while (!tickerQueue.isEmpty()) {
-				// Check for Tickers
-				checkTick(tickerQueue.take());
+			// Monitor the exchange events
+			exchangeEvent = eventQueue.take();
+			exchangeEventType = exchangeEvent.getEventType();
+
+			if (exchangeEventType == ExchangeEventType.TICKER) {
+//				Ticker ticker = (Ticker) exchangeEvent.getPayload();
+				checkTick((Ticker) exchangeEvent.getPayload());
+//			} else if (exchangeEventType == ExchangeEventType.DISCONNECT)) {
+//				log.error("{} has disconnected", exchangeName);
+			} else {
+				log.debug(exchangeName + " Exchange event: {} {}",exchangeEventType.name(),exchangeEvent.getData());
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected {} exception, ticker manager shutting down now!. Details are listed below.", exchangeName);
+			log.error("ERROR: Caught unexpected {} exception, ticker manager shutting down now!. Details are listed below.",exchangeName);
 			e.printStackTrace();
 			stop();
 		}

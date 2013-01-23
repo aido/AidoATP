@@ -26,6 +26,7 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Currencies;
 import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
+import com.xeiam.xchange.dto.marketdata.Ticker;
 
 /**
 * Polling Ticker Manager class.
@@ -34,17 +35,18 @@ import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 */
 
 public class PollingTickerManager extends TickerManager{
-	
-	private PollingMarketDataService marketData;
-	private CurrencyUnit currency;
+
 	private String exchangeName;
+	private Ticker tick;
 
 	public PollingTickerManager(CurrencyUnit currency, String exchangeName) {
 		super(currency,exchangeName);
-		this.currency = currency;
 		this.exchangeName = exchangeName;
+		PollingMarketDataService marketData;
+
 		try {
-			marketData = ExchangeManager.getInstance(exchangeName).getExchange().getPollingMarketDataService();			
+			marketData = ExchangeManager.getInstance(exchangeName).getExchange().getPollingMarketDataService();
+			tick = marketData.getTicker(Currencies.BTC, currency.getCurrencyCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 	
@@ -52,19 +54,19 @@ public class PollingTickerManager extends TickerManager{
 
 	public void getTick() {
 		try {
-			checkTick(marketData.getTicker(Currencies.BTC, currency.getCurrencyCode()));
+			checkTick(tick);
 			TimeUnit.SECONDS.sleep(10);
 		} catch (com.xeiam.xchange.ExchangeException | com.xeiam.xchange.rest.HttpException  e) {
 			Socket testSock = null;
 			while (true) {
 				try {
-					log.warn("WARNING: Testing connection to "+exchangeName+" exchange");
+					log.warn("WARNING: Testing connection to {} exchange",exchangeName);
 					testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
 					try {
-						log.error("ERROR: Cannot connect to "+exchangeName+" exchange. Sleeping for one minute");
+						log.error("ERROR: Cannot connect to {} exchange. Sleeping for one minute",exchangeName);
 						TimeUnit.MINUTES.sleep(1);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
@@ -72,7 +74,7 @@ public class PollingTickerManager extends TickerManager{
 				}
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected "+exchangeName+" exception, ticker manager shutting down now!. Details are listed below.");
+			log.error("ERROR: Caught unexpected {} exception, ticker manager shutting down now!. Details are listed below.",exchangeName);
 			e.printStackTrace();
 			stop();
 		}

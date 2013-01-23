@@ -53,8 +53,8 @@ public class ATPMtGoxExchange extends MtGoxExchange {
 			String apiKey = Application.getInstance().getConfig("MtGoxApiKey");
 			String secretKey= Application.getInstance().getConfig("MtGoxSecretKey");
 			
-			log.debug("MtGox API Key: "+apiKey);
-			log.debug("MtGox Secret Key: "+secretKey);
+			log.debug("MtGox API Key: {}",apiKey);
+			log.debug("MtGox Secret Key: {}",secretKey);
 			
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);
