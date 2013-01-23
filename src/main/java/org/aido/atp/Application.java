@@ -231,12 +231,15 @@ public class Application {
 			config.put("UseTrend", "0");
 		}
 
+		out.print("Polling Interval (in seconds): ");		
+		config.put("PollingInterval", console.readLine());		
+		
 		out.print("Minimum ticker size for trending trade decisions: ");
 		config.put("MinTickSize", console.readLine());
 
 		out.print("Maximum ticker age for trending trade decisions (in minutes): ");		
 		config.put("MaxTickAge", console.readLine());		
-		
+
 		out.print("Number of ticks used to calculate short Moving Average: ");
 		config.put("ShortMATickSize", console.readLine());
 

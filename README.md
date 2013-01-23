@@ -179,6 +179,7 @@ When interviewed the user will be asked for the following information:
 	Enable Arbitrage trading engine
 	Minimum Profit to seek for Arbitrage (eg 10% = 0.10)
 	Enable Trend-following trading engine
+	Polling Interval (in seconds)
 	Minimum ticker size for trend following trade decisions
 	Maximum ticker age for trend following trade decisions (in minutes)
 	Number of ticks used to calculate short Moving Average
@@ -192,6 +193,20 @@ When interviewed the user will be asked for the following information:
 		
 If used, the --use-arbitrage and --use-trend command line switches will over-ride their respective configuration file values.
 Use of --simulation-mode=false command line switch implies the user agrees with the license terms.
+
+Suggested values
+================
+
+The following are just some suggested values:
+
+	Polling interval (in seconds) : 15 to 60 seconds
+	Minimum ticker size for trend following trade decisions : Greater than 16
+	Maximum ticker age for trend following trade decisions (in minutes) : Greater than 60 minutes
+	Number of ticks used to calculate short Moving Average : Minimum ticker size + 1
+	Number of ticks used to calculate short Moving Average Convergence-Divergence : 12
+	Number of ticks used to calculate long Moving Average Convergence-Divergence: 26
+	Number of MACD values used to calculate MACD Signal Line : 9
+	Trading fee (eg 0.6% = 0.006) : 0.006
 
 Practical example of Trend-following logic
 ==========================================
