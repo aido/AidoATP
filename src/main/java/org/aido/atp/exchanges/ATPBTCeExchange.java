@@ -48,7 +48,7 @@ public class ATPBTCeExchange extends BTCEExchange {
 	}
 	
 	public static Exchange newInstance() {	
-			exchangeSpecification = new ExchangeSpecification("com.xeiam.xchange.btce.BTCEExchange");
+			exchangeSpecification = new ExchangeSpecification(BTCEExchange.class.getName());
 
 			String apiKey = Application.getInstance().getConfig("BTC-eApiKey");
 			String secretKey= Application.getInstance().getConfig("BTC-eSecretKey");

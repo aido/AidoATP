@@ -48,7 +48,7 @@ public class ATPBitstampExchange extends BitstampExchange {
 	}
 	
 	public static Exchange newInstance() {	
-			exchangeSpecification = new ExchangeSpecification("com.xeiam.xchange.bitstamp.BitstampExchange");
+			exchangeSpecification = new ExchangeSpecification(BitstampExchange.class.getName());
 
 			String userName = Application.getInstance().getConfig("BitstampUserName");
 			String passWord = Application.getInstance().getConfig("BitstampPassword");

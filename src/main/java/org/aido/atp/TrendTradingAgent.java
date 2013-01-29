@@ -48,10 +48,12 @@ import org.slf4j.LoggerFactory;
 
 public class TrendTradingAgent implements Runnable {
 
-	private double trendArrow;
-	private double bidArrow;
-	private double askArrow;
-	private double maxWeight;
+	private Integer trendArrow;
+	private Integer bidArrow;
+	private Integer askArrow;
+	private Integer tickerSize;
+	private Integer riskAlgorithm;
+	private Double maxWeight;
 	private HashMap<CurrencyUnit, Double> asksInARow;
 	private HashMap<CurrencyUnit, Double> bidsInARow;
 	private HashMap<String, Boolean> tradeIndicator;
@@ -62,8 +64,6 @@ public class TrendTradingAgent implements Runnable {
 	private BigMoney minBTC;
 	private BigMoney maxLocal;
 	private BigMoney minLocal;
-	private int tickerSize;
-	private int riskAlgorithm;
 	private CurrencyUnit localCurrency;
 	private Logger log;
 	private boolean evalAsk;
@@ -80,8 +80,8 @@ public class TrendTradingAgent implements Runnable {
 		maxLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MaxLocal")));
 		minBTC = BigMoney.of(CurrencyUnit.of("BTC"),new BigDecimal(Application.getInstance().getConfig("MinBTC")));
 		minLocal = BigMoney.of(localCurrency,new BigDecimal(Application.getInstance().getConfig("MinLocal")));
-		maxWeight = Double.parseDouble(Application.getInstance().getConfig("MaxLoss"));
-		riskAlgorithm = Integer.parseInt(Application.getInstance().getConfig("RiskAlgorithm"));
+		maxWeight = Double.valueOf(Application.getInstance().getConfig("MaxLoss"));
+		riskAlgorithm = Integer.valueOf(Application.getInstance().getConfig("RiskAlgorithm"));
 		asksInARow = ExchangeManager.getInstance(exchangeName).getAsksInARow();
 		bidsInARow = ExchangeManager.getInstance(exchangeName).getBidsInARow();
 		if(asksInARow.get(localCurrency) == null){
@@ -124,7 +124,7 @@ public class TrendTradingAgent implements Runnable {
 		lastTick = observer.getLastTick();
 		tickerSize = observer.getTickerSize();
 					
-		log.info(exchangeName + " " + localCurrency.getCode()+" Ticker Size: "+tickerSize);
+		log.info(exchangeName + " {} Ticker Size: {}",localCurrency.getCode(), tickerSize);
 		StringBuilder str = new StringBuilder();
 		
 		// if Advance/Decline Spread algorithm is enabled, use it to decide trade action
@@ -265,11 +265,11 @@ public class TrendTradingAgent implements Runnable {
 			//Is currentBid > averageCost?
 			if (currentBid.isGreaterThan(vwap)) {
 				tradeIndicator.put("VWAPCross_Up",true);
-				log.debug(exchangeName + "Current bid price of "+currentBid.toString()+" is above the VWAP of "+vwap.toString());				
+				log.debug(exchangeName + "Current bid price of {} is above the VWAP of {}",currentBid.toString(),vwap.toString());				
 				str.append(" up.");
 			} else if (currentAsk.isLessThan(vwap)) {
 				tradeIndicator.put("VWAPCross_Down",true);
-				log.debug(exchangeName + "Current ask price of "+currentAsk.toString()+" is below the VWAP of "+vwap.toString());
+				log.debug(exchangeName + "Current ask price of {} is below the VWAP of {}",currentAsk.toString(),vwap.toString());
 				str.append(" down.");
 			} else {
 				str.append(" flat.");
@@ -337,18 +337,18 @@ public class TrendTradingAgent implements Runnable {
 		}
 
 		try {
-			log.debug("Ask Logic: " + askLogic);
-			log.debug("Bid Logic: " + bidLogic);
+			log.debug("Ask Logic: {}", askLogic);
+			log.debug("Bid Logic: {}", bidLogic);
 
 			if (evalLogic(askLogic)) {
 				evalAsk();
 			}else if (evalLogic(bidLogic)) {
 				evalBid();
 			}else {
-				log.info(exchangeName + " Trend following trading agent has decided no "+localCurrency.getCode()+" action will be taken at this time.");
+				log.info("{} Trend following trading agent has decided no {} action will be taken at this time.",exchangeName,localCurrency.getCode());
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected exception, shutting down " + exchangeName + " trend following trading agent now!. Details are listed below.");
+			log.error("ERROR: Caught unexpected exception, shutting down {} trend following trading agent now!. Details are listed below.",exchangeName);
 			e.printStackTrace();
 		}
 	}
@@ -365,7 +365,7 @@ public class TrendTradingAgent implements Runnable {
 			str.append("Used ");
 
 			//Look at bid arrow and calculate weight
-			if(riskAlgorithm == 1) {
+			if(riskAlgorithm.equals(1)) {
 				str.append("High");
 				weight = (bidArrow + trendArrow) / tickerSize;
 			}else {
@@ -380,24 +380,24 @@ public class TrendTradingAgent implements Runnable {
 			log.info(str.toString());
 			
 			if(weight > maxWeight) {
-				log.info("Weight is above stop loss value, limiting weight to "+maxWeight);
+				log.info("Weight is above stop loss value, limiting weight to {}",maxWeight);
 				weight = maxWeight;
 			}
 			//Check balance and see if we even have anything to sell
 			BigMoney balanceBTC = AccountManager.getInstance(exchangeName).getBalance(CurrencyUnit.of("BTC"));
 			
 			if (balanceBTC != null) {
-				log.debug(exchangeName + "BTC Balance: "+balanceBTC.toString());
+				log.debug("{} BTC Balance: {}",exchangeName,balanceBTC.toString());
 			}else {
-				log.error("ERROR: "+ exchangeName + " BTC Balance is null");
+				log.error("ERROR: {} BTC Balance is null.",exchangeName);
 			}
 			if (maxBTC != null) {
-				log.debug("Max. BTC: "+maxBTC.toString());
+				log.debug("Max. BTC: {}",maxBTC.toString());
 			}else {
 				log.error("ERROR: Max. BTC is null");
 			}
 			if (minBTC != null) {
-				log.debug("Min. BTC: "+minBTC.toString());
+				log.debug("Min. BTC: {}",minBTC.toString());
 			}else {
 				log.error("ERROR: Min. BTC is null");
 			}
@@ -406,7 +406,7 @@ public class TrendTradingAgent implements Runnable {
 				if(!balanceBTC.isZero()) {
 					BigMoney qtyToSell;
 					BigDecimal bigWeight = new BigDecimal(weight / Math.pow(2, asksInARow.get(localCurrency)));
-					if(riskAlgorithm == 1) {
+					if(riskAlgorithm.equals(1)) {
 						qtyToSell = balanceBTC.multipliedBy(bigWeight);
 					}else {
 						if(balanceBTC.compareTo(maxBTC) >= 0) {
@@ -416,29 +416,29 @@ public class TrendTradingAgent implements Runnable {
 						}
 					}
 					if(qtyToSell.isGreaterThan(maxBTC)) {
-						log.info(qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString() + " was more than the configured limit of "+maxBTC.toString());
-						log.info("Reducing "+ exchangeName + "order size to "+maxBTC.toString());
+						log.info("{} was more than the configured limit of {}",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),maxBTC.toString());
+						log.info("Reducing {} order size to {}",exchangeName,maxBTC.toString());
 						qtyToSell = maxBTC;
 					}
 					if(qtyToSell.isLessThan(minBTC)) {
-						log.info(qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured limit of "+minBTC.toString());
-						log.info("Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
+						log.info("{} was less than the configured limit of {}",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),minBTC.toString());
+						log.info("Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",localCurrency.getCode());
 					} else if (Application.getInstance().getArbMode()) {
 						if (ArbitrageEngine.getInstance(exchangeName).getDisableTrendTrade()) {
 							log.info("Trend following trades disabled by Arbitrage Engine.");
 						}
 					} else {
-						log.info(exchangeName + "Trend following trade agent is attempting to sell "+qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString()+" of "+balanceBTC.toString()+" available");
+						log.info(exchangeName + "Trend following trade agent is attempting to sell {} of {} available",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),balanceBTC.toString());
 						marketOrder(qtyToSell.getAmount(),OrderType.ASK);
 					}
 				} else {
 					log.info(exchangeName + "BTC balance is empty. No further selling is possible until the market corrects or funds are added to your account.");
 				}
 			}else{
-				log.info("Could not determine " + exchangeName + " wallet balance at this time, order will not be processed.");
+				log.info("Could not determine {} wallet balance at this time, order will not be processed.",exchangeName);
 			}
 		}catch(WalletNotFoundException e) {
-			log.error("ERROR: Could not find " + exchangeName + " wallet for "+localCurrency.getCurrencyCode());
+			log.error("ERROR: Could not find {} wallet for {}.",exchangeName,localCurrency.getCurrencyCode());
 			System.exit(1);
 		}
 		return;
@@ -457,7 +457,7 @@ public class TrendTradingAgent implements Runnable {
 			str.append("Used ");
 			
 			//Look at bid arrow and calculate weight
-			if(riskAlgorithm == 1) {
+			if(riskAlgorithm.equals(1)) {
 				str.append("High");
 				weight = (askArrow + trendArrow) / tickerSize;
 			}else {
@@ -472,7 +472,7 @@ public class TrendTradingAgent implements Runnable {
 			log.info(str.toString());
 						
 			if(weight > maxWeight) {
-				log.info("Weight is above stop loss value, limiting weight to "+maxWeight);
+				log.info("Weight is above stop loss value, limiting weight to {}",maxWeight);
 				weight = maxWeight;
 			}
 			
@@ -480,17 +480,17 @@ public class TrendTradingAgent implements Runnable {
 			balanceLocal = AccountManager.getInstance(exchangeName).getBalance(localCurrency);
 			
 			if (balanceLocal != null) {
-				log.debug(exchangeName + "Local Balance: "+balanceLocal.toString());
+				log.debug("{} Local Balance: {}",exchangeName,balanceLocal.toString());
 			}else {
-				log.error("ERROR: " + exchangeName + " Local Balance is null");
+				log.error("ERROR: {} Local Balance is null",exchangeName);
 			}
 			if (maxLocal != null) {
-				log.debug("Max. Local: "+maxLocal.toString());
+				log.debug("Max. Local: {}",maxLocal.toString());
 			}else {
 				log.error("ERROR: Max. Local is null");
 			}
 			if (minLocal != null) {
-				log.debug("Min. Local: "+minLocal.toString());
+				log.debug("Min. Local: {}",minLocal.toString());
 			}else {
 				log.error("ERROR: Min. Local is null");
 			}
@@ -500,7 +500,7 @@ public class TrendTradingAgent implements Runnable {
 				if(!balanceLocal.isZero()) {
 					BigMoney qtyToBuy;
 					BigDecimal bigWeight = new BigDecimal(weight / Math.pow(2, bidsInARow.get(localCurrency)));
-					if(riskAlgorithm == 1) {
+					if(riskAlgorithm.equals(1)) {
 						qtyToBuy = balanceLocal.multipliedBy(bigWeight);
 					}else {
 						if(balanceLocal.compareTo(maxLocal) >= 0) {
@@ -515,29 +515,29 @@ public class TrendTradingAgent implements Runnable {
 					}
 					
 					if(qtyToBuy.isLessThan(minLocal)){
-						log.info(qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured minimum of "+minLocal.toString());
-						log.info(exchangeName + " Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
+						log.info("{} was less than the configured minimum of {}",qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() ,minLocal.toString());
+						log.info("{} Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",exchangeName,localCurrency.getCode());
 					} else if (Application.getInstance().getArbMode()) {
 						if (ArbitrageEngine.getInstance(exchangeName).getDisableTrendTrade()) {
-							log.info(exchangeName + "Trend following trades disabled by Arbitrage Engine.");
+							log.info("{} Trend following trades disabled by Arbitrage Engine.",exchangeName);
 						}
 					} else {
 						// Convert local currency amount to BTC
 						BigMoney qtyBTCToBuy = qtyToBuy.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(lastTick.getAsk().getAmount(),16,RoundingMode.HALF_EVEN));
 						if(qtyBTCToBuy.isLessThan(minBTC)) {
-							log.info(qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() + " was less than the configured limit of "+minBTC.toString());
-							log.info(exchangeName + " Trend following trade agent has decided that there is not enough "+localCurrency.getCode()+" momentum to trade at this time.");
+							log.info("{} was less than the configured limit of {}",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),minBTC.toString());
+							log.info("{} Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",exchangeName,localCurrency.getCode());
 						} else {
-							log.info(exchangeName + " Trend following trade agent is attempting to buy "+qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString()+" at current "+localCurrency.getCurrencyCode()+" market price.");
+							log.info(exchangeName + " Trend following trade agent is attempting to buy {} at current {} market price.",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),localCurrency.getCurrencyCode());
 							marketOrder(qtyBTCToBuy.getAmount(),OrderType.BID);
 						}
 					}
 				} else {
-					log.info(localCurrency+" balance is empty until the market corrects itself or funds are added to your account.");
+					log.info("{} balance is empty until the market corrects itself or funds are added to your account.",localCurrency);
 				}				
 			}
 		} catch (WalletNotFoundException e) {
-			log.error("ERROR: Could not find wallet for "+localCurrency.getCurrencyCode());
+			log.error("ERROR: Could not find wallet for {}",localCurrency.getCurrencyCode());
 			System.exit(1);
 		}
 		return;
@@ -552,14 +552,14 @@ public class TrendTradingAgent implements Runnable {
 		
 		if(!Application.getInstance().getSimMode()){
 			String marketOrderReturnValue = tradeService.placeMarketOrder(order);
-			log.info(exchangeName + "Market Order return value: " + marketOrderReturnValue);
+			log.info("{} Market Order return value: {}",exchangeName,marketOrderReturnValue);
 			success=(marketOrderReturnValue != null) ? true:false;
 		}else{
-			log.info("You were in simulation mode, the " + exchangeName + " trade below did NOT actually occur.");
+			log.info("You were in simulation mode, the {} trade below did NOT actually occur.",exchangeName);
 		}
 		
 		String action,failAction;
-		if(orderType == OrderType.ASK) {
+		if(orderType.equals(OrderType.ASK)) {
 			action = " sold ";
 			failAction = " sell ";
 			asksInARow.put(localCurrency,asksInARow.get(localCurrency) + 1);
@@ -573,8 +573,8 @@ public class TrendTradingAgent implements Runnable {
 		ExchangeManager.getInstance(exchangeName).setAsksInARow(asksInARow);
 		ExchangeManager.getInstance(exchangeName).setBidsInARow(bidsInARow);
 		
-		log.debug(exchangeName + " " + localCurrency.getCode() + " Asks in a row : " + asksInARow.get(localCurrency).toString());
-		log.debug(exchangeName + " " + localCurrency.getCode() + " Bids in a row : " + bidsInARow.get(localCurrency).toString());
+		log.debug(exchangeName + " {} Asks in a row : {}",localCurrency.getCode(),asksInARow.get(localCurrency).toString());
+		log.debug(exchangeName + " {} Bids in a row : {}",localCurrency.getCode(),bidsInARow.get(localCurrency).toString());
 
 		if(success){
 			log.info("Successfully"+action+numberFormat.format(qty)+" BTC at current " + exchangeName + " "+localCurrency.getCurrencyCode()+" market price.");
@@ -621,10 +621,10 @@ public class TrendTradingAgent implements Runnable {
 				paramValues		// parameterValues
 			);
 		} catch (IllegalArgumentException e) {
-			log.error("ERROR: Caught unexpected exception. Please check trend trading logic. Shutting down " + exchangeName +" trend following trading agent now!. Details are listed below.");
+			log.error("ERROR: Caught unexpected exception. Please check trend trading logic. Shutting down {} trend following trading agent now!. Details are listed below.",exchangeName);
 			e.printStackTrace();
 		} catch (org.codehaus.commons.compiler.CompileException | java.lang.reflect.InvocationTargetException e) {
-			log.error("ERROR: Caught unexpected exception, shutting down " + exchangeName + " trend following trading agent now!. Details are listed below.");
+			log.error("ERROR: Caught unexpected exception, shutting down {} trend following trading agent now!. Details are listed below.",exchangeName);
 			e.printStackTrace();
 		}
 

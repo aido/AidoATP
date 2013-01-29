@@ -49,10 +49,10 @@ public class TrendObserver implements Runnable {
 	private ATPTicker low;
 	private ATPTicker last;
 	private ArrayList<ATPTicker> ticker;
-	private int bidArrow;
-	private int askArrow;
-	private int trendArrow;
-	private int tickerSize;
+	private Integer bidArrow;
+	private Integer askArrow;
+	private Integer trendArrow;
+	private Integer tickerSize;
 	private Logger log;
 	private boolean learningComplete;
 	private CurrencyUnit localCurrency;
@@ -92,15 +92,15 @@ public class TrendObserver implements Runnable {
 		sigLineMACD = BigMoney.zero(localCurrency);
 		
 		int idx = 0;
-		int shortMASize = Integer.parseInt(Application.getInstance().getConfig("ShortMATickSize"));
-		int shortMACDSize = Integer.parseInt(Application.getInstance().getConfig("ShortMACDTickSize"));
-		int longMACDSize = Integer.parseInt(Application.getInstance().getConfig("LongMACDTickSize"));
-		int sigLineMACDSize = Integer.parseInt(Application.getInstance().getConfig("SigLineMACDSize"));
-		double expShortEMA = 0;
-		double expLongEMA = 0;
-		double expShortMACD = 0;
-		double expLongMACD = 0;
-		double expSigLineMACD = 0;
+		Integer shortMASize = Integer.valueOf(Application.getInstance().getConfig("ShortMATickSize"));
+		Integer shortMACDSize = Integer.valueOf(Application.getInstance().getConfig("ShortMACDTickSize"));
+		Integer longMACDSize = Integer.valueOf(Application.getInstance().getConfig("LongMACDTickSize"));
+		Integer sigLineMACDSize = Integer.valueOf(Application.getInstance().getConfig("SigLineMACDSize"));
+		Double expShortEMA = Double.valueOf(0);
+		Double expLongEMA = Double.valueOf(0);
+		Double expShortMACD = Double.valueOf(0);
+		Double expLongMACD = Double.valueOf(0);
+		Double expSigLineMACD = Double.valueOf(0);
 		BigMoney sumShortSMA = BigMoney.zero(localCurrency);
 		BigMoney sumLongSMA = BigMoney.zero(localCurrency);	
 
@@ -234,15 +234,15 @@ public class TrendObserver implements Runnable {
 		}
 	}
 
-	public int getTrendArrow() {
+	public Integer getTrendArrow() {
 		return trendArrow;
 	}
 	
-	public int getBidArrow() {
+	public Integer getBidArrow() {
 		return bidArrow;
 	}
 	
-	public int getAskArrow() {
+	public Integer getAskArrow() {
 		return askArrow;
 	}
 	

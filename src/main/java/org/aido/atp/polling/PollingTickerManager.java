@@ -24,7 +24,7 @@ import java.net.Socket;
 
 import org.joda.money.CurrencyUnit;
 
-import com.xeiam.xchange.Currencies;
+import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
 import com.xeiam.xchange.dto.marketdata.Ticker;
 

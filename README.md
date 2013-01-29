@@ -145,7 +145,7 @@ Algorithm 1 is high risk, algorithm 2 is conservative risk
 Exchanges
 =========
 
-Aido ATP currently trades on the MtGOX, BTC-e and Bitstamp exchanges. More exchanges are planned.
+Aido ATP currently trades on the MtGOX, BTC-e, Bitstamp and Bitcoin Central exchanges. More exchanges are planned.
 
 Usage
 =====
@@ -168,17 +168,27 @@ The configuration file is stored in the ~/.java/.userPrefs/org/aido/atp/prefs.xm
 
 When interviewed the user will be asked for the following information:
 
-	MtGOX API key
-	MtGOX secret key
+	Use MtGOX exchange (y/n)
+		MtGOX API key
+		MtGOX secret key
+	Use MtGOX exchange (y/n)
+		BTC-e API key
+		BTC-e secret key
+	Use Bitstamp exchange (y/n)
+		Bitstamp Username
+		Bitstamp Password
+	Use Bitcoin Central exchange (y/n)
+		Bitcoin Central Username
+		Bitcoin Central Password
 	ISO Code for Prefered Currency (i.e. USD, GBP, JPY, EUR etc)
 	Maximum number of bitcoins to trade in a single order
 	Minimum number of bitcoins to trade in a single order
 	Maximum amount of local currency to trade in a single order
 	Minimum amount of local currency to trade in a single order
 	Overall maximum loss tolerance (eg 25% = 0.25)
-	Enable Arbitrage trading engine
+	Enable Arbitrage trading engine (y/n)
 	Minimum Profit to seek for Arbitrage (eg 10% = 0.10)
-	Enable Trend-following trading engine
+	Enable Trend-following trading engine (y/n)
 	Polling Interval (in seconds)
 	Minimum ticker size for trend following trade decisions
 	Maximum ticker age for trend following trade decisions (in minutes)

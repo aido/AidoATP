@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class Application {
 
-	private static String[] exchanges = { "MtGox", "BTC-e", "Bitstamp" };
+	private static String[] exchanges = { "MtGox", "BTC-e", "Bitstamp", "BitcoinCentral" };
 	private static Application instance = null;
 	private static HashMap<String, String> params;
 	private final Logger log;
@@ -179,7 +179,7 @@ public class Application {
 		for (String exchange : exchanges) {
 			out.print("Use " + exchange + " exchange (y/n): ");
 			if(console.readLine().equalsIgnoreCase("Y") ) {
-				if (exchange.equals("Bitstamp")) {
+				if (exchange.equals("Bitstamp") || exchange.equals("BitcoinCentral")) {
 					out.print("Enter your " + exchange + " Username: ");
 					config.put(exchange + "UserName",console.readLine());
 					out.print("Enter your " + exchange + " Password: ");

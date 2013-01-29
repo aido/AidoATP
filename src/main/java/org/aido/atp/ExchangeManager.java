@@ -66,6 +66,8 @@ public class ExchangeManager implements Runnable {
 				exchange = ATPBTCeExchange.getInstance();
 			} else if (exchangeName.equals("Bitstamp")) {
 				exchange = ATPBitstampExchange.getInstance();
+			} else if (exchangeName.equals("BitcoinCentral")) {
+				exchange = ATPBitcoinCentralExchange.getInstance();
 			}
 			getAccount();
 		}
@@ -82,6 +84,8 @@ public class ExchangeManager implements Runnable {
 			exchange = ATPBTCeExchange.newInstance();
 		} else if (exchangeName.equals("Bitstamp")) {
 				exchange = ATPBitstampExchange.newInstance();
+		} else if (exchangeName.equals("BitcoinCentral")) {
+				exchange = ATPBitcoinCentralExchange.newInstance();
 		}
 		return exchange;
 	}

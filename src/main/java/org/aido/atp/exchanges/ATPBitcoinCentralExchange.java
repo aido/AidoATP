@@ -21,7 +21,7 @@ package org.aido.atp;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.mtgox.v1.MtGoxExchange;
+import com.xeiam.xchange.bitcoincentral.BitcoinCentralExchange;
 
 import org.joda.money.CurrencyUnit;
 
@@ -29,15 +29,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
-* AidoATP MtGoxExchange class.
+* AidoATP BitcoinCentralExchange class.
 *
 * @author Aido
 */
 
-public class ATPMtGoxExchange extends MtGoxExchange {
+public class ATPBitcoinCentralExchange extends BitcoinCentralExchange {
 	
 	private static Exchange instance = null;
-	private static Logger log = LoggerFactory.getLogger(ATPMtGoxExchange.class);
+	private static Logger log = LoggerFactory.getLogger(ATPBitcoinCentralExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
 	
 	public static Exchange getInstance() {
@@ -48,21 +48,21 @@ public class ATPMtGoxExchange extends MtGoxExchange {
 	}
 	
 	public static Exchange newInstance() {	
-			exchangeSpecification = new ExchangeSpecification(MtGoxExchange.class.getName());
+			exchangeSpecification = new ExchangeSpecification(BitcoinCentralExchange.class.getName());
 
-			String apiKey = Application.getInstance().getConfig("MtGoxApiKey");
-			String secretKey= Application.getInstance().getConfig("MtGoxSecretKey");
-			
-			log.debug("MtGox API Key: {}",apiKey);
-			log.debug("MtGox Secret Key: {}",secretKey);
-			
-			exchangeSpecification.setApiKey(apiKey);
-			exchangeSpecification.setSecretKey(secretKey);
-			exchangeSpecification.setUri("https://mtgox.com");
-			exchangeSpecification.setHost("mtgox.com");
+			String userName = Application.getInstance().getConfig("BitcoinCentralUserName");
+			String passWord = Application.getInstance().getConfig("BitcoinCentralPassword");
+
+			log.debug("Bitcoin Central UserName: {}",userName);
+			log.debug("Bitcoin Central Password: {}",passWord);
+
+			exchangeSpecification.setUserName(userName);
+			exchangeSpecification.setPassword(passWord);
+			exchangeSpecification.setUri("https://bitcoin-central.net");
+			exchangeSpecification.setHost("bitcoin-central.net");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
-			ExchangeManager.getInstance("MtGox").setExchangeSpecification(exchangeSpecification);
-			log.info("Connecting to MtGox Exchange");
+			ExchangeManager.getInstance("BitcoinCentral").setExchangeSpecification(exchangeSpecification);
+			log.info("Connecting to Bitcoin Central Exchange");
 		return instance;
 	}
 }

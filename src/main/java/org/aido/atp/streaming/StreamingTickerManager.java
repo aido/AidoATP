@@ -23,7 +23,7 @@ import java.util.concurrent.BlockingQueue;
 
 import org.joda.money.CurrencyUnit;
 
-import com.xeiam.xchange.Currencies;
+import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.service.ExchangeEvent;
 import com.xeiam.xchange.service.ExchangeEventType;
 import com.xeiam.xchange.service.marketdata.streaming.StreamingMarketDataService;
@@ -62,10 +62,9 @@ public class StreamingTickerManager extends TickerManager {
 			exchangeEvent = eventQueue.take();
 			exchangeEventType = exchangeEvent.getEventType();
 
-			if (exchangeEventType == ExchangeEventType.TICKER) {
-//				Ticker ticker = (Ticker) exchangeEvent.getPayload();
+			if (exchangeEventType.equals(ExchangeEventType.TICKER)) {
 				checkTick((Ticker) exchangeEvent.getPayload());
-//			} else if (exchangeEventType == ExchangeEventType.DISCONNECT)) {
+//			} else if (exchangeEventType.equals(ExchangeEventType.DISCONNECT))) {
 //				log.error("{} has disconnected", exchangeName);
 			} else {
 				log.debug(exchangeName + " Exchange event: {} {}",exchangeEventType.name(),exchangeEvent.getData());
