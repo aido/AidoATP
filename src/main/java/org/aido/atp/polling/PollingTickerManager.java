@@ -26,7 +26,6 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.currency.Currencies;
 import com.xeiam.xchange.service.marketdata.polling.PollingMarketDataService;
-import com.xeiam.xchange.dto.marketdata.Ticker;
 
 /**
 * Polling Ticker Manager class.
@@ -34,19 +33,19 @@ import com.xeiam.xchange.dto.marketdata.Ticker;
 * @author Aido
 */
 
-public class PollingTickerManager extends TickerManager{
+public class PollingTickerManager extends TickerManager {
 
 	private String exchangeName;
-	private Ticker tick;
+	private PollingMarketDataService marketData;
+	private CurrencyUnit currency;
 
 	public PollingTickerManager(CurrencyUnit currency, String exchangeName) {
 		super(currency,exchangeName);
 		this.exchangeName = exchangeName;
-		PollingMarketDataService marketData;
+		this.currency = currency;
 
 		try {
 			marketData = ExchangeManager.getInstance(exchangeName).getExchange().getPollingMarketDataService();
-			tick = marketData.getTicker(Currencies.BTC, currency.getCurrencyCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 	
@@ -54,7 +53,7 @@ public class PollingTickerManager extends TickerManager{
 
 	public void getTick() {
 		try {
-			checkTick(tick);
+			checkTick(marketData.getTicker(Currencies.BTC, currency.getCurrencyCode()));
 			TimeUnit.SECONDS.sleep(Integer.parseInt(Application.getInstance().getConfig("PollingInterval")));
 		} catch (com.xeiam.xchange.ExchangeException | com.xeiam.xchange.rest.HttpException  e) {
 			Socket testSock = null;
