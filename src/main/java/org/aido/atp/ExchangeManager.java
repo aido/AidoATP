@@ -43,20 +43,21 @@ public class ExchangeManager implements Runnable {
 	private HashMap<CurrencyUnit, Double> bidsInARow;
 	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
 	private String exchangeName;
-	
+	private Class tickerManagerClass;
+
 	public static ExchangeManager getInstance(String exchangeName) {
 		if(instances.get(exchangeName) == null)
 			instances.put(exchangeName, new ExchangeManager(exchangeName));
 		return instances.get(exchangeName);
 	}
-	
+
 	private ExchangeManager(String exchangeName){
 		this.exchangeName = exchangeName;
 		log = LoggerFactory.getLogger(ExchangeManager.class);
 		asksInARow = new HashMap<CurrencyUnit, Double>();
 		bidsInARow = new HashMap<CurrencyUnit, Double>();
 	}
-	
+
 	@Override
 	public synchronized void run() {
 		if (Application.getInstance().getConfig("Use" + exchangeName).equals("1")) {
@@ -72,7 +73,7 @@ public class ExchangeManager implements Runnable {
 			getAccount();
 		}
 	}
-	
+
 	public Exchange getExchange() {
 		return exchange;
 	}
@@ -101,19 +102,27 @@ public class ExchangeManager implements Runnable {
 	public String getHost() {
 		return exchangeSpecification.getHost();
 	}
-	
+
 	public int getPort() {
 		return exchangeSpecification.getPort();
 	}
-	
+
+	public Class getTickerManagerClass() {
+		return tickerManagerClass;
+	}
+
+	public void setTickerManagerClass(Class tickerManagerClass) {
+		this.tickerManagerClass = tickerManagerClass;
+	}
+
 	public HashMap<CurrencyUnit, Double> getAsksInARow() {
 		return asksInARow;
 	}
-	
+
 	public void setAsksInARow(HashMap<CurrencyUnit, Double> asksInARow) {
 		this.asksInARow = asksInARow;
 	}
-	
+
 	public HashMap<CurrencyUnit, Double> getBidsInARow() {
 		return bidsInARow;
 	}

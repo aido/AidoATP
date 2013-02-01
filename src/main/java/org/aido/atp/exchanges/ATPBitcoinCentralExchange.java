@@ -35,19 +35,19 @@ import org.slf4j.LoggerFactory;
 */
 
 public class ATPBitcoinCentralExchange extends BitcoinCentralExchange {
-	
+
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPBitcoinCentralExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
-	
+
 	public static Exchange getInstance() {
 		if(instance == null) {
 			instance = newInstance();
 		}
 		return instance;
 	}
-	
-	public static Exchange newInstance() {	
+
+	public static Exchange newInstance() {
 			exchangeSpecification = new ExchangeSpecification(BitcoinCentralExchange.class.getName());
 
 			String userName = Application.getInstance().getConfig("BitcoinCentralUserName");
@@ -62,6 +62,7 @@ public class ATPBitcoinCentralExchange extends BitcoinCentralExchange {
 			exchangeSpecification.setHost("bitcoin-central.net");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
 			ExchangeManager.getInstance("BitcoinCentral").setExchangeSpecification(exchangeSpecification);
+			ExchangeManager.getInstance("BitcoinCentral").setTickerManagerClass(PollingTickerManager.class);
 			log.info("Connecting to Bitcoin Central Exchange");
 		return instance;
 	}

@@ -51,7 +51,7 @@ public class AccountManager implements Runnable {
 	private static Logger log;
 	private PollingAccountService accountService;
 	private List<Wallet> wallets;
-	
+
 	public static AccountManager getInstance(String exchangeName) {
 		if(instances.get(exchangeName) == null)
 			instances.put(exchangeName, new AccountManager(exchangeName));
@@ -60,13 +60,13 @@ public class AccountManager implements Runnable {
 
 	private AccountManager(String exchangeName){
 		this.exchangeName = exchangeName;
-		try {	
+		try {
 			log = LoggerFactory.getLogger(AccountManager.class);
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
 
 			// Interested in the private account functionality (authentication)
 			accountService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingAccountService();
-				
+
 			// Get the account information
 			accountInfo = accountService.getAccountInfo();
 			log.info(exchangeName+" AccountInfo as String: " + accountInfo.toString());
@@ -95,7 +95,7 @@ public class AccountManager implements Runnable {
 			System.exit(1);
 		}
 	}
-	
+
 	@Override
 	public synchronized void run() {
 		refreshAccounts();
@@ -104,11 +104,11 @@ public class AccountManager implements Runnable {
 	public BigMoney getBalance(CurrencyUnit currency) throws WalletNotFoundException{
 		refreshAccounts();
 		wallets = accountInfo.getWallets();
-		
+
 		for(Wallet wallet : wallets){
 			BigMoney balance = wallet.getBalance();
 			CurrencyUnit unit = balance.getCurrencyUnit();
-			
+
 			if(unit.equals(currency)){
 				return balance;
 			}
@@ -116,7 +116,7 @@ public class AccountManager implements Runnable {
 		log.error("ERROR: Could not find a "+exchangeName+" wallet for the currency "+currency+". Exiting now!");
 		throw new WalletNotFoundException();
 	}
-	
+
 	public synchronized void refreshAccounts() {
 		accountInfo = accountService.getAccountInfo();
 		updateBooks();
@@ -127,24 +127,24 @@ public class AccountManager implements Runnable {
 		wallets = accountInfo.getWallets();
 		for(Wallet wallet : wallets){
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-			
+
 			//Do we have a new currency in our wallet?
 			if(books.get(currency) == null){
 				//Make some space for it.
 				books.put(currency,new ArrayList<BigMoney>());
 			}
-			
+
 			ArrayList<BigMoney> ledger = books.get(currency);
 			ledger.add(wallet.getBalance());
 		}
 	}
-	
+
 	public AccountInfo getAccountInfo() {
 		return accountInfo;
 	}
-	
+
 	public void startTickers() {
-		ThreadGroup tickerThreadGroup = new ThreadGroup("Tickers");	
+		ThreadGroup tickerThreadGroup = new ThreadGroup("Tickers");
 		for(Wallet wallet : wallets) {
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
 			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC")) {

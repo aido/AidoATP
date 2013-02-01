@@ -35,33 +35,34 @@ import org.slf4j.LoggerFactory;
 */
 
 public class ATPMtGoxExchange extends MtGoxExchange {
-	
+
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPMtGoxExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
-	
+
 	public static Exchange getInstance() {
 		if(instance == null) {
 			instance = newInstance();
 		}
 		return instance;
 	}
-	
-	public static Exchange newInstance() {	
+
+	public static Exchange newInstance() {
 			exchangeSpecification = new ExchangeSpecification(MtGoxExchange.class.getName());
 
 			String apiKey = Application.getInstance().getConfig("MtGoxApiKey");
 			String secretKey= Application.getInstance().getConfig("MtGoxSecretKey");
-			
+
 			log.debug("MtGox API Key: {}",apiKey);
 			log.debug("MtGox Secret Key: {}",secretKey);
-			
+
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);
 			exchangeSpecification.setUri("https://mtgox.com");
 			exchangeSpecification.setHost("mtgox.com");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
 			ExchangeManager.getInstance("MtGox").setExchangeSpecification(exchangeSpecification);
+			ExchangeManager.getInstance("MtGox").setTickerManagerClass(PollingTickerManager.class);
 			log.info("Connecting to MtGox Exchange");
 		return instance;
 	}

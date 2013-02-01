@@ -171,7 +171,7 @@ When interviewed the user will be asked for the following information:
 	Use MtGOX exchange (y/n)
 		MtGOX API key
 		MtGOX secret key
-	Use MtGOX exchange (y/n)
+	Use BTC-e exchange (y/n)
 		BTC-e API key
 		BTC-e secret key
 	Use Bitstamp exchange (y/n)

@@ -35,34 +35,35 @@ import org.slf4j.LoggerFactory;
 */
 
 public class ATPBTCeExchange extends BTCEExchange {
-	
+
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPBTCeExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
-	
+
 	public static Exchange getInstance() {
 		if(instance == null) {
 			instance = newInstance();
 		}
 		return instance;
 	}
-	
-	public static Exchange newInstance() {	
+
+	public static Exchange newInstance() {
 			exchangeSpecification = new ExchangeSpecification(BTCEExchange.class.getName());
 
 			String apiKey = Application.getInstance().getConfig("BTC-eApiKey");
 			String secretKey= Application.getInstance().getConfig("BTC-eSecretKey");
-			
+
 			log.debug("BTC-e API Key: {}",apiKey);
 			log.debug("BTC-e Secret Key: {}",secretKey);
-			
+
 			exchangeSpecification.setApiKey(apiKey);
-			exchangeSpecification.setSecretKey(secretKey);			
+			exchangeSpecification.setSecretKey(secretKey);
 			exchangeSpecification.setUri("https://btc-e.com");
 			exchangeSpecification.setHost("btc-e.com");
 			exchangeSpecification.setPort(80);
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
 			ExchangeManager.getInstance("BTC-e").setExchangeSpecification(exchangeSpecification);
+			ExchangeManager.getInstance("BTC-e").setTickerManagerClass(PollingTickerManager.class);
 			log.info("Connecting to BTC-e Exchange");
 		return instance;
 	}

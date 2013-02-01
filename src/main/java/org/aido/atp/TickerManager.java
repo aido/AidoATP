@@ -52,22 +52,21 @@ public class TickerManager implements Runnable {
 	private ThreadGroup tickerThreadGroup;
 	public boolean quit;
 	public Logger log;
-	
+
 	public static TickerManager getInstance(String exchangeName, CurrencyUnit currency) {
-		Pair exchangeCurrency = new Pair(exchangeName, currency);
-		if(instances.get(exchangeCurrency) == null)
-			if (exchangeName.equals("MtGox")) {
-				instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
-			} else if (exchangeName.equals("BitcoinCentral")) {
-				if (!currency.getCode().equals("CAD") && !currency.getCode().equals("INR")) {
-					instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
-				}
-			} else {
-				instances.put(exchangeCurrency,new PollingTickerManager(currency,exchangeName));
+		Pair exchangeCurrency = new Pair(exchangeName, currency); 
+		Class tickerManagerClass = ExchangeManager.getInstance(exchangeName).getTickerManagerClass();
+
+		if(instances.get(exchangeCurrency) == null) {
+			try {
+				instances.put(exchangeCurrency,TickerManager.class.cast(tickerManagerClass.getConstructor(CurrencyUnit.class, String.class).newInstance(currency,exchangeName)));
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+		}
 		return instances.get(exchangeCurrency);
 	}
-	
+
 	public TickerManager(CurrencyUnit currency, String exchangeName) {
 		log = LoggerFactory.getLogger(TickerManager.class);
 		this.exchangeName = exchangeName;
@@ -83,7 +82,7 @@ public class TickerManager implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		while(!quit){
@@ -93,31 +92,31 @@ public class TickerManager implements Runnable {
 
 	public void getTick() {
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private synchronized ArrayList<ATPTicker> loadMarketData() {
-		
+
 		ArrayList<ATPTicker> data = new ArrayList<ATPTicker>();
 		String path = System.getProperty("user.dir");
 		if(path == null) {path = "";}
-		
+
 		File file = new File(path+"/"+fileName);
-		
+
 		if(file.exists()) {
-			
+
 			log.info("Attempting to open market data file {}/{}",path,fileName);
-			
+
 			try {
 				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
 				data = (ArrayList<ATPTicker>) ois.readObject();
 				ois.close();
-			} catch (Exception e) {	
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}else {
 			log.info("File {} does not exist yet. Either this is the first run or the market data file did not save properly last time.", file);
 		}
-		
+
 		return data;
 	}
 
@@ -137,7 +136,7 @@ public class TickerManager implements Runnable {
 	}
 
 	public ArrayList<ATPTicker> getMarketData(){
-		
+
 		synchronized(tickerCache) {
 			ArrayList<ATPTicker> removeList = new ArrayList<ATPTicker>();
 			Date now = new Date();
@@ -168,9 +167,9 @@ public class TickerManager implements Runnable {
 				lastVolume = currentVolume;
 			}
 		}
-		saveMarketData();	
+		saveMarketData();
 	}
-	
+
 	public void stop() {
 		quit = true;
 	}

@@ -35,27 +35,27 @@ import org.slf4j.LoggerFactory;
 */
 
 public class ATPBitstampExchange extends BitstampExchange {
-	
+
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPBitstampExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
-	
+
 	public static Exchange getInstance() {
 		if(instance == null) {
 			instance = newInstance();
 		}
 		return instance;
 	}
-	
-	public static Exchange newInstance() {	
+
+	public static Exchange newInstance() {
 			exchangeSpecification = new ExchangeSpecification(BitstampExchange.class.getName());
 
 			String userName = Application.getInstance().getConfig("BitstampUserName");
 			String passWord = Application.getInstance().getConfig("BitstampPassword");
-			
+
 			log.debug("Bitstamp UserName: {}",userName);
 			log.debug("Bitstamp Password: {}",passWord);
-			
+
 			exchangeSpecification.setUserName(userName);
 			exchangeSpecification.setPassword(passWord);
 
@@ -63,6 +63,7 @@ public class ATPBitstampExchange extends BitstampExchange {
 			exchangeSpecification.setHost("www.bitstamp.net");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
 			ExchangeManager.getInstance("Bitstamp").setExchangeSpecification(exchangeSpecification);
+			ExchangeManager.getInstance("Bitstamp").setTickerManagerClass(PollingTickerManager.class);
 			log.info("Connecting to Bitstamp Exchange");
 		return instance;
 	}
