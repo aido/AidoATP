@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class ATPBitcoinCentralExchange extends BitcoinCentralExchange {
 
+	private static final String EXCHANGENAME = "BitcoinCentral";
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPBitcoinCentralExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
@@ -50,20 +51,20 @@ public class ATPBitcoinCentralExchange extends BitcoinCentralExchange {
 	public static Exchange newInstance() {
 			exchangeSpecification = new ExchangeSpecification(BitcoinCentralExchange.class.getName());
 
-			String userName = Application.getInstance().getConfig("BitcoinCentralUserName");
-			String passWord = Application.getInstance().getConfig("BitcoinCentralPassword");
+			String userName = Application.getInstance().getConfig(EXCHANGENAME + "UserName");
+			String passWord = Application.getInstance().getConfig(EXCHANGENAME + "Password");
 
-			log.debug("Bitcoin Central UserName: {}",userName);
-			log.debug("Bitcoin Central Password: {}",passWord);
+			log.debug("{} UserName: {}",EXCHANGENAME,userName);
+			log.debug("{} Password: {}",EXCHANGENAME,passWord);
 
 			exchangeSpecification.setUserName(userName);
 			exchangeSpecification.setPassword(passWord);
 			exchangeSpecification.setUri("https://bitcoin-central.net");
 			exchangeSpecification.setHost("bitcoin-central.net");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
-			ExchangeManager.getInstance("BitcoinCentral").setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance("BitcoinCentral").setTickerManagerClass(PollingTickerManager.class);
-			log.info("Connecting to Bitcoin Central Exchange");
+			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(PollingTickerManager.class);
+			log.info("Connecting to {} Exchange",EXCHANGENAME);
 		return instance;
 	}
 }

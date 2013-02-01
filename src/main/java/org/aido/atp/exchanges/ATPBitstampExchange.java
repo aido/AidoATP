@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class ATPBitstampExchange extends BitstampExchange {
 
+	private static final String EXCHANGENAME = "Bitstamp";
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPBitstampExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
@@ -50,11 +51,11 @@ public class ATPBitstampExchange extends BitstampExchange {
 	public static Exchange newInstance() {
 			exchangeSpecification = new ExchangeSpecification(BitstampExchange.class.getName());
 
-			String userName = Application.getInstance().getConfig("BitstampUserName");
-			String passWord = Application.getInstance().getConfig("BitstampPassword");
+			String userName = Application.getInstance().getConfig(EXCHANGENAME + "UserName");
+			String passWord = Application.getInstance().getConfig(EXCHANGENAME + "Password");
 
-			log.debug("Bitstamp UserName: {}",userName);
-			log.debug("Bitstamp Password: {}",passWord);
+			log.debug("{} UserName: {}",EXCHANGENAME,userName);
+			log.debug("{} Password: {}",EXCHANGENAME,passWord);
 
 			exchangeSpecification.setUserName(userName);
 			exchangeSpecification.setPassword(passWord);
@@ -62,9 +63,9 @@ public class ATPBitstampExchange extends BitstampExchange {
 			exchangeSpecification.setUri("https://www.bitstamp.net");
 			exchangeSpecification.setHost("www.bitstamp.net");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
-			ExchangeManager.getInstance("Bitstamp").setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance("Bitstamp").setTickerManagerClass(PollingTickerManager.class);
-			log.info("Connecting to Bitstamp Exchange");
+			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(PollingTickerManager.class);
+			log.info("Connecting to {} Exchange",EXCHANGENAME);
 		return instance;
 	}
 }

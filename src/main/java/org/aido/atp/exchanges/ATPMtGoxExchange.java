@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class ATPMtGoxExchange extends MtGoxExchange {
 
+	private static final String EXCHANGENAME = "MtGox";
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPMtGoxExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
@@ -50,20 +51,20 @@ public class ATPMtGoxExchange extends MtGoxExchange {
 	public static Exchange newInstance() {
 			exchangeSpecification = new ExchangeSpecification(MtGoxExchange.class.getName());
 
-			String apiKey = Application.getInstance().getConfig("MtGoxApiKey");
-			String secretKey= Application.getInstance().getConfig("MtGoxSecretKey");
+			String apiKey = Application.getInstance().getConfig(EXCHANGENAME + "ApiKey");
+			String secretKey= Application.getInstance().getConfig(EXCHANGENAME + "SecretKey");
 
-			log.debug("MtGox API Key: {}",apiKey);
-			log.debug("MtGox Secret Key: {}",secretKey);
+			log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
+			log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
 
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);
 			exchangeSpecification.setUri("https://mtgox.com");
 			exchangeSpecification.setHost("mtgox.com");
 			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
-			ExchangeManager.getInstance("MtGox").setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance("MtGox").setTickerManagerClass(PollingTickerManager.class);
-			log.info("Connecting to MtGox Exchange");
+			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(PollingTickerManager.class);
+			log.info("Connecting to {} Exchange",EXCHANGENAME);
 		return instance;
 	}
 }
