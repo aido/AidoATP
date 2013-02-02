@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 public class ATPBTCeExchange extends BTCEExchange {
 
 	private static final String EXCHANGENAME = "BTC-e";
+	private static final String TICKERMANAGERCLASS = PollingTickerManager.class.getName();
 	private static Exchange instance = null;
 	private static Logger log = LoggerFactory.getLogger(ATPBTCeExchange.class);
 	private static ExchangeSpecification exchangeSpecification;
@@ -49,23 +50,28 @@ public class ATPBTCeExchange extends BTCEExchange {
 	}
 
 	public static Exchange newInstance() {
-			exchangeSpecification = new ExchangeSpecification(BTCEExchange.class.getName());
-
 			String apiKey = Application.getInstance().getConfig(EXCHANGENAME + "ApiKey");
 			String secretKey= Application.getInstance().getConfig(EXCHANGENAME + "SecretKey");
 
 			log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
 			log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
-
+			
+			ExchangeSpecification exchangeSpecification = new ExchangeSpecification(BTCEExchange.class.getName());
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);
 			exchangeSpecification.setUri("https://btc-e.com");
 			exchangeSpecification.setHost("btc-e.com");
 			exchangeSpecification.setPort(80);
-			instance = ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+			
 			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(PollingTickerManager.class);
+			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
+			
 			log.info("Connecting to {} Exchange",EXCHANGENAME);
-		return instance;
+			
+		return ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+	}
+
+	public static String getExchangeName() {
+		return EXCHANGENAME;
 	}
 }

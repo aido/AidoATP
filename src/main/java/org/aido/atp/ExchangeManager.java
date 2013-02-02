@@ -19,6 +19,7 @@
 package org.aido.atp;
 
 import java.util.HashMap;
+import java.lang.reflect.Constructor;
 
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
@@ -36,14 +37,19 @@ import org.slf4j.LoggerFactory;
 
 public class ExchangeManager implements Runnable {
 
+	private static final HashMap<String, String> exchangesHashMap = new HashMap<String, String>(){{
+		put(ATPMtGoxExchange.getExchangeName(), ATPMtGoxExchange.class.getName());
+		put(ATPBTCeExchange.getExchangeName(), ATPBTCeExchange.class.getName());
+		put(ATPBitstampExchange.getExchangeName(), ATPBitstampExchange.class.getName());
+		put(ATPBitcoinCentralExchange.getExchangeName(), ATPBitcoinCentralExchange.class.getName());}};
+	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
+	private HashMap<CurrencyUnit, Double> asksInARow;
+	private HashMap<CurrencyUnit, Double> bidsInARow;
 	private static Logger log;
 	private Exchange exchange;
 	private ExchangeSpecification exchangeSpecification;
-	private HashMap<CurrencyUnit, Double> asksInARow;
-	private HashMap<CurrencyUnit, Double> bidsInARow;
-	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
 	private String exchangeName;
-	private Class tickerManagerClass;
+	private String tickerManagerClass;
 
 	public static ExchangeManager getInstance(String exchangeName) {
 		if(instances.get(exchangeName) == null)
@@ -60,17 +66,14 @@ public class ExchangeManager implements Runnable {
 
 	@Override
 	public synchronized void run() {
+
 		if (Application.getInstance().getConfig("Use" + exchangeName).equals("1")) {
-			if (exchangeName.equals("MtGox")) {
-				exchange = ATPMtGoxExchange.getInstance();
-			} else if (exchangeName.equals("BTC-e")) {
-				exchange = ATPBTCeExchange.getInstance();
-			} else if (exchangeName.equals("Bitstamp")) {
-				exchange = ATPBitstampExchange.getInstance();
-			} else if (exchangeName.equals("BitcoinCentral")) {
-				exchange = ATPBitcoinCentralExchange.getInstance();
+			try {
+				exchange = (Exchange) Class.forName(exchangesHashMap.get(exchangeName)).getMethod("getInstance",null).invoke(null,null);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			getAccount();
+ 			getAccount();
 		}
 	}
 
@@ -79,14 +82,10 @@ public class ExchangeManager implements Runnable {
 	}
 
 	public Exchange newExchange() {
-		if (exchangeName.equals("MtGox")) {
-			exchange = ATPMtGoxExchange.newInstance();
-		} else if (exchangeName.equals("BTC-e")) {
-			exchange = ATPBTCeExchange.newInstance();
-		} else if (exchangeName.equals("Bitstamp")) {
-				exchange = ATPBitstampExchange.newInstance();
-		} else if (exchangeName.equals("BitcoinCentral")) {
-				exchange = ATPBitcoinCentralExchange.newInstance();
+		try {
+			exchange = (Exchange) Class.forName(exchangesHashMap.get(exchangeName)).newInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return exchange;
 	}
@@ -107,12 +106,16 @@ public class ExchangeManager implements Runnable {
 		return exchangeSpecification.getPort();
 	}
 
-	public Class getTickerManagerClass() {
+	public String getTickerManagerClass() {
 		return tickerManagerClass;
 	}
 
-	public void setTickerManagerClass(Class tickerManagerClass) {
+	public void setTickerManagerClass(String tickerManagerClass) {
 		this.tickerManagerClass = tickerManagerClass;
+	}
+
+	public static HashMap<String, String> getExchangesHashMap() {
+		return exchangesHashMap;
 	}
 
 	public HashMap<CurrencyUnit, Double> getAsksInARow() {

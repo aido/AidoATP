@@ -69,20 +69,20 @@ public class AccountManager implements Runnable {
 
 			// Get the account information
 			accountInfo = accountService.getAccountInfo();
-			log.info(exchangeName+" AccountInfo as String: " + accountInfo.toString());
+			log.info("{} AccountInfo as String: {}",exchangeName,accountInfo.toString());
 			refreshAccounts();
 			startTickers();
 		} catch (com.xeiam.xchange.ExchangeException | com.xeiam.xchange.rest.HttpException e) {
 			Socket testSock = null;
 			while (true) {
 				try {
-					log.warn("WARNING: Testing connection to exchange "+exchangeName);
+					log.warn("WARNING: Testing connection to exchange {}",exchangeName);
 					testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
 					if (testSock != null) { break; }
 				}
 				catch (java.io.IOException e1) {
 					try {
-						log.error("ERROR: Cannot connect to exchange "+exchangeName+". Sleeping for one minute");
+						log.error("ERROR: Cannot connect to exchange {}. Sleeping for one minute",exchangeName);
 						TimeUnit.MINUTES.sleep(1);
 					} catch (InterruptedException e2) {
 						e2.printStackTrace();
@@ -90,7 +90,7 @@ public class AccountManager implements Runnable {
 				}
 			}
 		} catch (Exception e) {
-			log.error("ERROR: Caught unexpected "+exchangeName+" exception, shutting down now!.Details are listed below.");
+			log.error("ERROR: Caught unexpected {} exception, shutting down now!.Details are listed below.",exchangeName);
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -113,7 +113,7 @@ public class AccountManager implements Runnable {
 				return balance;
 			}
 		}
-		log.error("ERROR: Could not find a "+exchangeName+" wallet for the currency "+currency+". Exiting now!");
+		log.error("ERROR: Could not find a {} wallet for the currency {}. Exiting now!",exchangeName,currency);
 		throw new WalletNotFoundException();
 	}
 

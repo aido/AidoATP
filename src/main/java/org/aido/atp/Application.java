@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 public class Application {
 
-	private static String[] exchanges = { "MtGox", "BTC-e", "Bitstamp", "BitcoinCentral" };
 	private static Application instance = null;
 	private static HashMap<String, String> params;
 	private final Logger log;
@@ -48,7 +47,7 @@ public class Application {
 	private Console console;
 	private ThreadGroup exchangeManagerThreadGroup;
 	private HashMap<String, Thread> exchangeManagers;
-	
+
 	private Application() {
 		log = LoggerFactory.getLogger(Application.class);
 		params = new HashMap<String,String>();
@@ -58,7 +57,7 @@ public class Application {
 		arbModeFlag = true;
 		//true = use trend following trades, false = do not use trend following trades
 		trendModeFlag = true;
-		console = System.console();	
+		console = System.console();
 	}
 
 	public static Application getInstance() {
@@ -74,10 +73,10 @@ public class Application {
 		Application app = getInstance();
 		app.start(args);
 	}
-	
+
 	public void start(String[] args){
 		parseArgs(args);
-		
+
 		config = Preferences.userNodeForPackage(this.getClass());
 
 		if(params.containsKey("--clear-config")) {
@@ -93,53 +92,53 @@ public class Application {
 		if(config.get("MtGoxApiKey", null) == null && config.get("BTC-eApiKey", null) == null && config.get("BitstampUserName", null) == null) {
 			interview();
 		}
-	
+
 		if(params.get("--simulation-mode") != null){
 			setSimMode(Boolean.valueOf(params.get("--simulation-mode")));
 		}else if (getSimMode()) {
 			showAgreement();
 		}
-		
+
 		setArbMode(getConfig("UseArbitrage").equals("1"));
-					
+
 		if(params.get("--use-arbitrage") != null){
 			setArbMode(Boolean.valueOf(params.get("--use-arbitrage")));
 		}
-		
+
 		setTrendMode(getConfig("UseTrend").equals("1"));
-	
+
 		if(params.get("--use-trend") != null){
 			setTrendMode(Boolean.valueOf(params.get("--use-trend")));
 		}
 
 		exchangeManagers = new HashMap<String, Thread>();
 		exchangeManagerThreadGroup = new ThreadGroup("ExchangeManagers");
-		for (String exchange : exchanges) {
+		for (String exchange : ExchangeManager.getExchangesHashMap().keySet()) {
 			exchangeManagers.put(exchange, new Thread(exchangeManagerThreadGroup,ExchangeManager.getInstance(exchange)));
 			exchangeManagers.get(exchange).start();
 		}
-		log.info("Aido ATP has started successfully");	
-		
-		if(getSimMode()){		
+		log.info("Aido ATP has started successfully");
+
+		if(getSimMode()){
 			log.info("Entering simulation mode. Trades will not be executed.");
 		}
-		
+
 		if(getTrendMode()){
 			log.info("Using trend following to decide some trades.");
 		}
-		
+
 		if(getArbMode()){
 			log.info("Using arbitrage to decide some trades.");
 		}
-		
+
 		try {
-			for (String exchange : exchanges)
-				exchangeManagers.get(exchange).join();	
+			for (String exchange : ExchangeManager.getExchangesHashMap().keySet())
+				exchangeManagers.get(exchange).join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void showAgreement() {
 		InputStream disclaimer = this.getClass().getClassLoader().getResourceAsStream("disclaimer.txt");
 
@@ -155,7 +154,7 @@ public class Application {
 			throw new RuntimeException("Error displaying disclaimer", e);
 		}
 		System.out.print("Please type your response : ");
-		
+
 		String input = console.readLine();
 		if(input.equalsIgnoreCase("I Agree")) {
 			setSimMode(false);
@@ -163,11 +162,11 @@ public class Application {
 			setSimMode(true);
 		}
 	}
-	
+
 	private void interview() {
-		
+
 		PrintStream out = System.out;
-		
+
 		log.info("No config file could be found.");
 		log.info("Beginning Interactive Mode");
 		if(console == null) {
@@ -175,8 +174,8 @@ public class Application {
 			System.exit(1);
 		}
 		out.println("\nPlease answer all questions.\nDon't worry if you make a mistake you will have a chance to review before comitting.");
-		
-		for (String exchange : exchanges) {
+
+		for (String exchange : ExchangeManager.getExchangesHashMap().keySet()) {
 			out.print("Use " + exchange + " exchange (y/n): ");
 			if(console.readLine().equalsIgnoreCase("Y") ) {
 				if (exchange.equals("Bitstamp") || exchange.equals("BitcoinCentral")) {
@@ -198,22 +197,22 @@ public class Application {
 
 		out.print("ISO Code for Prefered Currency (i.e. USD, GBP, JPY, EUR etc): ");
 		config.put("LocalCurrency", console.readLine());
-		
+
 		out.print("Maximum number of bitcoins to trade in a single order: ");
 		config.put("MaxBTC", console.readLine());
-		
+
 		out.print("Minimum number of bitcoins to trade in a single order: ");
 		config.put("MinBTC", console.readLine());
-		
+
 		out.print("Maximum amount of local currency to trade in a single order: ");
 		config.put("MaxLocal", console.readLine());
-		
+
 		out.print("Minimum amount of local currency to trade in a single order: ");
 		config.put("MinLocal", console.readLine());
-		
+
 		out.print("Overall maximum loss tolerance (eg 25% = 0.25): ");
 		config.put("MaxLoss", console.readLine());
-		
+
 		out.print("Enable Arbitrage trading engine (y/n): ");
 		if(console.readLine().equalsIgnoreCase("Y") ) {
 			config.put("UseArbitrage", "1");
@@ -231,14 +230,14 @@ public class Application {
 			config.put("UseTrend", "0");
 		}
 
-		out.print("Polling Interval (in seconds): ");		
-		config.put("PollingInterval", console.readLine());		
-		
+		out.print("Polling Interval (in seconds): ");
+		config.put("PollingInterval", console.readLine());
+
 		out.print("Minimum ticker size for trending trade decisions: ");
 		config.put("MinTickSize", console.readLine());
 
-		out.print("Maximum ticker age for trending trade decisions (in minutes): ");		
-		config.put("MaxTickAge", console.readLine());		
+		out.print("Maximum ticker age for trending trade decisions (in minutes): ");
+		config.put("MaxTickAge", console.readLine());
 
 		out.print("Number of ticks used to calculate short Moving Average: ");
 		config.put("ShortMATickSize", console.readLine());
@@ -262,7 +261,7 @@ public class Application {
 		out.println("1: High Risk");
 		out.println("2: Conservative");
 		config.put("RiskAlgorithm", console.readLine());
-		
+
 		out.print("Trading fee (eg 0.6% = 0.006): ");
 		config.put("TradingFee", console.readLine());
 
@@ -271,24 +270,24 @@ public class Application {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		out.println("Interactive mode complete!");
 		out.println("Please look carefully at the answers above and if they look correct press enter.");
 		out.println("If there are any errors, please type NO");
 		String answer = console.readLine();
-		
+
 		if(answer == null || answer.isEmpty()){
 			try {
 				config.sync();
-			} catch (BackingStoreException e) {		
+			} catch (BackingStoreException e) {
 				e.printStackTrace();
 			}
 		}else{
 			interview();
 		}
-		
+
 	}
-	
+
 	private void parseArgs(String[] args) {
 		for(String arg : args) {
 			String[] pair = arg.split("=");
@@ -303,7 +302,7 @@ public class Application {
 			}
 		}
 	}
-	
+
 	public String getParam(String key){
 		return params.get(key);
 	}
@@ -311,27 +310,27 @@ public class Application {
 	public String getConfig(String key) {
 		return config.get(key,null);
 	}
-	
+
 	public boolean getSimMode() {
 		return simModeFlag;
 	}
-	
+
 	public void setSimMode(boolean b) {
 		this.simModeFlag = b;
 	}
-	
+
 	public boolean getArbMode() {
 		return arbModeFlag;
 	}
-	
+
 	public void setArbMode(boolean b) {
 		this.arbModeFlag = b;
 	}
-	
+
 	public boolean getTrendMode() {
 		return trendModeFlag;
 	}
-	
+
 	public void setTrendMode(boolean b) {
 		this.trendModeFlag = b;
 	}

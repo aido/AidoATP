@@ -55,11 +55,12 @@ public class TickerManager implements Runnable {
 
 	public static TickerManager getInstance(String exchangeName, CurrencyUnit currency) {
 		Pair exchangeCurrency = new Pair(exchangeName, currency); 
-		Class tickerManagerClass = ExchangeManager.getInstance(exchangeName).getTickerManagerClass();
+		Class tickerManagerClass;
 
 		if(instances.get(exchangeCurrency) == null) {
 			try {
-				instances.put(exchangeCurrency,TickerManager.class.cast(tickerManagerClass.getConstructor(CurrencyUnit.class, String.class).newInstance(currency,exchangeName)));
+				tickerManagerClass = Class.forName(ExchangeManager.getInstance(exchangeName).getTickerManagerClass());
+				instances.put(exchangeCurrency,(TickerManager) tickerManagerClass.getConstructor(CurrencyUnit.class, String.class).newInstance(currency,exchangeName));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
