@@ -57,7 +57,7 @@ public class TickerManager implements Runnable {
 		Pair exchangeCurrency = new Pair(exchangeName, currency); 
 		Class tickerManagerClass;
 
-		if(instances.get(exchangeCurrency) == null) {
+		if(!instances.containsKey(exchangeCurrency)) {
 			try {
 				tickerManagerClass = Class.forName(ExchangeManager.getInstance(exchangeName).getTickerManagerClass());
 				instances.put(exchangeCurrency,(TickerManager) tickerManagerClass.getConstructor(CurrencyUnit.class, String.class).newInstance(currency,exchangeName));

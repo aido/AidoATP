@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 
 public class ArbitrageEngine implements Runnable {
 	
-	private static HashMap<String, ArbitrageEngine> instances;
+	private static HashMap<String, ArbitrageEngine> instances  = new HashMap<String, ArbitrageEngine>();
 	private CurrencyUnit baseCurrency;
 	private double factor;
 	private Logger log;
@@ -53,7 +53,7 @@ public class ArbitrageEngine implements Runnable {
 	private String exchangeName;
 
 	public static synchronized ArbitrageEngine getInstance(String exchangeName) {
-		if(instances.get(exchangeName) == null) {
+		if(!instances.containsKey(exchangeName)) {
 			instances.put(exchangeName, new ArbitrageEngine(exchangeName));
 		}
 		return instances.get(exchangeName);

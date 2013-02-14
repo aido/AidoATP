@@ -53,7 +53,7 @@ public class AccountManager implements Runnable {
 	private List<Wallet> wallets;
 
 	public static AccountManager getInstance(String exchangeName) {
-		if(instances.get(exchangeName) == null)
+		if(!instances.containsKey(exchangeName))
 			instances.put(exchangeName, new AccountManager(exchangeName));
 		return instances.get(exchangeName);
 	}
@@ -129,7 +129,7 @@ public class AccountManager implements Runnable {
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
 
 			//Do we have a new currency in our wallet?
-			if(books.get(currency) == null){
+			if(!books.containsKey(currency)){
 				//Make some space for it.
 				books.put(currency,new ArrayList<BigMoney>());
 			}
@@ -147,7 +147,7 @@ public class AccountManager implements Runnable {
 		ThreadGroup tickerThreadGroup = new ThreadGroup("Tickers");
 		for(Wallet wallet : wallets) {
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC")) {
+			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC") && !(exchangeName.equals("BitcoinCentral") && (currency.getCode().equals("CAD") || currency.getCode().equals("INR"))) ) {
 				Thread tickermanagerManagerThread = new Thread(tickerThreadGroup,TickerManager.getInstance(exchangeName,currency));
 				tickermanagerManagerThread.start();
 			}

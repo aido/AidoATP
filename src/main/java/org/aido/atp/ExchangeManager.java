@@ -52,7 +52,7 @@ public class ExchangeManager implements Runnable {
 	private String tickerManagerClass;
 
 	public static ExchangeManager getInstance(String exchangeName) {
-		if(instances.get(exchangeName) == null)
+		if(!instances.containsKey(exchangeName))
 			instances.put(exchangeName, new ExchangeManager(exchangeName));
 		return instances.get(exchangeName);
 	}

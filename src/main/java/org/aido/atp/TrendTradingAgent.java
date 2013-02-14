@@ -84,10 +84,10 @@ public class TrendTradingAgent implements Runnable {
 		riskAlgorithm = Integer.valueOf(Application.getInstance().getConfig("RiskAlgorithm"));
 		asksInARow = ExchangeManager.getInstance(exchangeName).getAsksInARow();
 		bidsInARow = ExchangeManager.getInstance(exchangeName).getBidsInARow();
-		if(asksInARow.get(localCurrency) == null){
+		if(!asksInARow.containsKey(localCurrency)){
 			asksInARow.put(localCurrency,new Double(0));
 		}
-		if(bidsInARow.get(localCurrency) == null){
+		if(!bidsInARow.containsKey(localCurrency)){
 			bidsInARow.put(localCurrency,new Double(0));
 		}
 	}
