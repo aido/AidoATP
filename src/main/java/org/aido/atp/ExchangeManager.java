@@ -67,14 +67,12 @@ public class ExchangeManager implements Runnable {
 	@Override
 	public synchronized void run() {
 
-		if (Application.getInstance().getConfig("Use" + exchangeName).equals("1")) {
-			try {
-				exchange = (Exchange) Class.forName(exchangesHashMap.get(exchangeName)).getMethod("getInstance",null).invoke(null,null);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
- 			getAccount();
+		try {
+			exchange = (Exchange) Class.forName(exchangesHashMap.get(exchangeName)).getMethod("getInstance",null).invoke(null,null);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		getAccount();
 	}
 
 	public Exchange getExchange() {

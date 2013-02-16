@@ -65,8 +65,8 @@ public class AccountManager implements Runnable {
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
 
 			// Interested in the private account functionality (authentication)
-			accountService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingAccountService();
-
+			accountService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingAccountService();				
+				
 			// Get the account information
 			accountInfo = accountService.getAccountInfo();
 			log.info("{} AccountInfo as String: {}",exchangeName,accountInfo.toString());

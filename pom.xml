@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<currentVersion>2.3.6</currentVersion>
+		<currentVersion>2.3.7</currentVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
@@ -19,12 +19,7 @@
 	</scm>
 	<repositories>
 		<repository>
-			<id>xchange-release</id>
-			<releases/>
-			<url>http://oss.sonatype.org/content/repositories/releases</url>
-		</repository>
-		<repository>
-			<id>xchange-snapshot</id>
+			<id>sonatype-oss-snapshot</id>
 			<snapshots/>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</repository>
