@@ -114,8 +114,10 @@ public class Application {
 		exchangeManagers = new HashMap<String, Thread>();
 		exchangeManagerThreadGroup = new ThreadGroup("ExchangeManagers");
 		for (String exchange : ExchangeManager.getExchangesHashMap().keySet()) {
-			exchangeManagers.put(exchange, new Thread(exchangeManagerThreadGroup,ExchangeManager.getInstance(exchange)));
-			exchangeManagers.get(exchange).start();
+			if (getConfig("Use" + exchange).equals("1")) {
+				exchangeManagers.put(exchange, new Thread(exchangeManagerThreadGroup,ExchangeManager.getInstance(exchange)));
+				exchangeManagers.get(exchange).start();
+			}
 		}
 		log.info("Aido ATP has started successfully");
 
