@@ -41,7 +41,8 @@ public class ExchangeManager implements Runnable {
 		put(ATPMtGoxExchange.getExchangeName(), ATPMtGoxExchange.class.getName());
 		put(ATPBTCeExchange.getExchangeName(), ATPBTCeExchange.class.getName());
 		put(ATPBitstampExchange.getExchangeName(), ATPBitstampExchange.class.getName());
-		put(ATPBitcoinCentralExchange.getExchangeName(), ATPBitcoinCentralExchange.class.getName());}};
+		put(ATPBitcoinCentralExchange.getExchangeName(), ATPBitcoinCentralExchange.class.getName());
+		put(ATPCampBXExchange.getExchangeName(), ATPCampBXExchange.class.getName());}};
 	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
 	private HashMap<CurrencyUnit, Double> asksInARow;
 	private HashMap<CurrencyUnit, Double> bidsInARow;
@@ -68,7 +69,7 @@ public class ExchangeManager implements Runnable {
 	public synchronized void run() {
 
 		try {
-			exchange = (Exchange) Class.forName(exchangesHashMap.get(exchangeName)).getMethod("getInstance",null).invoke(null,null);
+			exchange = (Exchange) Class.forName(exchangesHashMap.get(exchangeName)).getMethod("getInstance").invoke(null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -87,6 +88,7 @@ public class ExchangeManager implements Runnable {
 		}
 		return exchange;
 	}
+
 	public void setExchangeSpecification(ExchangeSpecification exchangeSpecification) {
 		this.exchangeSpecification = exchangeSpecification;
 	}
