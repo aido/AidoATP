@@ -22,6 +22,8 @@ import java.io.Console;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.InputStream;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -75,6 +77,8 @@ public class Application {
 	}
 
 	public void start(String[] args){
+	
+		List<String> exchangeArray = new ArrayList<String>();
 		parseArgs(args);
 
 		config = Preferences.userNodeForPackage(this.getClass());
@@ -117,6 +121,7 @@ public class Application {
 			if (getConfig("Use" + exchange).equals("1")) {
 				exchangeManagers.put(exchange, new Thread(exchangeManagerThreadGroup,ExchangeManager.getInstance(exchange)));
 				exchangeManagers.get(exchange).start();
+				exchangeArray.add(exchange);
 			}
 		}
 		log.info("Aido ATP has started successfully");
@@ -134,7 +139,7 @@ public class Application {
 		}
 
 		try {
-			for (String exchange : ExchangeManager.getExchangesHashMap().keySet())
+			for (String exchange : exchangeArray)
 				exchangeManagers.get(exchange).join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -180,7 +185,7 @@ public class Application {
 		for (String exchange : ExchangeManager.getExchangesHashMap().keySet()) {
 			out.print("Use " + exchange + " exchange (y/n): ");
 			if(console.readLine().equalsIgnoreCase("Y") ) {
-				if (exchange.equals("Bitstamp") || exchange.equals("BitcoinCentral")) {
+				if (exchange.equals("Bitstamp") || exchange.equals("BitcoinCentral") || exchange.equals("CampBX")) {
 					out.print("Enter your " + exchange + " Username: ");
 					config.put(exchange + "UserName",console.readLine());
 					out.print("Enter your " + exchange + " Password: ");
