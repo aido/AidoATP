@@ -145,7 +145,7 @@ Algorithm 1 is high risk, algorithm 2 is conservative risk
 Exchanges
 =========
 
-Aido ATP currently trades on the MtGOX, BTC-e, Bitstamp and Bitcoin Central exchanges. More exchanges are planned.
+Aido ATP currently trades on the MtGox, BTC-e, Bitstamp, Bitcoin Central and CampBX exchanges.
 
 Usage
 =====
