@@ -58,7 +58,7 @@ public class ATPMtGoxExchange extends MtGoxExchange {
 			ExchangeSpecification exchangeSpecification = new ExchangeSpecification(MtGoxExchange.class.getName());
 			exchangeSpecification.setApiKey(apiKey);
 			exchangeSpecification.setSecretKey(secretKey);
-			exchangeSpecification.setUri("https://mtgox.com");
+			exchangeSpecification.setUri("https://data.mtgox.com");
 			exchangeSpecification.setHost("mtgox.com");
 			
 			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
