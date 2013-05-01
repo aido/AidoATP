@@ -55,7 +55,7 @@ public class PollingTickerManager extends TickerManager {
 		try {
 			checkTick(marketData.getTicker(Currencies.BTC, currency.getCurrencyCode()));
 			TimeUnit.SECONDS.sleep(Integer.parseInt(Application.getInstance().getConfig("PollingInterval")));
-		} catch (com.xeiam.xchange.ExchangeException | com.xeiam.xchange.rest.HttpException  e) {
+		} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
 			Socket testSock = null;
 			while (true) {
 				try {

@@ -65,14 +65,14 @@ public class AccountManager implements Runnable {
 			books = new HashMap<CurrencyUnit, ArrayList<BigMoney>>();
 
 			// Interested in the private account functionality (authentication)
-			accountService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingAccountService();				
-				
+			accountService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingAccountService();
+
 			// Get the account information
 			accountInfo = accountService.getAccountInfo();
 			log.info("{} AccountInfo as String: {}",exchangeName,accountInfo.toString());
 			refreshAccounts();
 			startTickers();
-		} catch (com.xeiam.xchange.ExchangeException | com.xeiam.xchange.rest.HttpException e) {
+		} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
 			Socket testSock = null;
 			while (true) {
 				try {
@@ -147,7 +147,7 @@ public class AccountManager implements Runnable {
 		ThreadGroup tickerThreadGroup = new ThreadGroup("Tickers");
 		for(Wallet wallet : wallets) {
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC") && !(exchangeName.equals("BitcoinCentral") && (currency.getCode().equals("CAD") || currency.getCode().equals("INR"))) ) {
+			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC") && !currency.getCode().equals("PPC") && !currency.getCode().equals("TRC") && !currency.getCode().equals("NVC") && !(exchangeName.equals("BitcoinCentral") && (currency.getCode().equals("CAD") || currency.getCode().equals("INR"))) ) {
 				Thread tickermanagerManagerThread = new Thread(tickerThreadGroup,TickerManager.getInstance(exchangeName,currency));
 				tickermanagerManagerThread.start();
 			}

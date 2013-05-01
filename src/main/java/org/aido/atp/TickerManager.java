@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.dto.marketdata.Ticker;
+import com.xeiam.xchange.utils.DateUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,18 +154,21 @@ public class TickerManager implements Runnable {
 	}
 
 	public void checkTick(Ticker tick) {
-		currentVolume = tick.getVolume().longValue();
+		ATPTicker atpTick = new ATPTicker(tick);
+		if (atpTick.getTimestamp() == null)
+			atpTick.setTimestamp(DateUtils.nowUtc());
+		currentVolume = atpTick.getVolume();
 		if(currentVolume != lastVolume) {
 			synchronized(tickerCache) {
-				tickerCache.add(new ATPTicker(tick));
+				tickerCache.add(atpTick);
 				if (Application.getInstance().getArbMode()) {
 					new Thread(ArbitrageEngine.getInstance(exchangeName)).start();
-					ArbitrageEngine.getInstance(exchangeName).addTick(new ATPTicker(tick));
+					ArbitrageEngine.getInstance(exchangeName).addTick(atpTick);
 				}
 				if (Application.getInstance().getTrendMode()) {
 					new Thread(new TrendObserver(exchangeName,getMarketData())).start();
 				}
-				ProfitLossAgent.getInstance().updateRates(tick.getAsk());
+				ProfitLossAgent.getInstance().updateRates(atpTick.getAsk());
 				lastVolume = currentVolume;
 			}
 		}

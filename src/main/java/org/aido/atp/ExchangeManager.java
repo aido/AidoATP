@@ -41,7 +41,7 @@ public class ExchangeManager implements Runnable {
 		put(ATPMtGoxExchange.getExchangeName(), ATPMtGoxExchange.class.getName());
 		put(ATPBTCeExchange.getExchangeName(), ATPBTCeExchange.class.getName());
 		put(ATPBitstampExchange.getExchangeName(), ATPBitstampExchange.class.getName());
-		put(ATPBitcoinCentralExchange.getExchangeName(), ATPBitcoinCentralExchange.class.getName());
+//		put(ATPBitcoinCentralExchange.getExchangeName(), ATPBitcoinCentralExchange.class.getName());
 		put(ATPCampBXExchange.getExchangeName(), ATPCampBXExchange.class.getName());}};
 	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
 	private HashMap<CurrencyUnit, Double> asksInARow;

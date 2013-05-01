@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<currentVersion>2.5.1</currentVersion>
+		<currentVersion>2.6.0</currentVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
@@ -98,10 +98,10 @@
 			<groupId>com.xeiam.xchange</groupId>
 			<artifactId>xchange-bitstamp</artifactId>
 		</dependency>
-		<dependency>
+<!--		<dependency>
 			<groupId>com.xeiam.xchange</groupId>
 			<artifactId>xchange-bitcoincentral</artifactId>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>com.xeiam.xchange</groupId>
 			<artifactId>xchange-campbx</artifactId>
@@ -120,32 +120,32 @@
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-core</artifactId>
-				<version>1.5.0</version>
+				<version>1.6.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-mtgox</artifactId>
-				<version>1.5.0</version>
+				<version>1.6.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-btce</artifactId>
-				<version>1.5.0</version>
+				<version>1.6.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-bitstamp</artifactId>
-				<version>develop-SNAPSHOT</version>
+				<version>1.6.0</version>
 			</dependency>
-			<dependency>
+<!--			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-bitcoincentral</artifactId>
-				<version>1.5.0</version>
-			</dependency>
+				<version>1.6.0</version>
+			</dependency> -->
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-campbx</artifactId>
-				<version>1.5.0</version>
+				<version>1.6.0</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>

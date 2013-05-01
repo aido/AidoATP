@@ -23,8 +23,6 @@ import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.btce.BTCEExchange;
 
-import org.joda.money.CurrencyUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,25 +48,25 @@ public class ATPBTCeExchange extends BTCEExchange {
 	}
 
 	public static Exchange newInstance() {
-			String apiKey = Application.getInstance().getConfig(EXCHANGENAME + "ApiKey");
-			String secretKey= Application.getInstance().getConfig(EXCHANGENAME + "SecretKey");
+		String apiKey = Application.getInstance().getConfig(EXCHANGENAME + "ApiKey");
+		String secretKey= Application.getInstance().getConfig(EXCHANGENAME + "SecretKey");
 
-			log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
-			log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
+		log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
+		log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
+		
+		Exchange exchange = ExchangeFactory.INSTANCE.createExchange(BTCEExchange.class.getName());
+		
+		ExchangeSpecification exchangeSpecification = exchange.getDefaultExchangeSpecification();
+		exchangeSpecification.setApiKey(apiKey);
+		exchangeSpecification.setSecretKey(secretKey);
+		exchange.applySpecification(exchangeSpecification);
+		
+		ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+		ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
+		
+		log.info("Connecting to {} Exchange",EXCHANGENAME);			
 			
-			ExchangeSpecification exchangeSpecification = new ExchangeSpecification(BTCEExchange.class.getName());
-			exchangeSpecification.setApiKey(apiKey);
-			exchangeSpecification.setSecretKey(secretKey);
-			exchangeSpecification.setUri("https://btc-e.com");
-			exchangeSpecification.setHost("btc-e.com");
-			exchangeSpecification.setPort(80);
-			
-			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
-			
-			log.info("Connecting to {} Exchange",EXCHANGENAME);
-			
-		return ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+		return exchange;
 	}
 
 	public static String getExchangeName() {

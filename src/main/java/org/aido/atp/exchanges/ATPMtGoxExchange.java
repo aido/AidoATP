@@ -23,8 +23,6 @@ import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.mtgox.v1.MtGoxExchange;
 
-import org.joda.money.CurrencyUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,25 +46,26 @@ public class ATPMtGoxExchange extends MtGoxExchange {
 		return instance;
 	}
 
-	public static Exchange newInstance() {
-			String apiKey = Application.getInstance().getConfig(EXCHANGENAME + "ApiKey");
-			String secretKey= Application.getInstance().getConfig(EXCHANGENAME + "SecretKey");
+	public static Exchange newInstance() {	
+		String apiKey = Application.getInstance().getConfig(EXCHANGENAME + "ApiKey");
+		String secretKey= Application.getInstance().getConfig(EXCHANGENAME + "SecretKey");
 
-			log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
-			log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
+		log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
+		log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
+		
+		Exchange exchange = ExchangeFactory.INSTANCE.createExchange(MtGoxExchange.class.getName());
+		
+		ExchangeSpecification exchangeSpecification = exchange.getDefaultExchangeSpecification();
+		exchangeSpecification.setApiKey(apiKey);
+		exchangeSpecification.setSecretKey(secretKey);
+		exchange.applySpecification(exchangeSpecification);
+		
+		ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+		ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
+		
+		log.info("Connecting to {} Exchange",EXCHANGENAME);
 			
-			ExchangeSpecification exchangeSpecification = new ExchangeSpecification(MtGoxExchange.class.getName());
-			exchangeSpecification.setApiKey(apiKey);
-			exchangeSpecification.setSecretKey(secretKey);
-			exchangeSpecification.setUri("https://data.mtgox.com");
-			exchangeSpecification.setHost("mtgox.com");
-			
-			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
-			
-			log.info("Connecting to {} Exchange",EXCHANGENAME);
-			
-		return ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+		return exchange;
 	}
 
 	public static String getExchangeName() {

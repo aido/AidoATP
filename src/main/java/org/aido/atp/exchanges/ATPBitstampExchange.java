@@ -23,8 +23,6 @@ import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bitstamp.BitstampExchange;
 
-import org.joda.money.CurrencyUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,24 +47,26 @@ public class ATPBitstampExchange extends BitstampExchange {
 	}
 
 	public static Exchange newInstance() {
-			String userName = Application.getInstance().getConfig(EXCHANGENAME + "UserName");
-			String passWord = Application.getInstance().getConfig(EXCHANGENAME + "Password");
 
-			log.debug("{} UserName: {}",EXCHANGENAME,userName);
-			log.debug("{} Password: {}",EXCHANGENAME,passWord);
-			
-			ExchangeSpecification exchangeSpecification = new ExchangeSpecification(BitstampExchange.class.getName());
-			exchangeSpecification.setUserName(userName);
-			exchangeSpecification.setPassword(passWord);
-			exchangeSpecification.setUri("https://www.bitstamp.net");
-			exchangeSpecification.setHost("www.bitstamp.net");
+		String userName = Application.getInstance().getConfig(EXCHANGENAME + "UserName");
+		String passWord = Application.getInstance().getConfig(EXCHANGENAME + "Password");
 
-			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
+		log.debug("{} UserName: {}",EXCHANGENAME,userName);
+		log.debug("{} Password: {}",EXCHANGENAME,passWord);
+		
+		Exchange exchange = ExchangeFactory.INSTANCE.createExchange(BitstampExchange.class.getName());
+		
+		ExchangeSpecification exchangeSpecification = exchange.getDefaultExchangeSpecification();
+		exchangeSpecification.setUserName(userName);
+		exchangeSpecification.setPassword(passWord);
+		exchange.applySpecification(exchangeSpecification);
+
+		ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+		ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
+		
+		log.info("Connecting to {} Exchange",EXCHANGENAME);
 			
-			log.info("Connecting to {} Exchange",EXCHANGENAME);
-			
-		return ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+		return exchange;
 	}
 
 	public static String getExchangeName() {

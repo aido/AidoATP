@@ -23,8 +23,6 @@ import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.campbx.CampBXExchange;
 
-import org.joda.money.CurrencyUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,24 +47,24 @@ public class ATPCampBXExchange extends CampBXExchange {
 	}
 
 	public static Exchange newInstance() {
-			String userName = Application.getInstance().getConfig(EXCHANGENAME + "UserName");
-			String passWord = Application.getInstance().getConfig(EXCHANGENAME + "Password");
+		String userName = Application.getInstance().getConfig(EXCHANGENAME + "UserName");
+		String passWord = Application.getInstance().getConfig(EXCHANGENAME + "Password");
 
-			log.debug("{} UserName: {}",EXCHANGENAME,userName);
-			log.debug("{} Password: {}",EXCHANGENAME,passWord);
+		log.debug("{} UserName: {}",EXCHANGENAME,userName);
+		log.debug("{} Password: {}",EXCHANGENAME,passWord);
+		
+		Exchange exchange = ExchangeFactory.INSTANCE.createExchange(CampBXExchange.class.getName());
+		
+		ExchangeSpecification exchangeSpecification = exchange.getDefaultExchangeSpecification();
+		exchangeSpecification.setUserName(userName);
+		exchangeSpecification.setPassword(passWord);
+		exchange.applySpecification(exchangeSpecification);
+		ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+		ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
+		
+		log.info("Connecting to {} Exchange",EXCHANGENAME);
 			
-			ExchangeSpecification exchangeSpecification = new ExchangeSpecification(CampBXExchange.class.getName());
-			exchangeSpecification.setUserName(userName);
-			exchangeSpecification.setPassword(passWord);
-			exchangeSpecification.setUri("https://campbx.com");
-			exchangeSpecification.setHost("campbx.com");
-
-			ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
-			ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
-			
-			log.info("Connecting to {} Exchange",EXCHANGENAME);
-			
-		return ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+		return exchange;
 	}
 
 	public static String getExchangeName() {

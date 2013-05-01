@@ -24,6 +24,8 @@
 	</appender>
 	<logger name="com.xeiam.xchange" level="WARN">
 	</logger>
+        <logger name="si.mazi.rescu" level="WARN">
+        </logger>
 	<root level="DEBUG">
 			<appender-ref ref="FILE" />
 			<appender-ref ref="STDOUT" />

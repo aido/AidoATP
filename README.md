@@ -80,9 +80,9 @@ Boolean logic is used with the following parameters for each trading algorithm:
 
 Advance/Decline Spread algorithm:				ADS_Up and ADS_Down
 
-Exponential Moving Average algorithm:			EMA_Up and EMS_Down
+Exponential Moving Average algorithm:			EMA_Up and EMA_Down
 
-Simple Moving Average algorithm:				SMA_Up and SMS_Down
+Simple Moving Average algorithm:				SMA_Up and SMA_Down
 
 Volume Participation algorithm (VWAP Cross):	VWAPCross_Up and VWAPCross_Down
 
@@ -145,7 +145,7 @@ Algorithm 1 is high risk, algorithm 2 is conservative risk
 Exchanges
 =========
 
-Aido ATP currently trades on the MtGox, BTC-e, Bitstamp, Bitcoin Central and CampBX exchanges.
+Aido ATP currently trades on the MtGox, BTC-e, Bitstamp and CampBX exchanges.
 
 Usage
 =====

@@ -116,7 +116,7 @@ public class ArbitrageEngine implements Runnable {
 				}else {
 					log.info("Arbitrage Engine cannot find a profitable opportunity on "+exchangeName+" at this time.");
 				}
-			} catch (com.xeiam.xchange.ExchangeException e) {
+			} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
 				Socket testSock = null;
 				try {
 					log.warn("WARNING: Testing connection to "+exchangeName+" exchange");
