@@ -192,6 +192,7 @@ When interviewed the user will be asked for the following information:
 		Bitcoin Central Username
 		Bitcoin Central Password
 	ISO Code for Prefered Currency (i.e. USD, GBP, JPY, EUR etc)
+	Use ONLY local currency for trades (y/n)
 	Maximum number of bitcoins to trade in a single order
 	Minimum number of bitcoins to trade in a single order
 	Maximum amount of local currency to trade in a single order
@@ -209,7 +210,10 @@ When interviewed the user will be asked for the following information:
 	Number of MACD values used to calculate MACD Signal Line
 	Bid Logic
 	Ask Logic
-	Which risk algorithm would you like to use? (High Risk or Conservative)
+	Which risk algorithm would you like to use? (1 - 3)
+		1: Conservative Risk
+		2: High Risk"
+		3: Maximum Risk")
 	Trading fee (eg 0.6% = 0.006)
 		
 If used, the --use-arbitrage and --use-trend command line switches will over-ride their respective configuration file values.

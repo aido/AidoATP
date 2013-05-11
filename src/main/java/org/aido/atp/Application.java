@@ -205,6 +205,13 @@ public class Application {
 		out.print("ISO Code for Prefered Currency (i.e. USD, GBP, JPY, EUR etc): ");
 		config.put("LocalCurrency", console.readLine());
 
+		out.print("Use ONLY local currency for trades (y/n): ");
+		if(console.readLine().equalsIgnoreCase("Y") ) {
+			config.put("UseLocalOnly", "1");
+		} else {
+			config.put("UseLocalOnly", "0");
+		}
+
 		out.print("Maximum number of bitcoins to trade in a single order: ");
 		config.put("MaxBTC", console.readLine());
 

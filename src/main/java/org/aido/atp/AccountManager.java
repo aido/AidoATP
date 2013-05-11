@@ -147,10 +147,18 @@ public class AccountManager implements Runnable {
 		ThreadGroup tickerThreadGroup = new ThreadGroup("Tickers");
 		for(Wallet wallet : wallets) {
 			CurrencyUnit currency = wallet.getBalance().getCurrencyUnit();
-			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC") && !currency.getCode().equals("PPC") && !currency.getCode().equals("TRC") && !currency.getCode().equals("NVC") && !(exchangeName.equals("BitcoinCentral") && (currency.getCode().equals("CAD") || currency.getCode().equals("INR"))) ) {
-				Thread tickermanagerManagerThread = new Thread(tickerThreadGroup,TickerManager.getInstance(exchangeName,currency));
-				tickermanagerManagerThread.start();
-			}
+			
+			if(!currency.getCode().equals("BTC") && !currency.getCode().equals("NMC") && !currency.getCode().equals("LTC") && !currency.getCode().equals("PPC") && !currency.getCode().equals("TRC") && !currency.getCode().equals("NVC") && !(exchangeName.equals("BitcoinCentral") && (currency.getCode().equals("CAD") || currency.getCode().equals("INR"))) ) {				
+				if (Application.getInstance().getConfig("UseLocalOnly").equals("1")) {
+					if (currency.getCode().equals(Application.getInstance().getConfig("LocalCurrency"))) {
+						Thread tickermanagerManagerThread = new Thread(tickerThreadGroup,TickerManager.getInstance(exchangeName,currency));
+						tickermanagerManagerThread.start();
+					}
+				} else {
+					Thread tickermanagerManagerThread = new Thread(tickerThreadGroup,TickerManager.getInstance(exchangeName,currency));
+					tickermanagerManagerThread.start();
+				}
+			}			
 		}
 	}
 }
