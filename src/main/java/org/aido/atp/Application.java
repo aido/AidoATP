@@ -264,9 +264,10 @@ public class Application {
 		out.print("Ask Logic: ");
 		config.put("AskLogic", console.readLine());
 
-		out.println("Which risk algorithm would you like to use? (1 or 2)");
-		out.println("1: High Risk");
-		out.println("2: Conservative");
+		out.println("Which risk algorithm would you like to use? (1 - 3)");
+		out.println("1: Conservative Risk");
+		out.println("2: High Risk");
+		out.println("3: Maximum Risk");
 		config.put("RiskAlgorithm", console.readLine());
 
 		out.print("Trading fee (eg 0.6% = 0.006): ");

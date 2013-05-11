@@ -126,21 +126,32 @@ Once we have decided to buy or sell, then we look at the ask, bid and trend arro
 Risk
 ====
 
-The user has a choice of high risk or conservative trading.
+The user has a choice of conservative, high or maximun risk trading.
 
 The Trend Observer calculates the Advance/Decline spread for ask, bid and last prices to give a askArrow, bidArrow and trendArrow values. These values are then used to calculate a weight.
 
 The weight is calculated one of two ways based on the choice of high risk or conservative and compared to stop loss value. If the calculated weight is above the stop loss value, weight is reduced to the configured stop loss value.
 
-Here's how the weight is calculated for bid/buy:
+Here's how the weight is calculated for Bid/Buy:
 
 	if(algorithm == 1) {
-		weight = (askArrow + trendArrow) / ticker.size();
-	}else {
-		weight = (askArrow / ticker.size()) * (trendArrow / ticker.size());
+		//Conservative
+		weight = (askArrow / tickerSize) * (trendArrow / tickerSize);
+	} else if(algorithm == 2) {
+		//High
+		weight = (askArrow + trendArrow) / tickerSize;
+	} else if(algorithm == 3) {
+		//Maximum
+		weight = 1;
+	} else {
+		// illegal value <1 or >3
+		// Conservative (Default)
+		weight = (askArrow / tickerSize) * (trendArrow / tickerSize);
 	}
+	
+Ask/Sell weight is calulated in a similar way.
 			
-Algorithm 1 is high risk, algorithm 2 is conservative risk
+Algorithm 1 is conservative risk, algorithm 2 is high risk and algorithm 3 is maximum risk.
 
 Exchanges
 =========
