@@ -21,7 +21,7 @@ package org.aido.atp;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.mtgox.v1.MtGoxExchange;
+import com.xeiam.xchange.mtgox.v2.MtGoxExchange;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

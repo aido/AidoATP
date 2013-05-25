@@ -212,8 +212,8 @@ When interviewed the user will be asked for the following information:
 	Ask Logic
 	Which risk algorithm would you like to use? (1 - 3)
 		1: Conservative Risk
-		2: High Risk"
-		3: Maximum Risk")
+		2: High Risk
+		3: Maximum Risk
 	Trading fee (eg 0.6% = 0.006)
 		
 If used, the --use-arbitrage and --use-trend command line switches will over-ride their respective configuration file values.
