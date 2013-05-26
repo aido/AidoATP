@@ -31,7 +31,7 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.trade.Wallet;
-import com.xeiam.xchange.service.account.polling.PollingAccountService;
+import com.xeiam.xchange.service.polling.PollingAccountService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

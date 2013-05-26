@@ -30,7 +30,7 @@ import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
-import com.xeiam.xchange.service.trade.polling.PollingTradeService;
+import com.xeiam.xchange.service.polling.PollingTradeService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
