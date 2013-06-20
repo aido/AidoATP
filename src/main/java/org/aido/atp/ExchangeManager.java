@@ -51,6 +51,7 @@ public class ExchangeManager implements Runnable {
 	private ExchangeSpecification exchangeSpecification;
 	private String exchangeName;
 	private String tickerManagerClass;
+	private boolean disableTradeFlag;
 
 	public static ExchangeManager getInstance(String exchangeName) {
 		if(!instances.containsKey(exchangeName))
@@ -132,5 +133,13 @@ public class ExchangeManager implements Runnable {
 
 	public void setBidsInARow(HashMap<CurrencyUnit, Double> bidsInARow) {
 		this.bidsInARow = bidsInARow;
+	}
+
+	public boolean getDisableTrade() {
+		return disableTradeFlag;
+	}
+	
+	public void setDisableTrade(Boolean disableTradeFlag) {
+		this.disableTradeFlag = disableTradeFlag;
 	}
 }

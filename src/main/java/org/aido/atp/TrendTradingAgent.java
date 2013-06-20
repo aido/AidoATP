@@ -356,6 +356,7 @@ public class TrendTradingAgent implements Runnable {
 	//Decide whether or not to sell & how much to sell
 	private void evalAsk(){
 		StringBuilder str = new StringBuilder();
+		Boolean disableTradeSet = false;
 
 		str.setLength(0);
 
@@ -431,12 +432,14 @@ public class TrendTradingAgent implements Runnable {
 						log.info("{} was less than the configured limit of {}",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),minBTC.toString());
 						log.info("Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",localCurrency.getCode());
 					} else if (Application.getInstance().getArbMode()) {
-						if (ArbitrageEngine.getInstance(exchangeName).getDisableTrendTrade()) {
-							log.info("Trend following trades disabled by Arbitrage Engine.");
+						if (ExchangeManager.getInstance(exchangeName).getDisableTrade()) {
+							log.info("{} Trend following trades disabled by another trade thread.",exchangeName);
+						} else {
+							ExchangeManager.getInstance(exchangeName).setDisableTrade(true);
+							disableTradeSet = true;
+							log.info(exchangeName + "Trend following trade agent is attempting to sell {} of {} available",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),balanceBTC.toString());
+							marketOrder(qtyToSell.getAmount(),OrderType.ASK);
 						}
-					} else {
-						log.info(exchangeName + "Trend following trade agent is attempting to sell {} of {} available",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),balanceBTC.toString());
-						marketOrder(qtyToSell.getAmount(),OrderType.ASK);
 					}
 				} else {
 					log.info(exchangeName + "BTC balance is empty. No further selling is possible until the market corrects or funds are added to your account.");
@@ -447,13 +450,18 @@ public class TrendTradingAgent implements Runnable {
 		}catch(WalletNotFoundException e) {
 			log.error("ERROR: Could not find {} wallet for {}.",exchangeName,localCurrency.getCurrencyCode());
 			System.exit(1);
-		}
+		} finally {
+			if (disableTradeSet) {
+				ExchangeManager.getInstance(exchangeName).setDisableTrade(false);
+			}
+		} 
 		return;
 	}
 
 	//Decide whether or not to buy and how much to buy
 	private void evalBid(){
 		StringBuilder str = new StringBuilder();
+		Boolean disableTradeSet = false;
 
 		str.setLength(0);
 
@@ -532,18 +540,20 @@ public class TrendTradingAgent implements Runnable {
 						log.info("{} was less than the configured minimum of {}",qtyToBuy.withScale(8,RoundingMode.HALF_EVEN).toString() ,minLocal.toString());
 						log.info("{} Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",exchangeName,localCurrency.getCode());
 					} else if (Application.getInstance().getArbMode()) {
-						if (ArbitrageEngine.getInstance(exchangeName).getDisableTrendTrade()) {
-							log.info("{} Trend following trades disabled by Arbitrage Engine.",exchangeName);
-						}
-					} else {
-						// Convert local currency amount to BTC
-						BigMoney qtyBTCToBuy = qtyToBuy.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(lastTick.getAsk().getAmount(),16,RoundingMode.HALF_EVEN));
-						if(qtyBTCToBuy.isLessThan(minBTC)) {
-							log.info("{} was less than the configured limit of {}",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),minBTC.toString());
-							log.info("{} Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",exchangeName,localCurrency.getCode());
+						if (ExchangeManager.getInstance(exchangeName).getDisableTrade()) {
+							log.info("{} Trend following trades disabled by another trade thread.",exchangeName);
 						} else {
-							log.info(exchangeName + " Trend following trade agent is attempting to buy {} at current {} market price.",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),localCurrency.getCurrencyCode());
-							marketOrder(qtyBTCToBuy.getAmount(),OrderType.BID);
+							// Convert local currency amount to BTC
+							BigMoney qtyBTCToBuy = qtyToBuy.convertedTo(CurrencyUnit.of("BTC"),BigDecimal.ONE.divide(lastTick.getAsk().getAmount(),16,RoundingMode.HALF_EVEN));
+							if(qtyBTCToBuy.isLessThan(minBTC)) {
+								log.info("{} was less than the configured limit of {}",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),minBTC.toString());
+								log.info("{} Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",exchangeName,localCurrency.getCode());
+							} else {
+								ExchangeManager.getInstance(exchangeName).setDisableTrade(true);
+								disableTradeSet = true;
+								log.info(exchangeName + " Trend following trade agent is attempting to buy {} at current {} market price.",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),localCurrency.getCurrencyCode());
+								marketOrder(qtyBTCToBuy.getAmount(),OrderType.BID);
+							}
 						}
 					}
 				} else {
@@ -553,7 +563,11 @@ public class TrendTradingAgent implements Runnable {
 		} catch (WalletNotFoundException e) {
 			log.error("ERROR: Could not find wallet for {}",localCurrency.getCurrencyCode());
 			System.exit(1);
-		}
+		} finally {
+			if (disableTradeSet) {
+				ExchangeManager.getInstance(exchangeName).setDisableTrade(false);
+			}
+		} 
 		return;
 	}
 

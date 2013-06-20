@@ -48,7 +48,6 @@ public class ArbitrageEngine implements Runnable {
 	private double factor;
 	private Logger log;
 	private boolean quit;
-	private boolean disableTrendTradeFlag;
 	private HashMap<CurrencyUnit, ATPTicker> lastTickMap;
 	private String exchangeName;
 
@@ -63,11 +62,12 @@ public class ArbitrageEngine implements Runnable {
 		this.exchangeName = exchangeName;
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
 		quit = false;
-		disableTrendTradeFlag = false;
 		lastTickMap = new HashMap<CurrencyUnit, ATPTicker>();
 	}
 	@Override
 	public synchronized void run() {
+	
+		boolean disableTradeSet = false;
 	
 		try {
 			// V currencies
@@ -111,9 +111,13 @@ public class ArbitrageEngine implements Runnable {
 						log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
 								+" on currency pair "+currArray[de.from()].toString()+"/"+currArray[de.to()].toString()+" on "+exchangeName);
 						try {
-							disableTrendTradeFlag = true;	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
-							executeTrade(currArray[de.from()],currArray[de.to()]);
-							disableTrendTradeFlag = false;
+							if (ExchangeManager.getInstance(exchangeName).getDisableTrade()) {
+								log.info("{} Arbitrage trades disabled by another trade thread.",exchangeName);
+							} else {
+								ExchangeManager.getInstance(exchangeName).setDisableTrade(true);	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
+								disableTradeSet = true;
+								executeTrade(currArray[de.from()],currArray[de.to()]);
+							}
 						} catch (WalletNotFoundException e) {
 							e.printStackTrace();
 						}
@@ -141,6 +145,10 @@ public class ArbitrageEngine implements Runnable {
 		} catch (Exception e) {
 			log.error("ERROR: Caught unexpected exception, shutting down "+exchangeName+" arbitrage engine now!. Details are listed below.");
 			e.printStackTrace();
+		} finally {
+			if (disableTradeSet) {
+				ExchangeManager.getInstance(exchangeName).setDisableTrade(false);
+			}
 		}
 	}
 
@@ -221,9 +229,5 @@ public class ArbitrageEngine implements Runnable {
 			}
 		}
 		
-	}
-		
-	public boolean getDisableTrendTrade() {
-		return disableTrendTradeFlag;
 	}
 }
