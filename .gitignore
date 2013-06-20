@@ -1,6 +1,6 @@
 *.class
 *.dat
-*.error
+*.err*
 *.log
 target
 

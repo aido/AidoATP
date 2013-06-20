@@ -65,106 +65,113 @@ public class ArbitrageEngine implements Runnable {
 		quit = false;
 		disableTrendTradeFlag = false;
 		lastTickMap = new HashMap<CurrencyUnit, ATPTicker>();
-		baseCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
 	}
 	@Override
 	public synchronized void run() {
 	
-		if (lastTickMap.get(baseCurrency) != null) {
+		try {
+			// V currencies
+			int V = lastTickMap.size();
+			CurrencyUnit[] currArray = lastTickMap.keySet().toArray(new CurrencyUnit[V]);
+			
+			// create complete network
+			double rate;
+			EdgeWeightedDigraph G = new EdgeWeightedDigraph(V);
+			for(int v = 0; v < V; v++) {
+				for(int w = 0; w < V; w++) {
+					if (currArray[v].equals(currArray[w])) {
+						rate = (double)1;
+					} else {
+						rate = lastTickMap.get(currArray[v]).getAsk().getAmount().divide(lastTickMap.get(currArray[w]).getBid().getAmount(),RoundingMode.HALF_EVEN).doubleValue();
+					}
+					DirectedEdge de = new DirectedEdge(v, w, -Math.log(rate));
+					G.addEdge(de);
+				}
+			}
+
+			// find negative cycle
+			BellmanFordSP spt = new BellmanFordSP(G, 0);
+			if (spt.hasNegativeCycle()) {
+				for (DirectedEdge de : spt.negativeCycle()) {
+					double fee = Double.parseDouble(Application.getInstance().getConfig("TradingFee"));
+					double targetProfit = Double.parseDouble(Application.getInstance().getConfig("TargetProfit"));
+					
+					// Temporary value for testing purposes until I figure out how the hell to calculate profit
+					double profit = 100;
+					double profitAfterFee = profit - (fee * 2);
+
+					NumberFormat percentFormat = NumberFormat.getPercentInstance();
+					percentFormat.setMaximumFractionDigits(8);
+					
+					String profitToDisplay = percentFormat.format(profitAfterFee);
+					
+					log.debug(exchangeName+" Arbitrage profit after fee: "+profitAfterFee);
+					
+					if(profitAfterFee > targetProfit){
+						log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
+								+" on currency pair "+currArray[de.from()].toString()+"/"+currArray[de.to()].toString()+" on "+exchangeName);
+						try {
+							disableTrendTradeFlag = true;	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
+							executeTrade(currArray[de.from()],currArray[de.to()]);
+							disableTrendTradeFlag = false;
+						} catch (WalletNotFoundException e) {
+							e.printStackTrace();
+						}
+					}else {
+						log.info("Arbitrage Engine cannot find a profitable arbitrage opportunity on "+exchangeName+" at this time.");
+					}
+				}
+			}else {
+				log.info("Arbitrage Engine cannot find an arbitrage opportunity on "+exchangeName+" at this time.");
+			}
+		} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
+			Socket testSock = null;
 			try {
-				BigMoney highestBid = null;
+				log.warn("WARNING: Testing connection to "+exchangeName+" exchange");
+				testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
+			}
+			catch (java.io.IOException e1) {
 				try {
-					highestBid = getHighestBid();
-				} catch (WalletNotFoundException e2) {
-					// TODO Auto-generated catch block
+					log.error("ERROR: Cannot connect to "+exchangeName+" exchange.");
+					TimeUnit.MINUTES.sleep(1);
+				} catch (InterruptedException e2) {
 					e2.printStackTrace();
 				}
-				BigMoney lowestAsk = null;
-				try {
-					lowestAsk = getLowestAsk();
-				} catch (WalletNotFoundException e1) {
-					e1.printStackTrace();
-				}
-				
-				double fee = Double.parseDouble(Application.getInstance().getConfig("TradingFee"));
-				double targetProfit = Double.parseDouble(Application.getInstance().getConfig("TargetProfit"));
-				
-				//We buy from the lowestAsk & sell to the highestBid;
-				double profit = highestBid.getAmount().subtract(lowestAsk.getAmount()).doubleValue();
-				double profitAfterFee = profit - (fee * 2);
-
-				NumberFormat percentFormat = NumberFormat.getPercentInstance();
-				percentFormat.setMaximumFractionDigits(8);
-				
-				String profitToDisplay = percentFormat.format(profitAfterFee);
-				
-				log.debug(exchangeName+" Arbitrage profit after fee: "+profitAfterFee);
-				
-				if(profitAfterFee > targetProfit){
-					log.info("Arbitrage Engine has detected an after fee profit opportunity of "+profitToDisplay
-							+" on currency pair "+lowestAsk.getCurrencyUnit().toString()+"/"+highestBid.getCurrencyUnit().toString()+" on "+exchangeName);
-					
-					log.info(exchangeName+" Conversion Factors:- \tHighest Bid: "+highestBid.toString()+"\t Lowest Ask: "+lowestAsk.toString());
-					
-					try {
-						disableTrendTradeFlag = true;	//Lock out the other engine from trade execution while we arbitrage, any opportunities will still be there later.
-						executeTrade(lowestAsk,highestBid);
-						disableTrendTradeFlag = false;
-					} catch (WalletNotFoundException e) {
-						e.printStackTrace();
-					}
-				}else {
-					log.info("Arbitrage Engine cannot find a profitable opportunity on "+exchangeName+" at this time.");
-				}
-			} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
-				Socket testSock = null;
-				try {
-					log.warn("WARNING: Testing connection to "+exchangeName+" exchange");
-					testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
-				}
-				catch (java.io.IOException e1) {
-					try {
-						log.error("ERROR: Cannot connect to "+exchangeName+" exchange.");
-						TimeUnit.MINUTES.sleep(1);
-					} catch (InterruptedException e2) {
-						e2.printStackTrace();
-					}
-				}
-			} catch (Exception e) {
-				log.error("ERROR: Caught unexpected exception, shutting down "+exchangeName+" arbitrage engine now!. Details are listed below.");
-				e.printStackTrace();
 			}
+		} catch (Exception e) {
+			log.error("ERROR: Caught unexpected exception, shutting down "+exchangeName+" arbitrage engine now!. Details are listed below.");
+			e.printStackTrace();
 		}
 	}
 
 	/**
 	* Create 2 orders, a buy & a sell
-	* @param from
-	* @param to
+	* @param fromCurr
+	* @param toCurr
 	* @throws WalletNotFoundException
 	*/
-	private synchronized void executeTrade(BigMoney from, BigMoney to) throws WalletNotFoundException {
+	private synchronized void executeTrade(CurrencyUnit fromCurr, CurrencyUnit toCurr) throws WalletNotFoundException {
 		
 		PollingTradeService tradeService = ExchangeManager.getInstance(exchangeName).getExchange().getPollingTradeService();
 		
-		BigMoney lastTickAskFrom = lastTickMap.get(from.getCurrencyUnit()).getAsk();
-		BigMoney lastTickBidTo = lastTickMap.get(to.getCurrencyUnit()).getBid();
+		BigMoney lastTickAskFrom = lastTickMap.get(fromCurr).getAsk();
+		BigMoney lastTickBidTo = lastTickMap.get(toCurr).getBid();
 		BigDecimal oneDivFrom = BigDecimal.ONE.divide(lastTickAskFrom.getAmount(),16,RoundingMode.HALF_EVEN);
 		BigDecimal oneDivTo = BigDecimal.ONE.divide(lastTickBidTo.getAmount(),16,RoundingMode.HALF_EVEN);
 		
 		log.debug("Last ticker Ask price was "+lastTickAskFrom.toString());		
-		log.debug("BTC/"+from.getCurrencyUnit().toString()+" is "+oneDivFrom.toString());
+		log.debug("BTC/"+fromCurr.toString()+" is "+oneDivFrom.toString());
 		log.debug("Last ticker Bid price was "+lastTickBidTo.toString());
-		log.debug("BTC/"+to.getCurrencyUnit().toString()+" is "+oneDivTo.toString());
+		log.debug("BTC/"+toCurr.toString()+" is "+oneDivTo.toString());
 		
-		BigMoney qtyFrom = AccountManager.getInstance(exchangeName).getBalance(from.getCurrencyUnit());
+		BigMoney qtyFrom = AccountManager.getInstance(exchangeName).getBalance(fromCurr);
 		BigMoney qtyFromBTC = qtyFrom.convertedTo(CurrencyUnit.of("BTC"),oneDivFrom);
-		BigMoney qtyTo = qtyFromBTC.convertedTo(to.getCurrencyUnit(),lastTickBidTo.getAmount());
+		BigMoney qtyTo = qtyFromBTC.convertedTo(toCurr,lastTickBidTo.getAmount());
 		BigMoney qtyToBTC = qtyTo.convertedTo(CurrencyUnit.of("BTC"),oneDivTo);
 
 		if (!qtyFrom.isZero()){
-			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",from.getCurrencyUnit().toString());
-			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qtyToBTC.getAmount(),"BTC",to.getCurrencyUnit().toString());
+			MarketOrder buyOrder  = new MarketOrder(OrderType.BID,qtyFromBTC.getAmount(),"BTC",fromCurr.toString());
+			MarketOrder sellOrder = new MarketOrder(OrderType.ASK,qtyToBTC.getAmount(),"BTC",toCurr.toString());
 			
 			log.debug(exchangeName+" Arbitrage buy order is buy "+qtyFromBTC.toString()+" for "+qtyFrom.toString());
 			log.debug(exchangeName+" Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
@@ -202,55 +209,6 @@ public class ArbitrageEngine implements Runnable {
 		} else {
 			log.info("Arbitrage could not trade with a balance of "+qtyFrom.toString()+" on "+exchangeName);
 		}
-	}
-
-	
-	public synchronized BigMoney getHighestBid() throws WalletNotFoundException{
-		
-		BigMoney highFactor = BigMoney.of(baseCurrency,0.01);
-		
-		synchronized (lastTickMap) {
-			BigMoney basePrice = lastTickMap.get(baseCurrency).getLast();
-	
-			for(CurrencyUnit currency : lastTickMap.keySet()) {
-				
-				BigMoney testPrice = lastTickMap.get(currency).getBid();
-				
-				BigMoney factor = basePrice.isSameCurrency(testPrice) ?
-							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_EVEN) :
-							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_EVEN));
-
-				if(factor.getAmount().compareTo(highFactor.getAmount()) > 0 ) {
-					highFactor = factor;
-				}
-			}
-		}
-		
-		return highFactor;
-	}
-
-	public synchronized BigMoney getLowestAsk() throws WalletNotFoundException {
-		
-		BigMoney lowFactor = BigMoney.of(baseCurrency,100);
-		
-		synchronized (lastTickMap) {
-			BigMoney basePrice = lastTickMap.get(baseCurrency).getLast();
-			
-			for(CurrencyUnit currency : lastTickMap.keySet()) {
-
-				BigMoney testPrice = lastTickMap.get(currency).getAsk();
-				
-				BigMoney factor = basePrice.isSameCurrency(testPrice) ?
-							basePrice.dividedBy(testPrice.getAmount(),RoundingMode.HALF_EVEN) :
-							basePrice.convertedTo(currency,BigDecimal.ONE.divide(testPrice.getAmount(),16,RoundingMode.HALF_EVEN));							
-
-				if(factor.getAmount().compareTo(lowFactor.getAmount()) < 0 ) {
-					lowFactor = factor;
-				}
-			}
-		}
-		
-		return lowFactor;
 	}
 
 	public void addTick(ATPTicker tick) {

@@ -4,3 +4,5 @@ Re-implement MtGox Streaming ticker
 Improve ExchangeManager class
 Encrypt API secret key
 Investigate implementing a workround for CampBX not providing volume value in it's ticker
+Recode Arbitrage
+Implement TA-Lib
