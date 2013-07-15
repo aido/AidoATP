@@ -367,16 +367,19 @@ public class TrendTradingAgent implements Runnable {
 
 			//Look at bid arrow and calculate weight
 			if(riskAlgorithm.equals(1)) {
-				str.append("Conservative");
+				str.append("Low");
 				weight = (double)bidArrow / tickerSize * (double)trendArrow / tickerSize;
 			} else if(riskAlgorithm.equals(2)) {
-				str.append("High");
+				str.append("Medium");
 				weight = (double)(bidArrow + trendArrow) / tickerSize;
 			} else if(riskAlgorithm.equals(3)) {
+				str.append("High");
+				weight = (double)1;
+			} else if(riskAlgorithm.equals(4)) {
 				str.append("Maximum");
 				weight = (double)1;
 			} else {
-				// illegal value <1 or >3
+				// illegal value <1 or >4
 				str.append("Conservative (Default)");
 				weight = (double)bidArrow / tickerSize * (double)trendArrow / tickerSize;
 			}
@@ -413,7 +416,10 @@ public class TrendTradingAgent implements Runnable {
 			if(balanceBTC != null && maxBTC != null && minBTC != null) {
 				if(!balanceBTC.isZero()) {
 					BigMoney qtyToSell;
-					BigDecimal bigWeight = new BigDecimal(weight / Math.pow(2, asksInARow.get(localCurrency)));
+					if(!riskAlgorithm.equals(4)) {
+						weight = weight / Math.pow(2, asksInARow.get(localCurrency));
+					}
+					BigDecimal bigWeight = new BigDecimal(weight);
 					if(riskAlgorithm.equals(1)) {
 						qtyToSell = balanceBTC.multipliedBy(bigWeight);
 					}else {
@@ -473,16 +479,19 @@ public class TrendTradingAgent implements Runnable {
 
 			//Look at ask arrow and calculate weight
 			if(riskAlgorithm.equals(1)) {
-				str.append("Conservative");
+				str.append("Low");
 				weight = (double)askArrow / tickerSize * (double)trendArrow / tickerSize;
 			} else if(riskAlgorithm.equals(2)) {
-				str.append("High");
+				str.append("Medium");
 				weight = (double)(askArrow + trendArrow) / tickerSize;
 			} else if(riskAlgorithm.equals(3)) {
 				str.append("Maximum");
 				weight = (double)1;
+			} else if(riskAlgorithm.equals(4)) {
+				str.append("Maximum");
+				weight = (double)1;
 			} else {
-				// illegal value <1 or >3
+				// illegal value <1 or >4
 				str.append("Conservative (Default)");
 				weight = (double)askArrow / tickerSize * (double)trendArrow / tickerSize;
 			}
@@ -521,7 +530,10 @@ public class TrendTradingAgent implements Runnable {
 
 				if(!balanceLocal.isZero()) {
 					BigMoney qtyToBuy;
-					BigDecimal bigWeight = new BigDecimal(weight / Math.pow(2, bidsInARow.get(localCurrency)));
+					if(!riskAlgorithm.equals(4)) {
+						weight = weight / Math.pow(2, bidsInARow.get(localCurrency));
+					}
+					BigDecimal bigWeight = new BigDecimal(weight);
 					if(riskAlgorithm.equals(1)) {
 						qtyToBuy = balanceLocal.multipliedBy(bigWeight);
 					}else {

@@ -126,32 +126,35 @@ Once we have decided to buy or sell, then we look at the ask, bid and trend arro
 Risk
 ====
 
-The user has a choice of conservative, high or maximun risk trading.
+The user has a choice of low, medium, high or maximun risk trading.
 
 The Trend Observer calculates the Advance/Decline spread for ask, bid and last prices to give a askArrow, bidArrow and trendArrow values. These values are then used to calculate a weight.
 
-The weight is calculated one of two ways based on the choice of high risk or conservative and compared to stop loss value. If the calculated weight is above the stop loss value, weight is reduced to the configured stop loss value.
+The weight is calculated one of two ways based on the choice of risk and compared to stop loss value. If the calculated weight is above the stop loss value, weight is reduced to the configured stop loss value.
 
 Here's how the weight is calculated for Bid/Buy:
 
 	if(algorithm == 1) {
-		//Conservative
+		//Low
 		weight = (askArrow / tickerSize) * (trendArrow / tickerSize);
 	} else if(algorithm == 2) {
-		//High
+		//Medium
 		weight = (askArrow + trendArrow) / tickerSize;
 	} else if(algorithm == 3) {
-		//Maximum
+		//High
+		weight = 1;
+	} else if(algorithm == 4) {
+		//Maximum - Exponential reduction of trade amount disabled
 		weight = 1;
 	} else {
-		// illegal value <1 or >3
+		// illegal value <1 or >4
 		// Conservative (Default)
 		weight = (askArrow / tickerSize) * (trendArrow / tickerSize);
 	}
-	
+
 Ask/Sell weight is calulated in a similar way.
 			
-Algorithm 1 is conservative risk, algorithm 2 is high risk and algorithm 3 is maximum risk.
+Algorithm 1 is low risk, algorithm 2 is medium risk, algorithm 3 is high risk and algorithm 4 is maximum. Maximum risk has the same weight calulation as high risk. Maximum risk disables the exponential reduction in trade amount along a trend i.e. trade all the way up or down a trend until you have either all BTC or all fiat (depending on trend direction)
 
 Exchanges
 =========

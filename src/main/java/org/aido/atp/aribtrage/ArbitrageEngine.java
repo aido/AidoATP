@@ -82,7 +82,7 @@ public class ArbitrageEngine implements Runnable {
 					if (currArray[v].equals(currArray[w])) {
 						rate = (double)1;
 					} else {
-						rate = lastTickMap.get(currArray[v]).getAsk().getAmount().divide(lastTickMap.get(currArray[w]).getBid().getAmount(),RoundingMode.HALF_EVEN).doubleValue();
+						rate = lastTickMap.get(currArray[v]).getBid().getAmount().divide(lastTickMap.get(currArray[w]).getAsk().getAmount(),RoundingMode.HALF_EVEN).doubleValue();
 					}
 					DirectedEdge de = new DirectedEdge(v, w, -Math.log(rate));
 					G.addEdge(de);
@@ -92,13 +92,20 @@ public class ArbitrageEngine implements Runnable {
 			// find negative cycle
 			BellmanFordSP spt = new BellmanFordSP(G, 0);
 			if (spt.hasNegativeCycle()) {
-				for (DirectedEdge de : spt.negativeCycle()) {
+//					double stake = AccountManager.getInstance(exchangeName).getBalance(currArray[de.from()]).getAmount().doubleValue();
+					double stake = 1000;
+
+					for (DirectedEdge de : spt.negativeCycle()) {
 					double fee = Double.parseDouble(Application.getInstance().getConfig("TradingFee"));
 					double targetProfit = Double.parseDouble(Application.getInstance().getConfig("TargetProfit"));
 					
 					// Temporary value for testing purposes until I figure out how the hell to calculate profit
 					double profit = 100;
 					double profitAfterFee = profit - (fee * 2);
+					
+					log.debug("Stake from: "+ stake + currArray[de.from()].toString());
+					stake *= Math.exp(-de.weight());
+					log.debug("Stake to: "+ stake + currArray[de.to()].toString());
 
 					NumberFormat percentFormat = NumberFormat.getPercentInstance();
 					percentFormat.setMaximumFractionDigits(8);
